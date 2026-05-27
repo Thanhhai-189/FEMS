@@ -1,0 +1,114 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Default deny catch-all
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Auth helpers
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isAdmin() {
+      return isSignedIn() && (
+        exists(/databases/$(database)/documents/admins/$(request.auth.uid)) || 
+        request.auth.token.email == "thanhhaihvkt@gmail.com"
+      );
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-\\.]+$');
+    }
+
+    // Entity shapes
+    function isValidTeacher(data) {
+      return data.id is string && data.id.size() <= 128 
+          && data.code is string && data.code.size() <= 50
+          && data.name is string && data.name.size() <= 100
+          && data.email is string && data.email.size() <= 100
+          && data.department is string && data.department.size() <= 100
+          && data.rank is string && (data.rank == 'GS' || data.rank == 'PGS' || data.rank == 'TS' || data.rank == 'ThS' || data.rank == 'CN')
+          && data.position is string && data.position.size() <= 150
+          && data.status is string && (data.status == 'A' || data.status == 'I')
+          && data.reductionRate is number;
+    }
+
+    function isValidTeachingLog(data) {
+      return data.id is string && data.id.size() <= 128
+          && data.teacherId is string && data.teacherId.size() <= 128
+          && data.subjectCode is string && data.subjectCode.size() <= 50
+          && data.subjectName is string && data.subjectName.size() <= 150
+          && data.className is string && data.className.size() <= 50
+          && data.credits is number
+          && data.studentCount is number
+          && data.coefficient is number
+          && data.actualHours is number
+          && data.convertedHours is number
+          && data.semester is string && data.semester.size() <= 10
+          && data.academicYear is string && data.academicYear.size() <= 20;
+    }
+
+    function isValidResearchLog(data) {
+      return data.id is string && data.id.size() <= 128
+          && data.teacherId is string && data.teacherId.size() <= 128
+          && data.title is string && data.title.size() <= 250
+          && data.type is string && data.type.size() <= 50
+          && data.role is string && data.role.size() <= 50
+          && data.points is number
+          && data.convertedHours is number
+          && data.publicationYear is string && data.publicationYear.size() <= 10
+          && data.period is string && data.period.size() <= 50
+          && data.journalOrOrganization is string && data.journalOrOrganization.size() <= 200
+          && data.status is string && (data.status == 'pending' || data.status == 'approved' || data.status == 'rejected');
+    }
+
+    // 1. Admins Collection
+    match /admins/{adminId} {
+      allow read: if isSignedIn();
+      allow write: if isAdmin();
+    }
+
+    // 2. Teachers Collection
+    match /teachers/{teacherId} {
+      allow read, list: if isSignedIn();
+      allow create: if (isAdmin() || isOwner(teacherId)) && isValidTeacher(request.resource.data) && isValidId(teacherId);
+      allow update: if (isAdmin() || isOwner(teacherId)) && isValidTeacher(request.resource.data) && isValidId(teacherId);
+      allow delete: if isAdmin();
+    }
+
+    // 3. Teaching Logs Collection
+    match /teaching_logs/{logId} {
+      allow read, list: if isSignedIn();
+      allow create: if (isAdmin() || isOwner(request.resource.data.teacherId)) && isValidTeachingLog(request.resource.data) && isValidId(logId);
+      allow update: if (isAdmin() || isOwner(resource.data.teacherId)) && isValidTeachingLog(request.resource.data) && isValidId(logId);
+      allow delete: if isAdmin() || isOwner(resource.data.teacherId);
+    }
+
+    // 4. Research Logs Collection
+    match /research_logs/{logId} {
+      allow read, list: if isSignedIn();
+      allow create: if (isAdmin() || isOwner(request.resource.data.teacherId)) && isValidResearchLog(request.resource.data) && isValidId(logId);
+      allow update: if (isAdmin() || isOwner(resource.data.teacherId)) && isValidResearchLog(request.resource.data) && isValidId(logId);
+      allow delete: if isAdmin() || isOwner(resource.data.teacherId);
+    }
+
+    // 5. Rank Norms Collection
+    match /rank_norms/{rankId} {
+      allow read, list: if isSignedIn();
+      allow write: if isAdmin() && isValidId(rankId);
+    }
+
+    // 6. Academic Years Collection
+    match /academic_years/{yearId} {
+      allow read, list: if isSignedIn();
+      allow write: if isAdmin() && isValidId(yearId);
+    }
+  }
+}

@@ -1,0 +1,112 @@
+{
+  "entities": {
+    "Teacher": {
+      "title": "Teacher",
+      "description": "Thông tin chi tiết giảng viên",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "ID định danh giảng viên, khớp với auth UID hoặc GVxx" },
+        "code": { "type": "string", "description": "Mã giảng viên" },
+        "name": { "type": "string", "description": "Họ và tên giảng viên" },
+        "email": { "type": "string", "description": "Địa chỉ Email" },
+        "department": { "type": "string", "description": "Bộ môn trực thuộc" },
+        "rank": { "type": "string", "enum": ["GS", "PGS", "TS", "ThS", "CN"], "description": "Học hàm học vị" },
+        "position": { "type": "string", "description": "Chức vụ hoặc vị trí công tác" },
+        "status": { "type": "string", "enum": ["A", "I"], "description": "Trạng thái hoạt động" },
+        "reductionRate": { "type": "number", "description": "Tỷ lệ giảm trừ định mức" },
+        "startYear": { "type": "number" },
+        "pedagogyCertYear": { "type": "string" },
+        "languageCert": { "type": "string" },
+        "itCert": { "type": "string" },
+        "unitExperience": { "type": "string" }
+      },
+      "required": ["id", "code", "name", "email", "department", "rank", "position", "status", "reductionRate"]
+    },
+    "TeachingLog": {
+      "title": "TeachingLog",
+      "description": "Bản ghi giờ giảng dạy",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "teacherId": { "type": "string" },
+        "subjectCode": { "type": "string" },
+        "subjectName": { "type": "string" },
+        "className": { "type": "string" },
+        "credits": { "type": "number" },
+        "studentCount": { "type": "number" },
+        "type": { "type": "string", "enum": ["theoretical", "practical", "project", "master_thesis", "phd_instruction"] },
+        "coefficient": { "type": "number" },
+        "actualHours": { "type": "number" },
+        "convertedHours": { "type": "number" },
+        "semester": { "type": "string", "enum": ["HK1", "HK2", "HK3"] },
+        "academicYear": { "type": "string" }
+      },
+      "required": ["id", "teacherId", "subjectCode", "subjectName", "className", "credits", "studentCount", "type", "coefficient", "actualHours", "convertedHours", "semester", "academicYear"]
+    },
+    "ResearchLog": {
+      "title": "ResearchLog",
+      "description": "Minh chứng công trình nghiên cứu khoa học",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "teacherId": { "type": "string" },
+        "title": { "type": "string" },
+        "type": { "type": "string", "enum": ["isi_scopus_q1", "isi_scopus_q2_q4", "international_journal", "national_journal_075", "national_journal_05", "book_compilation", "patent", "project_national", "project_ministry", "project_university", "student_research_guide"] },
+        "role": { "type": "string", "enum": ["main", "co_author", "leader", "member"] },
+        "points": { "type": "number" },
+        "convertedHours": { "type": "number" },
+        "publicationYear": { "type": "string" },
+        "period": { "type": "string" },
+        "journalOrOrganization": { "type": "string" },
+        "status": { "type": "string", "enum": ["pending", "approved", "rejected"] },
+        "notes": { "type": "string" }
+      },
+      "required": ["id", "teacherId", "title", "type", "role", "points", "convertedHours", "publicationYear", "period", "journalOrOrganization", "status"]
+    },
+    "RankNorm": {
+      "title": "RankNorm",
+      "description": "Định mức giờ giảng và NCKH cho học hàm/học vị",
+      "type": "object",
+      "properties": {
+        "rank": { "type": "string", "enum": ["GS", "PGS", "TS", "ThS", "CN"] },
+        "rankName": { "type": "string" },
+        "teachingNorm": { "type": "number" },
+        "researchNorm": { "type": "number" }
+      },
+      "required": ["rank", "rankName", "teachingNorm", "researchNorm"]
+    },
+    "AcademicYearConfig": {
+      "title": "AcademicYearConfig",
+      "description": "Năm học hoạt động",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "year": { "type": "string" },
+        "isActive": { "type": "boolean" }
+      },
+      "required": ["id", "year", "isActive"]
+    }
+  },
+  "firestore": {
+    "/teachers/{teacherId}": {
+      "schema": "Teacher",
+      "description": "Danh sách giảng viên của Khoa"
+    },
+    "/teaching_logs/{logId}": {
+      "schema": "TeachingLog",
+      "description": "Theo dõi tổng số giờ giảng của các giảng viên"
+    },
+    "/research_logs/{logId}": {
+      "schema": "ResearchLog",
+      "description": "Khai báo minh chứng nghiên cứu khoa học giảng viên"
+    },
+    "/rank_norms/{rankId}": {
+      "schema": "RankNorm",
+      "description": "Cấu hình định mức giờ giảng theo thâm niên học hàm"
+    },
+    "/academic_years/{yearId}": {
+      "schema": "AcademicYearConfig",
+      "description": "Cấu hình các năm học tuyển sinh"
+    }
+  }
+}

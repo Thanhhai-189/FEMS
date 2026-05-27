@@ -1,0 +1,6 @@
+{
+  "name": "Hệ thống Quản lý Giờ giảng và NCKH Giáo viên",
+  "description": "Hệ thống quản lý, giám sát định mức giảng dạy và nghiên cứu khoa học dành cho bộ môn, khoa giáo viên với các chỉ số báo cáo chi tiết.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
