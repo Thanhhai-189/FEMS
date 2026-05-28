@@ -223,7 +223,7 @@ export default function TeachingHoursTab({
               placeholder="Môn học, mã lớp, tên giảng viên..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="text-xs w-full border border-slate-200 rounded-lg pl-9 pr-3 py-2 focus:outline-hidden focus:ring-2 focus:ring-blue-500 bg-slate-50 font-medium placeholder:text-slate-400"
+              className="text-[13px] w-full border border-slate-200 rounded-lg pl-9 pr-3 py-2 focus:outline-hidden focus:ring-2 focus:ring-blue-500 bg-slate-50 font-medium placeholder:text-slate-400"
             />
           </div>
 
@@ -232,7 +232,7 @@ export default function TeachingHoursTab({
             value={selectedTeacherId}
             disabled={!isAdmin}
             onChange={(e) => setSelectedTeacherId(e.target.value)}
-            className={`text-xs border border-slate-200 rounded-lg px-3 py-2 focus:outline-hidden focus:ring-2 focus:ring-blue-500 bg-slate-50 font-medium ${!isAdmin ? 'opacity-70 cursor-not-allowed' : ''}`}
+            className={`text-[13px] border border-slate-200 rounded-lg px-3 py-2 focus:outline-hidden focus:ring-2 focus:ring-blue-500 bg-slate-50 font-medium ${!isAdmin ? 'opacity-70 cursor-not-allowed' : ''}`}
           >
             {isAdmin && <option value="all">Tất cả giảng viên</option>}
             {teachers.map(t => (
@@ -244,7 +244,7 @@ export default function TeachingHoursTab({
           <select
             value={selectedSemester}
             onChange={(e) => setSelectedSemester(e.target.value)}
-            className="text-xs border border-slate-200 rounded-lg px-3 py-2 focus:outline-hidden focus:ring-2 focus:ring-blue-500 bg-slate-50 font-medium"
+            className="text-[13px] border border-slate-200 rounded-lg px-3 py-2 focus:outline-hidden focus:ring-2 focus:ring-blue-500 bg-slate-50 font-medium"
           >
             <option value="all">Tất cả Học kỳ</option>
             <option value="HK1">Học kỳ 1</option>
@@ -255,7 +255,7 @@ export default function TeachingHoursTab({
 
         <button
           onClick={openAddModal}
-          className="inline-flex items-center justify-center gap-1.5 bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white font-bold text-xs px-4 py-2 rounded-lg shadow-sm cursor-pointer transition-all self-start lg:self-auto"
+          className="inline-flex items-center justify-center gap-1.5 bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white font-bold text-[13px] px-4 py-2 rounded-lg shadow-sm cursor-pointer transition-all self-start lg:self-auto"
         >
           <Plus className="w-4 h-4" />
           Khai báo giờ giảng dạy
@@ -283,7 +283,7 @@ export default function TeachingHoursTab({
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">
             <thead>
-              <tr className="bg-slate-50/75 border-b border-slate-100 text-xs font-semibold text-slate-500">
+              <tr className="bg-slate-50/75 border-b border-slate-100 text-[13px] font-semibold text-slate-500">
                 <th className="py-3.5 px-4">Giảng viên</th>
                 <th className="py-3.5 px-4">Môn giảng dạy</th>
                 <th className="py-3.5 px-4">Lớp & Sĩ số</th>
@@ -298,7 +298,7 @@ export default function TeachingHoursTab({
             <tbody className="divide-y divide-slate-100">
               {filteredLogs.length === 0 ? (
                 <tr>
-                  <td colSpan={9} className="py-10 text-center text-xs text-slate-400">
+                  <td colSpan={9} className="py-10 text-center text-[13px] text-slate-400">
                     <BookOpen className="w-8 h-8 text-slate-200 mx-auto mb-2" />
                     Không có bản ghi giờ giảng nào phù hợp bộ lọc hiện tại.
                   </td>
@@ -307,7 +307,7 @@ export default function TeachingHoursTab({
                 filteredLogs.map((log) => {
                   const teacher = teachers.find(t => t.id === log.teacherId);
                   return (
-                    <tr key={log.id} className="hover:bg-slate-50/50 transition-colors text-xs items-center">
+                    <tr key={log.id} className="hover:bg-slate-50/50 transition-colors text-[13px] items-center">
                       <td className="py-3.5 px-4">
                         <div>
                           <span className="font-bold text-slate-800 block">{teacher ? teacher.name : 'N/A'}</span>
@@ -414,7 +414,7 @@ export default function TeachingHoursTab({
                       value={formTeacherId}
                       disabled={!isAdmin}
                       onChange={(e) => setFormTeacherId(e.target.value)}
-                      className={`text-xs w-full border border-slate-200 rounded-lg px-3 py-2 bg-slate-50 focus:outline-hidden focus:ring-2 focus:ring-blue-500 font-semibold ${!isAdmin ? 'opacity-70 cursor-not-allowed font-bold' : ''}`}
+                      className={`text-[13px] w-full border border-slate-200 rounded-lg px-3 py-2 bg-slate-50 focus:outline-hidden focus:ring-2 focus:ring-blue-500 font-semibold ${!isAdmin ? 'opacity-70 cursor-not-allowed font-bold' : ''}`}
                     >
                       <option value="">-- Chọn giảng viên --</option>
                       {teachers.map(t => (
@@ -433,7 +433,7 @@ export default function TeachingHoursTab({
                       placeholder="Ví dụ: Cơ sở dữ liệu phân tán"
                       value={formSubjectName}
                       onChange={(e) => setFormSubjectName(e.target.value)}
-                      className="text-xs w-full border border-slate-200 rounded-lg px-3 py-2 bg-slate-50 focus:outline-hidden focus:ring-2 focus:ring-blue-500 font-medium"
+                      className="text-[13px] w-full border border-slate-200 rounded-lg px-3 py-2 bg-slate-50 focus:outline-hidden focus:ring-2 focus:ring-blue-500 font-medium"
                     />
                   </div>
 
@@ -446,7 +446,7 @@ export default function TeachingHoursTab({
                       placeholder="Mã học phần MH101"
                       value={formSubjectCode}
                       onChange={(e) => setFormSubjectCode(e.target.value)}
-                      className="text-xs w-full border border-slate-200 rounded-lg px-3 py-2 bg-slate-50 focus:outline-hidden focus:ring-2 focus:ring-blue-500 font-mono"
+                      className="text-[13px] w-full border border-slate-200 rounded-lg px-3 py-2 bg-slate-50 focus:outline-hidden focus:ring-2 focus:ring-blue-500 font-mono"
                     />
                   </div>
 
@@ -460,7 +460,7 @@ export default function TeachingHoursTab({
                       placeholder="K68OT1"
                       value={formClassName}
                       onChange={(e) => setFormClassName(e.target.value)}
-                      className="text-xs w-full border border-slate-200 rounded-lg px-3 py-2 bg-slate-50 focus:outline-hidden focus:ring-2 focus:ring-blue-500 font-mono font-bold"
+                      className="text-[13px] w-full border border-slate-200 rounded-lg px-3 py-2 bg-slate-50 focus:outline-hidden focus:ring-2 focus:ring-blue-500 font-mono font-bold"
                     />
                   </div>
 
@@ -474,7 +474,7 @@ export default function TeachingHoursTab({
                       max="15"
                       value={formCredits}
                       onChange={(e) => setFormCredits(Number(e.target.value))}
-                      className="text-xs w-full border border-slate-200 rounded-lg px-3 py-2 bg-slate-50 focus:outline-hidden focus:ring-2 focus:ring-blue-500 font-mono font-bold"
+                      className="text-[13px] w-full border border-slate-200 rounded-lg px-3 py-2 bg-slate-50 focus:outline-hidden focus:ring-2 focus:ring-blue-500 font-mono font-bold"
                     />
                   </div>
 
@@ -485,7 +485,7 @@ export default function TeachingHoursTab({
                     <select
                       value={formType}
                       onChange={(e) => setFormType(e.target.value as TeachingType)}
-                      className="text-xs w-full border border-slate-200 rounded-lg px-3 py-2 bg-slate-50 focus:outline-hidden focus:ring-2 focus:ring-blue-500 font-medium"
+                      className="text-[13px] w-full border border-slate-200 rounded-lg px-3 py-2 bg-slate-50 focus:outline-hidden focus:ring-2 focus:ring-blue-500 font-medium"
                     >
                       <option value="theoretical">Lý thuyết tiêu chuẩn</option>
                       <option value="practical">Thực hành / Thí nghiệm</option>
@@ -505,7 +505,7 @@ export default function TeachingHoursTab({
                       max="300"
                       value={formStudentCount}
                       onChange={(e) => setFormStudentCount(Number(e.target.value))}
-                      className="text-xs w-full border border-slate-200 rounded-lg px-3 py-2 bg-slate-50 focus:outline-hidden focus:ring-2 focus:ring-blue-500 font-mono font-bold"
+                      className="text-[13px] w-full border border-slate-200 rounded-lg px-3 py-2 bg-slate-50 focus:outline-hidden focus:ring-2 focus:ring-blue-500 font-mono font-bold"
                     />
                   </div>
 
@@ -516,7 +516,7 @@ export default function TeachingHoursTab({
                     <select
                       value={formSemester}
                       onChange={(e) => setFormSemester(e.target.value as 'HK1' | 'HK2' | 'HK3')}
-                      className="text-xs w-full border border-slate-200 rounded-lg px-3 py-2 bg-slate-50 focus:outline-hidden focus:ring-2 focus:ring-blue-500 font-medium"
+                      className="text-[13px] w-full border border-slate-200 rounded-lg px-3 py-2 bg-slate-50 focus:outline-hidden focus:ring-2 focus:ring-blue-500 font-medium"
                     >
                       <option value="HK1">Học kỳ 1</option>
                       <option value="HK2">Học kỳ 2</option>
@@ -531,7 +531,7 @@ export default function TeachingHoursTab({
                     <select
                       value={formYear}
                       onChange={(e) => setFormYear(e.target.value)}
-                      className="text-xs w-full border border-slate-200 rounded-lg px-3 py-2 bg-slate-50 focus:outline-hidden focus:ring-2 focus:ring-blue-500 font-medium"
+                      className="text-[13px] w-full border border-slate-200 rounded-lg px-3 py-2 bg-slate-50 focus:outline-hidden focus:ring-2 focus:ring-blue-500 font-medium"
                     >
                       {academicYears.map(y => (
                         <option key={y.id} value={y.year}>{y.year}</option>
@@ -541,7 +541,7 @@ export default function TeachingHoursTab({
                 </div>
 
                 {/* Automation highlight card */}
-                <div className="bg-blue-50/50 rounded-xl p-3.5 border border-blue-100 flex gap-3 text-xs shadow-2xs">
+                <div className="bg-blue-50/50 rounded-xl p-3.5 border border-blue-100 flex gap-3 text-[13px] shadow-2xs">
                   <Sparkles className="w-5 h-5 text-blue-600 shrink-0 mt-0.5" />
                   <div className="space-y-1.5 flex-1">
                     <span className="font-bold text-blue-950 block select-none">Hệ thống tính toán tự động:</span>
@@ -585,13 +585,13 @@ export default function TeachingHoursTab({
                   <button
                     type="button"
                     onClick={() => setIsModalOpen(false)}
-                    className="border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 font-semibold text-xs px-4 py-2 rounded-lg cursor-pointer transition-colors"
+                    className="border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 font-semibold text-[13px] px-4 py-2 rounded-lg cursor-pointer transition-colors"
                   >
                     Hủy bỏ
                   </button>
                   <button
                     type="submit"
-                    className="bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white font-bold text-xs px-4 py-2 rounded-lg shadow-xs cursor-pointer transition-colors"
+                    className="bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white font-bold text-[13px] px-4 py-2 rounded-lg shadow-xs cursor-pointer transition-colors"
                   >
                     Lưu giờ giảng
                   </button>
@@ -615,7 +615,7 @@ export default function TeachingHoursTab({
                 </div>
                 <div className="space-y-1.5 flex-1">
                   <h3 className="text-sm font-extrabold text-slate-800">Xác nhận xóa giờ giảng</h3>
-                  <p className="text-xs text-slate-500 leading-relaxed">
+                  <p className="text-[13px] text-slate-500 leading-relaxed">
                     Bạn có chắc chắn muốn xóa hồ sơ giảng dạy môn <strong className="text-slate-800">"{logToDelete.subject}"</strong> của lớp <strong className="text-slate-800">"{logToDelete.className}"</strong>?
                   </p>
                   <p className="text-[11px] text-slate-400 font-medium">
@@ -626,13 +626,13 @@ export default function TeachingHoursTab({
               <div className="mt-5 pt-3.5 border-t border-slate-100 flex justify-end gap-2.5">
                 <button
                   onClick={() => setLogToDelete(null)}
-                  className="px-3 py-1.5 border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 font-bold text-xs rounded-lg cursor-pointer transition-colors"
+                  className="px-3 py-1.5 border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 font-bold text-[13px] rounded-lg cursor-pointer transition-colors"
                 >
                   Hủy bỏ
                 </button>
                 <button
                   onClick={executeDelete}
-                  className="px-3.5 py-1.5 bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs rounded-lg cursor-pointer shadow-xs transition-colors"
+                  className="px-3.5 py-1.5 bg-rose-600 hover:bg-rose-700 text-white font-bold text-[13px] rounded-lg cursor-pointer shadow-xs transition-colors"
                 >
                   Xác nhận Xóa
                 </button>

@@ -40,21 +40,25 @@ export default function StatsDashboard({ teachers, teachingLogs, researchLogs, r
       // Find norms
       const normConfig = rankNorms.find(rn => rn.rank === teacher.rank) || { teachingNorm: 200, researchNorm: 150 };
       
+      const isStaff = teacher.position && (teacher.position.toLowerCase() === 'nhân viên' || teacher.position.toLowerCase().includes('nhân viên'));
+
       // For teaching norms, we use the user's specific position and party-based 280 hours baseline configuration
-      const posNorm = getTeacherTeachingNorm(teacher.position, teacher.party);
+      const posNorm = isStaff ? { percent: 0, hours: 0 } : getTeacherTeachingNorm(teacher.position, teacher.party);
       const baseTeachingNorm = posNorm.hours;
       
       // Giảm định mức giảng dạy theo tỉ lệ khi nhập vào ô "% Giảm trừ định mức (0-100%)" (hoặc 100% nếu inactive)
       const actualReduction = teacher.status === 'I' ? 100 : (teacher.reductionRate || 0);
-      const adjustedTeachingNorm = Math.round(baseTeachingNorm * (1 - actualReduction / 100));
+      const adjustedTeachingNorm = isStaff ? 0 : Math.round(baseTeachingNorm * (1 - actualReduction / 100));
       
       // Base research norm is 600 administrative hours
-      const baseResearchNorm = 600;
+      const baseResearchNorm = isStaff ? 0 : 600;
       
       // Research norm reduction: 
       // "không giảm trừ đối với người giữ chức, nhưng vẫn giảm trừ đối với người không thực hiện full năm, ví dụ nghỉ đẻ, công tác, tính theo % giảm"
       let researchReduction = 0;
-      if (teacher.status === 'I') {
+      if (isStaff) {
+        researchReduction = 100;
+      } else if (teacher.status === 'I') {
         // "ví dụ nghỉ đẻ, công tác" - status Inactive
         researchReduction = teacher.reductionRate > 0 ? teacher.reductionRate : 50;
       } else {
@@ -71,26 +75,26 @@ export default function StatsDashboard({ teachers, teachingLogs, researchLogs, r
           researchReduction = 0; // "không giảm trừ đối với người giữ chức"
         }
       }
-      const adjustedResearchNorm = Math.round(baseResearchNorm * (1 - researchReduction / 100));
+      const adjustedResearchNorm = isStaff ? 0 : Math.round(baseResearchNorm * (1 - researchReduction / 100));
 
       // Calculate total logged teaching hours
-      const teachingSum = teachingLogs
+      const teachingSum = Math.round(teachingLogs
         .filter(log => log.teacherId === teacher.id && log.academicYear === academicYear)
-        .reduce((sum, log) => sum + log.convertedHours, 0);
+        .reduce((sum, log) => sum + log.convertedHours, 0) * 10) / 10;
 
       // Calculate total approved research hours
-      const researchSum = researchLogs
-        .filter(log => log.teacherId === teacher.id && log.status === 'approved')
-        .reduce((sum, log) => sum + log.convertedHours, 0);
+      const researchSum = Math.round(researchLogs
+        .filter(log => log.teacherId === teacher.id && log.status === 'approved' && log.period === academicYear)
+        .reduce((sum, log) => sum + log.convertedHours, 0) * 10) / 10;
 
-      const teachingProgress = adjustedTeachingNorm === 0 ? 100 : Math.min(100, (teachingSum / adjustedTeachingNorm) * 100);
-      const researchProgress = adjustedResearchNorm === 0 ? 100 : Math.min(100, (researchSum / adjustedResearchNorm) * 100);
+      const teachingProgress = isStaff ? 100 : (adjustedTeachingNorm === 0 ? 100 : Math.min(100, (teachingSum / adjustedTeachingNorm) * 100));
+      const researchProgress = isStaff ? 100 : (adjustedResearchNorm === 0 ? 100 : Math.min(100, (researchSum / adjustedResearchNorm) * 100));
 
-      const teachingStatus = teachingSum >= adjustedTeachingNorm ? 'completed' : 'pending';
-      const researchStatus = researchSum >= adjustedResearchNorm ? 'completed' : 'pending';
+      const teachingStatus = isStaff ? 'completed' : (teachingSum >= adjustedTeachingNorm ? 'completed' : 'pending');
+      const researchStatus = isStaff ? 'completed' : (researchSum >= adjustedResearchNorm ? 'completed' : 'pending');
 
-      const overTimeHours = Math.max(0, teachingSum - adjustedTeachingNorm);
-      const overTimeResearch = Math.max(0, researchSum - adjustedResearchNorm);
+      const overTimeHours = Math.max(0, Math.round((teachingSum - adjustedTeachingNorm) * 10) / 10);
+      const overTimeResearch = Math.max(0, Math.round((researchSum - adjustedResearchNorm) * 10) / 10);
 
       return {
         teacher,
@@ -109,7 +113,7 @@ export default function StatsDashboard({ teachers, teachingLogs, researchLogs, r
         researchStatus,
         overTimeHours,
         overTimeResearch,
-        totalOvertime: overTimeHours + overTimeResearch,
+        totalOvertime: Math.round((overTimeHours + overTimeResearch) * 10) / 10,
         metBoth: teachingSum >= adjustedTeachingNorm && researchSum >= adjustedResearchNorm
       };
     });
@@ -128,7 +132,13 @@ export default function StatsDashboard({ teachers, teachingLogs, researchLogs, r
     let teachingCompleteCount = 0;
     let researchCompleteCount = 0;
 
-    filteredTeacherStats.forEach(stat => {
+    const eligibleStats = filteredTeacherStats.filter(stat => {
+      const pos = stat.teacher.position?.toLowerCase() || '';
+      return !pos.includes('nhân viên');
+    });
+    const eligibleCount = eligibleStats.length;
+
+    eligibleStats.forEach(stat => {
       totalTeachingHours += stat.teachingSum;
       totalResearchHours += stat.researchSum;
       if (stat.metBoth) metBothCount++;
@@ -136,16 +146,16 @@ export default function StatsDashboard({ teachers, teachingLogs, researchLogs, r
       if (stat.researchSum >= stat.norms.adjustedResearch) researchCompleteCount++;
     });
 
-    const activeCount = filteredTeachers.filter(t => t.status === 'A').length;
+    const activeCount = filteredTeachers.filter(t => t.status === 'A' && !(t.position?.toLowerCase() || '').includes('nhân viên')).length;
 
     return {
-      teachersCount: filteredTeachers.length,
+      teachersCount: eligibleCount,
       activeCount,
       totalTeachingHours: Math.round(totalTeachingHours * 10) / 10,
       totalResearchHours: Math.round(totalResearchHours * 10) / 10,
-      metBothRate: filteredTeachers.length ? Math.round((metBothCount / filteredTeachers.length) * 100) : 0,
-      teachingCompleteRate: filteredTeachers.length ? Math.round((teachingCompleteCount / filteredTeachers.length) * 100) : 0,
-      researchCompleteRate: filteredTeachers.length ? Math.round((researchCompleteCount / filteredTeachers.length) * 100) : 0,
+      metBothRate: eligibleCount ? Math.round((metBothCount / eligibleCount) * 100) : 0,
+      teachingCompleteRate: eligibleCount ? Math.round((teachingCompleteCount / eligibleCount) * 100) : 0,
+      researchCompleteRate: eligibleCount ? Math.round((researchCompleteCount / eligibleCount) * 100) : 0,
     };
   }, [filteredTeacherStats, filteredTeachers]);
 
@@ -189,7 +199,7 @@ export default function StatsDashboard({ teachers, teachingLogs, researchLogs, r
     };
 
     researchLogs
-      .filter(log => filteredTeacherIds.has(log.teacherId) && log.status === 'approved')
+      .filter(log => filteredTeacherIds.has(log.teacherId) && log.status === 'approved' && log.period === academicYear)
       .forEach(log => {
         let categoryName = '';
         
@@ -248,7 +258,7 @@ export default function StatsDashboard({ teachers, teachingLogs, researchLogs, r
       hours: Math.round(val.hours * 10) / 10,
       percentage: Math.round((val.hours / totalHours) * 100)
     }));
-  }, [researchLogs, filteredTeacherIds]);
+  }, [researchLogs, filteredTeacherIds, academicYear]);
 
   // Top overall workload teachers (teaching + research)
   const topTeachers = useMemo(() => {
@@ -266,17 +276,17 @@ export default function StatsDashboard({ teachers, teachingLogs, researchLogs, r
             <BarChart3 className="w-5 h-5 text-blue-600" />
             Tổng quan dữ liệu năm học {academicYear}
           </h2>
-          <p className="text-xs text-slate-500 mt-1">
+          <p className="text-[13px] text-slate-500 mt-1">
             Hiển thị mức độ hoàn thành chỉ tiêu định mức giảng dạy & nghiên cứu khoa học của tập thể giảng viên.
           </p>
         </div>
         <div className="flex items-center gap-2 self-start md:self-center">
           <Filter className="w-4 h-4 text-slate-400" />
-          <span className="text-xs font-medium text-slate-600">Bộ môn:</span>
+          <span className="text-[13px] font-medium text-slate-600">Bộ môn:</span>
           <select
             value={selectedDepartment}
             onChange={(e) => setSelectedDepartment(e.target.value)}
-            className="text-xs border border-slate-200 rounded-lg px-3 py-1.5 bg-slate-50 font-medium focus:outline-hidden focus:ring-2 focus:ring-blue-500"
+            className="text-[13px] border border-slate-200 rounded-lg px-3 py-1.5 bg-slate-50 font-medium focus:outline-hidden focus:ring-2 focus:ring-blue-500"
           >
             <option value="all">Tất cả Bộ môn</option>
             {departments.filter(d => d !== 'all').map(dept => (
@@ -298,11 +308,11 @@ export default function StatsDashboard({ teachers, teachingLogs, researchLogs, r
             <Users className="w-6 h-6" />
           </div>
           <div>
-            <span className="text-xs text-slate-500 block font-medium">Giảng viên nhân sự</span>
+            <span className="text-[13px] text-slate-500 block font-medium">Giảng viên nhân sự</span>
             <span className="text-2xl font-bold text-slate-800">
               {aggregateMetrics.teachersCount}
             </span>
-            <span className="text-[10px] text-emerald-600 font-medium bg-emerald-50 px-1.5 py-0.5 rounded ml-1.5">
+            <span className="text-[13px] text-emerald-600 font-medium bg-emerald-50 px-1.5 py-0.5 rounded ml-1.5">
               {aggregateMetrics.activeCount} Hoạt động
             </span>
           </div>
@@ -319,11 +329,11 @@ export default function StatsDashboard({ teachers, teachingLogs, researchLogs, r
             <BookOpen className="w-6 h-6" />
           </div>
           <div>
-            <span className="text-xs text-slate-500 block font-medium">Tổng giờ giảng quy đổi</span>
+            <span className="text-[13px] text-slate-500 block font-medium">Tổng giờ giảng quy đổi</span>
             <span className="text-2xl font-bold text-slate-800">
               {aggregateMetrics.totalTeachingHours}
             </span>
-            <span className="text-[10px] text-slate-500 block mt-0.5">
+            <span className="text-[13px] text-slate-500 block mt-0.5">
               Đạt tiêu chuẩn {aggregateMetrics.teachingCompleteRate}% GV
             </span>
           </div>
@@ -340,11 +350,11 @@ export default function StatsDashboard({ teachers, teachingLogs, researchLogs, r
             <FileCode2 className="w-6 h-6" />
           </div>
           <div>
-            <span className="text-xs text-slate-500 block font-medium">Giờ NCKH phê duyệt</span>
+            <span className="text-[13px] text-slate-500 block font-medium">Giờ NCKH phê duyệt</span>
             <span className="text-2xl font-bold text-slate-800">
               {aggregateMetrics.totalResearchHours}
             </span>
-            <span className="text-[10px] text-slate-500 block mt-0.5">
+            <span className="text-[13px] text-slate-500 block mt-0.5">
               Đạt tiêu chuẩn {aggregateMetrics.researchCompleteRate}% GV
             </span>
           </div>
@@ -361,11 +371,11 @@ export default function StatsDashboard({ teachers, teachingLogs, researchLogs, r
             <Award className="w-6 h-6" />
           </div>
           <div>
-            <span className="text-xs text-slate-500 block font-medium">Đạt kép giảng & NCKH</span>
+            <span className="text-[13px] text-slate-500 block font-medium">Đạt kép giảng & NCKH</span>
             <span className="text-2xl font-bold text-slate-800">
               {aggregateMetrics.metBothRate}%
             </span>
-            <span className="text-[10px] text-slate-500 block mt-0.5">
+            <span className="text-[13px] text-slate-500 block mt-0.5">
               Giảng viên hoàn thành 100% hai định mức
             </span>
           </div>
@@ -381,7 +391,7 @@ export default function StatsDashboard({ teachers, teachingLogs, researchLogs, r
               <PieChart className="w-4 h-4 text-blue-500" />
               Cơ cấu giờ giảng dạy quy đổi
             </h3>
-            <span className="text-xs bg-blue-50 text-blue-700 px-2 py-0.5 rounded-full font-semibold">
+            <span className="text-[13px] bg-blue-50 text-blue-700 px-2 py-0.5 rounded-full font-semibold">
               {aggregateMetrics.totalTeachingHours} giờ chuẩn
             </span>
           </div>
@@ -415,8 +425,8 @@ export default function StatsDashboard({ teachers, teachingLogs, researchLogs, r
                   <div key={item.key} className="flex items-center gap-2 bg-slate-50 p-2.5 rounded-lg">
                     <div className={`w-3 h-3 rounded-xs ${colors[idx % colors.length]}`} />
                     <div className="flex-1 min-w-0">
-                      <span className="text-xs font-semibold text-slate-700 block truncate">{item.name}</span>
-                      <span className="text-[10px] text-slate-400 font-mono">
+                      <span className="text-[13px] font-semibold text-slate-700 block truncate">{item.name}</span>
+                      <span className="text-[13px] text-slate-400 font-mono">
                         {item.value} giờ quy đổi ({item.percentage}%)
                       </span>
                     </div>
@@ -434,7 +444,7 @@ export default function StatsDashboard({ teachers, teachingLogs, researchLogs, r
               <TrendingUp className="w-4 h-4 text-emerald-500" />
               Thống kê nghiên cứu khoa học đạt
             </h3>
-            <span className="text-xs bg-emerald-50 text-emerald-700 px-2 py-0.5 rounded-full font-semibold">
+            <span className="text-[13px] bg-emerald-50 text-emerald-700 px-2 py-0.5 rounded-full font-semibold">
               {aggregateMetrics.totalResearchHours} giờ NCKH
             </span>
           </div>
@@ -461,7 +471,7 @@ export default function StatsDashboard({ teachers, teachingLogs, researchLogs, r
               ];
               return (
                 <div key={category.key} className={`border-l-4 ${borderColors[idx % 7]} pl-3 py-1 bg-slate-50 rounded-r-lg`}>
-                  <div className="flex justify-between text-xs font-semibold text-slate-700">
+                  <div className="flex justify-between text-[13px] font-semibold text-slate-700">
                     <span>{category.name}</span>
                     <span className="font-mono">{category.hours} giờ ({category.count} CT)</span>
                   </div>
@@ -485,15 +495,15 @@ export default function StatsDashboard({ teachers, teachingLogs, researchLogs, r
         <div className="px-5 py-4 border-b border-slate-100 flex justify-between items-center">
           <div>
             <h3 className="text-sm font-bold text-slate-800 font-display">Bảng theo dõi định mức theo Giảng viên</h3>
-            <p className="text-[11px] text-slate-500 mt-0.5 font-medium">Giám sát tổng số giờ giảng và hoàn thành công tác nghiên cứu khoa học khoa dạt định mức</p>
+            <p className="text-[13px] text-slate-500 mt-0.5 font-medium">Giám sát tổng số giờ giảng và hoàn thành công tác nghiên cứu khoa học khoa dạt định mức</p>
           </div>
-          <span className="text-xs text-slate-500 font-semibold">Hiện có {filteredTeacherStats.length} giảng viên</span>
+          <span className="text-[13px] text-slate-500 font-semibold">Hiện có {filteredTeacherStats.length} giảng viên</span>
         </div>
 
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">
             <thead>
-              <tr className="bg-slate-50/75 border-b border-slate-100 text-xs font-semibold text-slate-500">
+              <tr className="bg-slate-50/75 border-b border-slate-100 text-[13px] font-semibold text-slate-500">
                 <th className="py-3 px-4 w-12 text-center">STT</th>
                 <th className="py-3 px-4">Giảng viên</th>
                 <th className="py-3 px-4">Chức danh / Học hàm</th>
@@ -508,27 +518,27 @@ export default function StatsDashboard({ teachers, teachingLogs, researchLogs, r
                 const totalWork = stat.teachingSum + stat.researchSum;
                 return (
                   <tr key={stat.teacher.id} className="hover:bg-slate-50/50 transition-colors">
-                    <td className="py-3.5 px-4 text-center text-xs font-semibold font-mono text-slate-400">
+                    <td className="py-3.5 px-4 text-center text-[13px] font-semibold font-mono text-slate-400">
                       {idx + 1}
                     </td>
                     <td className="py-3.5 px-4">
                       <div>
-                        <span className="text-xs font-bold text-slate-800 block">{stat.teacher.name}</span>
-                        <span className="text-[10px] text-slate-400 font-mono">{stat.teacher.department}</span>
+                        <span className="text-[13px] font-bold text-slate-800 block">{stat.teacher.name}</span>
+                        <span className="text-[13px] text-slate-400 font-mono">{stat.teacher.department}</span>
                       </div>
                     </td>
                     <td className="py-3.5 px-4">
                       <div className="flex flex-col gap-0.5">
-                        <span className="text-xs text-slate-600 font-medium">
+                        <span className="text-[13px] text-slate-600 font-medium">
                           {getRankString(stat.teacher.rank)}
                         </span>
                         {stat.teacher.reductionRate > 0 && (
-                          <span className="text-[9px] text-blue-600 font-bold bg-blue-50 px-1 py-0.2 rounded w-fit">
+                          <span className="text-[13px] text-blue-600 font-bold bg-blue-50 px-1 py-0.2 rounded w-fit">
                             Giảm {stat.teacher.reductionRate}% {stat.teacher.status === 'I' ? '(Nghỉ học/Công tác)' : `(${stat.teacher.position})`}
                           </span>
                         )}
                         {stat.teacher.status === 'I' && stat.teacher.reductionRate === 0 && (
-                          <span className="text-[9px] text-amber-600 font-bold bg-amber-50 px-1 py-0.2 rounded w-fit">
+                          <span className="text-[13px] text-amber-600 font-bold bg-amber-50 px-1 py-0.2 rounded w-fit">
                             Tạm dừng hoạt động
                           </span>
                         )}
@@ -536,7 +546,7 @@ export default function StatsDashboard({ teachers, teachingLogs, researchLogs, r
                     </td>
                     <td className="py-3.5 px-4">
                       <div className="space-y-1">
-                        <div className="flex justify-between text-[11px]">
+                        <div className="flex justify-between text-[13px]">
                           <span className="font-semibold text-slate-700">
                             {stat.teachingSum} <span className="text-slate-400 font-normal">/ {stat.norms.adjustedTeaching}h</span>
                           </span>
@@ -558,7 +568,7 @@ export default function StatsDashboard({ teachers, teachingLogs, researchLogs, r
                     </td>
                     <td className="py-3.5 px-4">
                       <div className="space-y-1">
-                        <div className="flex justify-between text-[11px]">
+                        <div className="flex justify-between text-[13px]">
                           <span className="font-semibold text-slate-700">
                             {stat.researchSum} <span className="text-slate-400 font-normal">/ {stat.norms.adjustedResearch}h</span>
                           </span>
@@ -581,22 +591,22 @@ export default function StatsDashboard({ teachers, teachingLogs, researchLogs, r
                     <td className="py-3.5 px-4 text-center">
                       <div className="flex justify-center">
                         {stat.metBoth ? (
-                          <span className="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-1 rounded-full border border-emerald-100 shadow-3xs">
+                          <span className="inline-flex items-center gap-1 text-[13px] font-bold text-emerald-700 bg-emerald-50 px-2 py-1 rounded-full border border-emerald-100 shadow-3xs">
                             <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
                             ĐẠT CHUẨN
                           </span>
                         ) : (
-                          <span className="inline-flex items-center gap-1 text-[10px] font-bold text-amber-700 bg-amber-50 px-2 py-1 rounded-full border border-amber-100">
+                          <span className="inline-flex items-center gap-1 text-[13px] font-bold text-amber-700 bg-amber-50 px-2 py-1 rounded-full border border-amber-100">
                             <AlertTriangle className="w-3.5 h-3.5 text-amber-500" />
                             CHƯA ĐỦ
                           </span>
                         )}
                       </div>
                     </td>
-                    <td className="py-3.5 px-4 text-right font-mono text-xs font-bold">
+                    <td className="py-3.5 px-4 text-right font-mono text-[13px] font-bold">
                       {stat.totalOvertime > 0 ? (
                         <span className="text-blue-600 flex items-center justify-end gap-0.5">
-                          +{stat.totalOvertime} <span className="text-[10px] text-slate-400 font-normal">giờ</span>
+                          +{stat.totalOvertime} <span className="text-[13px] text-slate-400 font-normal">giờ</span>
                         </span>
                       ) : (
                         <span className="text-slate-300">-</span>
@@ -614,14 +624,14 @@ export default function StatsDashboard({ teachers, teachingLogs, researchLogs, r
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Top 5 teachers leaderboard */}
         <div className="bg-white p-5 rounded-xl border border-slate-100 shadow-xs lg:col-span-2">
-          <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-4 flex items-center gap-2">
+          <h3 className="text-[13px] font-bold text-slate-400 uppercase tracking-wider mb-4 flex items-center gap-2">
             🥇 Gương mặt nghiên cứu & giảng dạy tiêu biểu
           </h3>
-          <div className="divide-y divide-slate-100">
+          <div className="divide-y divide-slate-100 text-[13px]">
             {topTeachers.map((stat, idx) => (
               <div key={stat.teacher.id} className="flex items-center justify-between py-3 first:pt-0 last:pb-0">
                 <div className="flex items-center gap-3">
-                  <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs ${
+                  <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-[13px] ${
                     idx === 0 ? 'bg-amber-100 text-amber-700' :
                     idx === 1 ? 'bg-slate-100 text-slate-700' :
                     idx === 2 ? 'bg-orange-100 text-orange-700' : 'bg-slate-50 text-slate-500'
@@ -629,22 +639,22 @@ export default function StatsDashboard({ teachers, teachingLogs, researchLogs, r
                     {idx + 1}
                   </div>
                   <div>
-                    <span className="text-xs font-bold text-slate-800 block">{stat.teacher.name}</span>
-                    <span className="text-[10px] text-slate-400">{stat.teacher.position} • {stat.teacher.department}</span>
+                    <span className="text-[13px] font-bold text-slate-800 block">{stat.teacher.name}</span>
+                    <span className="text-[13px] text-slate-400">{stat.teacher.position} • {stat.teacher.department}</span>
                   </div>
                 </div>
 
                 <div className="flex items-center gap-6">
                   <div className="text-right">
-                    <span className="text-[10px] text-slate-400 block">Thực tế giảng dạy</span>
-                    <span className="text-xs font-bold text-slate-700">{stat.teachingSum} giờ quy đổi</span>
+                    <span className="text-[13px] text-slate-400 block">Thực tế giảng dạy</span>
+                    <span className="text-[13px] font-bold text-slate-700">{stat.teachingSum} giờ quy đổi</span>
                   </div>
                   <div className="text-right">
-                    <span className="text-[10px] text-slate-400 block">Nghiên cứu khoa học</span>
-                    <span className="text-xs font-bold text-slate-700">{stat.researchSum} giờ chuẩn</span>
+                    <span className="text-[13px] text-slate-400 block">Nghiên cứu khoa học</span>
+                    <span className="text-[13px] font-bold text-slate-700">{stat.researchSum} giờ chuẩn</span>
                   </div>
                   <div className="w-16 text-right">
-                    <span className="text-xs font-extrabold text-blue-600 font-mono">+{stat.totalOvertime}h</span>
+                    <span className="text-[13px] font-extrabold text-blue-600 font-mono">+{stat.totalOvertime}h</span>
                   </div>
                 </div>
               </div>
@@ -654,29 +664,29 @@ export default function StatsDashboard({ teachers, teachingLogs, researchLogs, r
 
         {/* Dynamic conversion table guidelines */}
         <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
-          <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3 font-display">
+          <h3 className="text-[13px] font-bold text-slate-400 uppercase tracking-wider mb-3 font-display">
              Hệ số quy đổi giờ giảng chuẩn
           </h3>
           <div className="space-y-2.5">
-            <div className="flex justify-between items-center text-xs p-2.5 bg-slate-50 rounded-lg">
+            <div className="flex justify-between items-center text-[13px] p-2.5 bg-slate-50 rounded-lg">
               <span className="font-semibold text-slate-700">Lý thuyết tiêu chuẩn</span>
-              <span className="font-mono bg-blue-50 text-blue-700 px-1.5 py-0.5 rounded font-bold text-[10px]">1.0 x số tiết</span>
+              <span className="font-mono bg-blue-50 text-blue-700 px-1.5 py-0.5 rounded font-bold text-[13px]">1.0 x số tiết</span>
             </div>
-            <div className="flex justify-between items-center text-xs p-2.5 bg-slate-50 rounded-lg">
+            <div className="flex justify-between items-center text-[13px] p-2.5 bg-slate-50 rounded-lg">
               <span className="font-semibold text-slate-700">Lớp học đông (&gt;80 SV)</span>
-              <span className="font-mono bg-sky-50 text-sky-700 px-1.5 py-0.5 rounded font-bold text-[10px]">1.2 x số tiết</span>
+              <span className="font-mono bg-sky-50 text-sky-700 px-1.5 py-0.5 rounded font-bold text-[13px]">1.2 x số tiết</span>
             </div>
-            <div className="flex justify-between items-center text-xs p-2.5 bg-slate-50 rounded-lg">
+            <div className="flex justify-between items-center text-[13px] p-2.5 bg-slate-50 rounded-lg">
               <span className="font-semibold text-slate-700">Lớp siêu đông (&gt;120 SV)</span>
-              <span className="font-mono bg-violet-50 text-violet-700 px-1.5 py-0.5 rounded font-bold text-[10px]">1.5 x số tiết</span>
+              <span className="font-mono bg-violet-50 text-violet-700 px-1.5 py-0.5 rounded font-bold text-[13px]">1.5 x số tiết</span>
             </div>
-            <div className="flex justify-between items-center text-xs p-2.5 bg-slate-50 rounded-lg">
+            <div className="flex justify-between items-center text-[13px] p-2.5 bg-slate-50 rounded-lg">
               <span className="font-semibold text-slate-700">Thực hành / Thí nghiệm</span>
-              <span className="font-mono bg-emerald-50 text-emerald-700 px-1.5 py-0.5 rounded font-bold text-[10px]">0.67 x số tiết</span>
+              <span className="font-mono bg-emerald-50 text-emerald-700 px-1.5 py-0.5 rounded font-bold text-[13px]">0.67 x số tiết</span>
             </div>
-            <div className="flex justify-between items-center text-xs p-2.5 bg-slate-50 rounded-lg">
+            <div className="flex justify-between items-center text-[13px] p-2.5 bg-slate-50 rounded-lg">
               <span className="font-semibold text-slate-700">Hướng dẫn Đồ án / KLTN</span>
-              <span className="font-mono bg-amber-50 text-amber-700 px-1.5 py-0.5 rounded font-bold text-[10px]">15.0h / SV hướng dẫn</span>
+              <span className="font-mono bg-amber-50 text-amber-700 px-1.5 py-0.5 rounded font-bold text-[13px]">15.0h / SV hướng dẫn</span>
             </div>
           </div>
         </div>

@@ -210,17 +210,17 @@ export default function LoginScreen({ teachers, onLogin }: LoginScreenProps) {
 
           <div className="space-y-2">
             <h2 className="text-lg font-bold text-slate-800">Xác thực địa chỉ Email</h2>
-            <p className="text-xs text-slate-500 leading-relaxed font-semibold">
+            <p className="text-[13px] text-slate-500 leading-relaxed font-semibold">
               Hệ thống Khoa Ô tô yêu cầu xác nhận email để bảo mật thông tin hồ sơ của giảng viên.
             </p>
           </div>
 
-          <div className="bg-blue-50/50 border border-blue-100 rounded-xl p-4 text-xs font-semibold text-blue-800 leading-relaxed text-left">
+          <div className="bg-blue-50/50 border border-blue-100 rounded-xl p-4 text-[13px] font-semibold text-blue-800 leading-relaxed text-left">
             {verifyMessage}
           </div>
 
           {error && (
-            <div className="bg-rose-50 border border-rose-200 text-rose-800 p-3 rounded-lg text-xs font-medium flex gap-2 items-center text-left">
+            <div className="bg-rose-50 border border-rose-200 text-rose-800 p-3 rounded-lg text-[13px] font-medium flex gap-2 items-center text-left">
               <AlertCircle className="w-4 h-4 shrink-0 text-rose-500" />
               <span>{error}</span>
             </div>
@@ -230,14 +230,14 @@ export default function LoginScreen({ teachers, onLogin }: LoginScreenProps) {
             <button
               onClick={handleCheckReloadVerification}
               disabled={loading}
-              className="w-full inline-flex items-center justify-center gap-1.5 bg-blue-600 hover:bg-blue-700 active:bg-blue-800 disabled:bg-blue-300 text-white font-bold text-xs py-2.5 px-4 rounded-xl cursor-pointer shadow-md shadow-blue-500/10 transition-colors"
+              className="w-full inline-flex items-center justify-center gap-1.5 bg-blue-600 hover:bg-blue-700 active:bg-blue-800 disabled:bg-blue-300 text-white font-bold text-[13px] py-2.5 px-4 rounded-xl cursor-pointer shadow-md shadow-blue-500/10 transition-colors"
             >
               Tôi đã xác nhận email
             </button>
             <button
               onClick={handleResendEmail}
               disabled={loading}
-              className="w-full inline-flex items-center justify-center gap-1.5 bg-slate-100 hover:bg-slate-200 disabled:bg-slate-50 text-slate-700 font-bold text-xs py-2.5 px-4 rounded-xl cursor-pointer border border-slate-200 transition-colors"
+              className="w-full inline-flex items-center justify-center gap-1.5 bg-slate-100 hover:bg-slate-200 disabled:bg-slate-50 text-slate-700 font-bold text-[13px] py-2.5 px-4 rounded-xl cursor-pointer border border-slate-200 transition-colors"
             >
               Gửi lại email
             </button>
@@ -245,7 +245,7 @@ export default function LoginScreen({ teachers, onLogin }: LoginScreenProps) {
 
           <button
             onClick={() => { setNeedsVerification(false); setError(''); }}
-            className="text-xs text-slate-400 hover:text-slate-600 font-semibold underline block mx-auto cursor-pointer"
+            className="text-[13px] text-slate-400 hover:text-slate-600 font-semibold underline block mx-auto cursor-pointer"
           >
             Quay lại đăng nhập
           </button>
@@ -275,10 +275,10 @@ export default function LoginScreen({ teachers, onLogin }: LoginScreenProps) {
             </div>
             <div>
               <h1 className="font-extrabold text-base tracking-wide font-display">FEMS-PORTAL</h1>
-              <p className="text-xs text-slate-400 font-medium">Hệ thống phân bộ giảng dạy chuẩn khoa</p>
+              <p className="text-[13px] text-slate-400 font-medium">Hệ thống phân bộ giảng dạy chuẩn khoa</p>
             </div>
           </div>
-          <p className="mt-4 text-[11px] text-slate-300 antialiased font-medium leading-relaxed">
+          <p className="mt-4 text-[13px] text-slate-300 antialiased font-medium leading-relaxed">
             Hệ thống phân bổ chỉ tiêu định mức giờ dạy, theo dõi hoạt động nghiên cứu khoa học chuyên nghiệp chạy trên cơ sở dữ liệu Firebase Firestore.
           </p>
         </div>
@@ -289,7 +289,7 @@ export default function LoginScreen({ teachers, onLogin }: LoginScreenProps) {
             <button
               onClick={() => { setActiveTab('signin'); setError(''); }}
               type="button"
-              className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+              className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg text-[13px] font-bold transition-all cursor-pointer ${
                 activeTab === 'signin'
                   ? 'bg-white text-slate-900 shadow-xs'
                   : 'text-slate-500 hover:text-slate-900'
@@ -301,7 +301,7 @@ export default function LoginScreen({ teachers, onLogin }: LoginScreenProps) {
             <button
               onClick={() => { setActiveTab('signup'); setError(''); }}
               type="button"
-              className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+              className={`flex-1 flex-items-center justify-center gap-2 py-2.5 rounded-lg text-[13px] font-bold transition-all cursor-pointer ${
                 activeTab === 'signup'
                   ? 'bg-white text-slate-900 shadow-xs'
                   : 'text-slate-500 hover:text-slate-900'
@@ -313,7 +313,7 @@ export default function LoginScreen({ teachers, onLogin }: LoginScreenProps) {
           </div>
 
           {error && (
-            <div className="bg-rose-50 border border-rose-200 text-rose-800 p-3 rounded-lg text-xs font-medium flex gap-2 items-center">
+            <div className="bg-rose-50 border border-rose-200 text-rose-800 p-3 rounded-lg text-[13px] font-medium flex gap-2 items-center">
               <AlertCircle className="w-4 h-4 shrink-0 text-rose-500" />
               <span>{error}</span>
             </div>
@@ -322,7 +322,7 @@ export default function LoginScreen({ teachers, onLogin }: LoginScreenProps) {
           {activeTab === 'signin' ? (
             <form onSubmit={handleSignIn} className="space-y-4">
               <div className="space-y-1">
-                <label className="text-xs font-bold text-slate-600 block">Địa chỉ Email</label>
+                <label className="text-[13px] font-bold text-slate-600 block">Địa chỉ Email</label>
                 <div className="relative">
                   <Mail className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
                   <input
@@ -331,13 +331,13 @@ export default function LoginScreen({ teachers, onLogin }: LoginScreenProps) {
                     placeholder="email@example.com"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    className="text-xs w-full border border-slate-200 rounded-lg pl-9 pr-3 py-2.5 bg-slate-50 focus:outline-hidden focus:ring-2 focus:ring-blue-500 font-semibold"
+                    className="text-[13px] w-full border border-slate-200 rounded-lg pl-9 pr-3 py-2.5 bg-slate-50 focus:outline-hidden focus:ring-2 focus:ring-blue-500 font-semibold"
                   />
                 </div>
               </div>
 
               <div className="space-y-1">
-                <label className="text-xs font-bold text-slate-600 block">Mật khẩu</label>
+                <label className="text-[13px] font-bold text-slate-600 block">Mật khẩu</label>
                 <div className="relative">
                   <Lock className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
                   <input
@@ -346,7 +346,7 @@ export default function LoginScreen({ teachers, onLogin }: LoginScreenProps) {
                     placeholder="••••••••"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    className="text-xs w-full border border-slate-200 rounded-lg pl-9 pr-10 py-2.5 bg-slate-50 focus:outline-hidden focus:ring-2 focus:ring-blue-500 font-semibold"
+                    className="text-[13px] w-full border border-slate-200 rounded-lg pl-9 pr-10 py-2.5 bg-slate-50 focus:outline-hidden focus:ring-2 focus:ring-blue-500 font-semibold"
                   />
                   <button
                     type="button"
@@ -361,7 +361,7 @@ export default function LoginScreen({ teachers, onLogin }: LoginScreenProps) {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full inline-flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 active:bg-blue-800 disabled:bg-blue-300 text-white font-bold text-xs py-2.5 px-4 rounded-xl cursor-pointer shadow-md shadow-blue-500/10 transition-colors"
+                className="w-full inline-flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 active:bg-blue-800 disabled:bg-blue-300 text-white font-bold text-[13px] py-2.5 px-4 rounded-xl cursor-pointer shadow-md shadow-blue-500/10 transition-colors"
               >
                 {loading ? 'Đang xác thực bảo mật...' : 'Đăng nhập hệ thống'}
                 <ArrowRight className="w-4 h-4" />
@@ -370,7 +370,7 @@ export default function LoginScreen({ teachers, onLogin }: LoginScreenProps) {
           ) : (
             <form onSubmit={handleSignUp} className="space-y-4">
               <div className="space-y-1">
-                <label className="text-xs font-bold text-slate-600 block">Họ và tên giảng viên <span className="text-rose-500">*</span></label>
+                <label className="text-[13px] font-bold text-slate-600 block">Họ và tên giảng viên <span className="text-rose-500">*</span></label>
                 <div className="relative">
                   <User className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
                   <input
@@ -379,18 +379,18 @@ export default function LoginScreen({ teachers, onLogin }: LoginScreenProps) {
                     placeholder="Nguyễn Văn A"
                     value={fullName}
                     onChange={(e) => setFullName(e.target.value)}
-                    className="text-xs w-full border border-slate-200 rounded-lg pl-9 pr-3 py-2.5 bg-slate-50 focus:outline-hidden focus:ring-2 focus:ring-blue-500 font-semibold"
+                    className="text-[13px] w-full border border-slate-200 rounded-lg pl-9 pr-3 py-2.5 bg-slate-50 focus:outline-hidden focus:ring-2 focus:ring-blue-500 font-semibold"
                   />
                 </div>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-1">
-                  <label className="text-xs font-bold text-slate-600 block">Bộ môn trực thuộc</label>
+                  <label className="text-[13px] font-bold text-slate-600 block">Bộ môn trực thuộc</label>
                   <select
                     value={department}
                     onChange={(e) => setDepartment(e.target.value)}
-                    className="text-xs w-full border border-slate-200 rounded-lg px-3 py-2.5 bg-slate-50 focus:outline-hidden focus:ring-2 focus:ring-blue-500 font-semibold"
+                    className="text-[13px] w-full border border-slate-200 rounded-lg px-3 py-2.5 bg-slate-50 focus:outline-hidden focus:ring-2 focus:ring-blue-500 font-semibold"
                   >
                     {DEPARTMENTS.map((dept) => (
                       <option key={dept.id} value={dept.name}>{dept.name}</option>
@@ -399,11 +399,11 @@ export default function LoginScreen({ teachers, onLogin }: LoginScreenProps) {
                 </div>
 
                 <div className="space-y-1">
-                  <label className="text-xs font-bold text-slate-600 block">Học hàm / Học vị</label>
+                  <label className="text-[13px] font-bold text-slate-600 block">Học hàm / Học vị</label>
                   <select
                     value={rank}
                     onChange={(e) => setRank(e.target.value as AcademicRank)}
-                    className="text-xs w-full border border-slate-200 rounded-lg px-3 py-2.5 bg-slate-50 focus:outline-hidden focus:ring-2 focus:ring-blue-500 font-semibold"
+                    className="text-[13px] w-full border border-slate-200 rounded-lg px-3 py-2.5 bg-slate-50 focus:outline-hidden focus:ring-2 focus:ring-blue-500 font-semibold"
                   >
                     <option value="GS">Giáo sư (GS)</option>
                     <option value="PGS">Phó Giáo sư (PGS)</option>
@@ -416,11 +416,11 @@ export default function LoginScreen({ teachers, onLogin }: LoginScreenProps) {
 
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <div className="space-y-1">
-                  <label className="text-xs font-bold text-slate-600 block">Chức vụ phụ trách</label>
+                  <label className="text-[13px] font-bold text-slate-600 block">Chức vụ phụ trách</label>
                   <select
                     value={position}
                     onChange={(e) => setPosition(e.target.value)}
-                    className="text-xs w-full border border-slate-200 rounded-lg px-3 py-2.5 bg-slate-50 focus:outline-hidden focus:ring-2 focus:ring-blue-500 font-semibold"
+                    className="text-[13px] w-full border border-slate-200 rounded-lg px-3 py-2.5 bg-slate-50 focus:outline-hidden focus:ring-2 focus:ring-blue-500 font-semibold"
                   >
                     <option value="Giảng viên">Giảng viên / Trợ giảng</option>
                     <option value="Trưởng bộ môn">Trưởng bộ môn</option>
@@ -430,11 +430,11 @@ export default function LoginScreen({ teachers, onLogin }: LoginScreenProps) {
                 </div>
 
                 <div className="space-y-1">
-                  <label className="text-xs font-bold text-slate-600 block">Chức vụ Đảng</label>
+                  <label className="text-[13px] font-bold text-slate-600 block">Chức vụ Đảng</label>
                   <select
                     value={party}
                     onChange={(e) => setParty(e.target.value)}
-                    className="text-xs w-full border border-slate-200 rounded-lg px-3 py-2.5 bg-slate-50 focus:outline-hidden focus:ring-2 focus:ring-blue-500 font-semibold"
+                    className="text-[13px] w-full border border-slate-200 rounded-lg px-3 py-2.5 bg-slate-50 focus:outline-hidden focus:ring-2 focus:ring-blue-500 font-semibold"
                     disabled={position !== 'Chủ nhiệm khoa' && position !== 'Phó Chủ nhiệm khoa'}
                   >
                     <option value="Không kiêm nhiệm">Không kiêm nhiệm</option>
@@ -444,65 +444,65 @@ export default function LoginScreen({ teachers, onLogin }: LoginScreenProps) {
                 </div>
 
                 <div className="space-y-1">
-                  <label className="text-xs font-bold text-slate-600 block">Năm giảng dạy (tính thâm niên)</label>
+                  <label className="text-[13px] font-bold text-slate-600 block">Năm bắt đầu giảng dạy (tính thời gian giữ ngạch, công tác)</label>
                   <div className="relative">
                     <Calendar className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
                     <input
                       type="number"
                       value={startYear}
                       onChange={(e) => setStartYear(Number(e.target.value))}
-                      className="text-xs w-full border border-slate-200 rounded-lg pl-9 pr-3 py-2.5 bg-slate-50 focus:outline-hidden focus:ring-2 focus:ring-blue-500 font-semibold"
+                      className="text-[13px] w-full border border-slate-200 rounded-lg pl-9 pr-3 py-2.5 bg-slate-50 focus:outline-hidden focus:ring-2 focus:ring-blue-500 font-semibold"
                     />
                   </div>
                 </div>
               </div>
 
               <div className="bg-slate-50 rounded-xl p-4 border border-slate-150 space-y-3">
-                <h3 className="text-xs font-extrabold text-blue-800 flex items-center gap-1.5 border-b border-slate-200 pb-1.5">
+                <h3 className="text-[13px] font-extrabold text-blue-800 flex items-center gap-1.5 border-b border-slate-200 pb-1.5">
                   <CheckCircle2 className="w-3.5 h-3.5" />
                   Chứng chỉ & Thâm niên thực thực tế
                 </h3>
                 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div className="space-y-1">
-                    <label className="text-[10px] font-bold text-slate-500 block">CC Nghiệp vụ sư phạm (năm)</label>
+                    <label className="text-[13px] font-bold text-slate-500 block">CC Nghiệp vụ sư phạm (năm)</label>
                     <input
                       type="text"
                       placeholder="Ví dụ: 2021"
                       value={pedagogyCertYear}
                       onChange={(e) => setPedagogyCertYear(e.target.value)}
-                      className="text-xs w-full border border-slate-200 rounded-lg px-2.5 py-1.5 bg-white focus:outline-hidden focus:ring-2 focus:ring-blue-500 font-medium"
+                      className="text-[13px] w-full border border-slate-200 rounded-lg px-2.5 py-1.5 bg-white focus:outline-hidden focus:ring-2 focus:ring-blue-500 font-medium"
                     />
                   </div>
 
                   <div className="space-y-1">
-                    <label className="text-[10px] font-bold text-slate-500 block">Chứng chỉ ngoại ngữ</label>
+                    <label className="text-[13px] font-bold text-slate-500 block">Chứng chỉ ngoại ngữ</label>
                     <input
                       type="text"
                       placeholder="Ví dụ: IELTS 6.5, TOEIC 750"
                       value={languageCert}
                       onChange={(e) => setLanguageCert(e.target.value)}
-                      className="text-xs w-full border border-slate-200 rounded-lg px-2.5 py-1.5 bg-white focus:outline-hidden focus:ring-2 focus:ring-blue-500 font-medium"
+                      className="text-[13px] w-full border border-slate-200 rounded-lg px-2.5 py-1.5 bg-white focus:outline-hidden focus:ring-2 focus:ring-blue-500 font-medium"
                     />
                   </div>
 
                   <div className="space-y-1">
-                    <label className="text-[10px] font-bold text-slate-500 block">Chứng chỉ tin học</label>
+                    <label className="text-[13px] font-bold text-slate-500 block">Chứng chỉ tin học</label>
                     <input
                       type="text"
                       placeholder="Ví dụ: MOS Excel, MOS Word"
                       value={itCert}
                       onChange={(e) => setItCert(e.target.value)}
-                      className="text-xs w-full border border-slate-200 rounded-lg px-2.5 py-1.5 bg-white focus:outline-hidden focus:ring-2 focus:ring-blue-500 font-medium"
+                      className="text-[13px] w-full border border-slate-200 rounded-lg px-2.5 py-1.5 bg-white focus:outline-hidden focus:ring-2 focus:ring-blue-500 font-medium"
                     />
                   </div>
 
                   <div className="space-y-1">
-                    <label className="text-[10px] font-bold text-slate-500 block">Thực tế đơn vị</label>
+                    <label className="text-[13px] font-bold text-slate-500 block">Thực tế đơn vị</label>
                     <select
                       value={unitExperience}
                       onChange={(e) => setUnitExperience(e.target.value)}
-                      className="text-xs w-full border border-slate-200 rounded-lg px-2.5 py-1.5 bg-white focus:outline-hidden focus:ring-2 focus:ring-blue-500 font-medium"
+                      className="text-[13px] w-full border border-slate-200 rounded-lg px-2.5 py-1.5 bg-white focus:outline-hidden focus:ring-2 focus:ring-blue-500 font-medium"
                     >
                       <option value="Cấp lữ đoàn">Cấp Lữ đoàn</option>
                       <option value="Cấp trung đoàn">Cấp Trung đoàn</option>
@@ -514,7 +514,7 @@ export default function LoginScreen({ teachers, onLogin }: LoginScreenProps) {
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 border-t border-slate-100 pt-3">
                 <div className="space-y-1">
-                  <label className="text-xs font-bold text-slate-600 block">Địa chỉ Email <span className="text-rose-500">*</span></label>
+                  <label className="text-[13px] font-bold text-slate-600 block">Địa chỉ Email <span className="text-rose-500">*</span></label>
                   <div className="relative">
                     <Mail className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
                     <input
@@ -523,13 +523,13 @@ export default function LoginScreen({ teachers, onLogin }: LoginScreenProps) {
                       placeholder="email@example.com"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
-                      className="text-xs w-full border border-slate-200 rounded-lg pl-9 pr-3 py-2.5 bg-slate-50 focus:outline-hidden focus:ring-2 focus:ring-blue-500 font-semibold"
+                      className="text-[13px] w-full border border-slate-200 rounded-lg pl-9 pr-3 py-2.5 bg-slate-50 focus:outline-hidden focus:ring-2 focus:ring-blue-500 font-semibold"
                     />
                   </div>
                 </div>
 
                 <div className="space-y-1">
-                  <label className="text-xs font-bold text-slate-600 block">Mật khẩu mới (≥6 ký tự) <span className="text-rose-500">*</span></label>
+                  <label className="text-[13px] font-bold text-slate-600 block">Mật khẩu mới (≥6 ký tự) <span className="text-rose-500">*</span></label>
                   <div className="relative">
                     <Lock className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
                     <input
@@ -538,7 +538,7 @@ export default function LoginScreen({ teachers, onLogin }: LoginScreenProps) {
                       placeholder="••••••••"
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
-                      className="text-xs w-full border border-slate-200 rounded-lg pl-9 pr-3 py-2.5 bg-slate-50 focus:outline-hidden focus:ring-2 focus:ring-blue-500 font-semibold"
+                      className="text-[13px] w-full border border-slate-200 rounded-lg pl-9 pr-3 py-2.5 bg-slate-50 focus:outline-hidden focus:ring-2 focus:ring-blue-500 font-semibold"
                     />
                   </div>
                 </div>
@@ -547,7 +547,7 @@ export default function LoginScreen({ teachers, onLogin }: LoginScreenProps) {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full inline-flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 active:bg-blue-800 disabled:bg-blue-300 text-white font-bold text-xs py-2.5 px-4 rounded-xl cursor-pointer shadow-md shadow-blue-500/10 transition-colors"
+                className="w-full inline-flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 active:bg-blue-800 disabled:bg-blue-300 text-white font-bold text-[13px] py-2.5 px-4 rounded-xl cursor-pointer shadow-md shadow-blue-500/10 transition-colors"
               >
                 Gửi mã kích hoạt & Tạo tài khoản mới
               </button>
@@ -559,7 +559,7 @@ export default function LoginScreen({ teachers, onLogin }: LoginScreenProps) {
             <div className="absolute inset-0 flex items-center">
               <div className="w-full border-t border-slate-250" />
             </div>
-            <div className="relative flex justify-center text-xs">
+            <div className="relative flex justify-center text-[13px]">
               <span className="bg-white px-3 font-extrabold text-slate-400">HOẶC TIẾP TỤC VỚI GMAIL</span>
             </div>
           </div>
@@ -567,7 +567,7 @@ export default function LoginScreen({ teachers, onLogin }: LoginScreenProps) {
           <button
             onClick={handleGoogleSignIn}
             disabled={loading}
-            className="w-full inline-flex items-center justify-center gap-2.5 bg-slate-900 border border-slate-800 text-white hover:bg-slate-850 font-bold text-xs py-3 px-4 rounded-xl cursor-pointer shadow-xs transition-colors"
+            className="w-full inline-flex items-center justify-center gap-2.5 bg-slate-900 border border-slate-800 text-white hover:bg-slate-850 font-bold text-[13px] py-3 px-4 rounded-xl cursor-pointer shadow-xs transition-colors"
           >
             <svg className="w-4 h-4" viewBox="0 0 24 24">
               <path
@@ -591,7 +591,7 @@ export default function LoginScreen({ teachers, onLogin }: LoginScreenProps) {
           </button>
 
           {/* Instruction Panel for Administrators */}
-          <div className="bg-slate-50 border border-slate-150 rounded-xl p-4 text-[10px] text-slate-500 font-medium leading-relaxed">
+          <div className="bg-slate-50 border border-slate-150 rounded-xl p-4 text-[13px] text-slate-500 font-medium leading-relaxed">
             <span className="font-extrabold text-blue-800 block mb-1 flex items-center gap-1">
               <Shield className="w-3.5 h-3.5 text-blue-600" />
               Báo cáo phân quyền Admin Khoa Ô tô:

@@ -1,4 +1,4 @@
-export type AcademicRank = 'GS' | 'PGS' | 'TS' | 'ThS' | 'CN';
+export type AcademicRank = 'GS' | 'PGS' | 'TS' | 'ThS' | 'CN' | 'KS';
 
 export interface RankNorm {
   rank: AcademicRank;
@@ -18,7 +18,9 @@ export interface Teacher {
   party?: string; // Không kiêm nhiệm, Bí thư chi bộ, Phó Bí thư chi bộ, v.v.
   status: 'A' | 'I'; // Hoạt động (Active) / Nghỉ thai sản, đi học (Inactive) - để giảm trừ định mức
   reductionRate: number; // Tỷ lệ giảm trừ định mức (%) - ví dụ làm quản lý giảm 30%, thai sản giảm 50%
-  startYear?: number; // Năm bắt đầu giảng dạy để tính thâm niên
+  startYear?: number; // Năm bắt đầu giảng dạy để tính thời gian giữ ngạch, công tác
+  masterObtainYear?: number; // Năm nhận học vị Thạc sĩ
+  phdObtainYear?: number; // Năm nhận học vị Tiến sĩ
   pedagogyCertYear?: string; // Năm cấp chứng chỉ nghiệp vụ sư phạm
   languageCert?: string; // Chứng chỉ ngoại ngữ
   itCert?: string; // Chứng chỉ tin học

@@ -27,7 +27,13 @@ import { db, auth, handleFirestoreError, OperationType, cleanDocData } from './f
 
 export default function App() {
   // Use Firebase User State & Auth Loading
-  const [currentUser, setCurrentUser] = useState<{ role: 'admin' | 'teacher'; teacherId?: string } | null>(null);
+  const [currentUser, setCurrentUser] = useState<{ 
+    role: 'admin' | 'teacher'; 
+    teacherId?: string;
+    photoURL?: string | null;
+    displayName?: string | null;
+    email?: string | null;
+  } | null>(null);
   const [authLoading, setAuthLoading] = useState(true);
 
   // Active Tab
@@ -163,20 +169,22 @@ export default function App() {
       if (firebaseUser) {
         const email = firebaseUser.email || '';
         const uid = firebaseUser.uid;
+        const photoURL = firebaseUser.photoURL;
+        const displayName = firebaseUser.displayName;
 
         if (email === 'thanhhaihvkt@gmail.com') {
-          setCurrentUser({ role: 'admin', teacherId: uid });
+          setCurrentUser({ role: 'admin', teacherId: uid, photoURL, displayName, email });
         } else {
           try {
             const docRef = doc(db, 'teachers', uid);
             const docSnap = await getDoc(docRef);
             if (docSnap.exists()) {
-              setCurrentUser({ role: 'teacher', teacherId: uid });
+              setCurrentUser({ role: 'teacher', teacherId: uid, photoURL, displayName, email });
             } else {
               // Creating a temporary or registered teacher record for newly logged-in user
               const newTeacher: Teacher = {
                 id: uid,
-                code: `GV.NLDCD.${Math.round(Math.random() * 89 + 10)}`,
+                code: 'GV-' + uid.substring(0, 4).toUpperCase(),
                 name: firebaseUser.displayName || email.split('@')[0],
                 email: email,
                 department: 'Nguyên lý Động cơ - Điện',
@@ -186,11 +194,11 @@ export default function App() {
                 reductionRate: 0,
               };
               await setDoc(doc(db, 'teachers', uid), cleanDocData(newTeacher));
-              setCurrentUser({ role: 'teacher', teacherId: uid });
+              setCurrentUser({ role: 'teacher', teacherId: uid, photoURL, displayName, email });
             }
           } catch (e) {
             console.error('Error linking/creating teacher:', e);
-            setCurrentUser({ role: 'teacher', teacherId: uid });
+            setCurrentUser({ role: 'teacher', teacherId: uid, photoURL, displayName, email });
           }
         }
       } else {
@@ -418,7 +426,7 @@ export default function App() {
     return (
       <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center p-4">
         <div className="w-10 h-10 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
-        <p className="mt-4 text-xs font-bold text-slate-500">Đang đồng bộ cơ sở dữ liệu Firebase...</p>
+        <p className="mt-4 text-[13px] font-bold text-slate-500">Đang đồng bộ cơ sở dữ liệu Firebase...</p>
       </div>
     );
   }
@@ -439,15 +447,15 @@ export default function App() {
         <div className="p-6 flex items-center gap-3 border-b border-slate-800/80 shrink-0">
           <div className="w-8 h-8 bg-blue-600 rounded flex items-center justify-center font-bold text-lg text-white font-display">F</div>
           <div className="leading-tight">
-            <h1 className="font-bold text-xs tracking-wider text-white uppercase font-display">FEMS-PORTAL</h1>
-            <p className="text-[10px] text-slate-400 font-medium font-bold text-blue-400/90 header-khoa">KHOA Ô TÔ - ĐHQG</p>
+            <h1 className="font-bold text-[13px] tracking-wider text-white uppercase font-display">TRƯỜNG SQKTQS</h1>
+            <p className="text-[13px] text-slate-400 font-medium font-bold text-blue-400/90 header-khoa">KHOA Ô TÔ </p>
           </div>
         </div>
         
         <nav className="flex-1 py-6 space-y-1 overflow-y-auto">
           <button
             onClick={() => setActiveTab('stats')}
-            className={`w-full flex items-center gap-3 px-6 py-3 border-l-4 text-xs font-semibold uppercase tracking-wider transition-all text-left cursor-pointer ${
+            className={`w-full flex items-center gap-3 px-6 py-3 border-l-4 text-[13px] font-semibold uppercase tracking-wider transition-all text-left cursor-pointer ${
               activeTab === 'stats' 
                 ? 'bg-blue-600/10 border-blue-500 text-blue-400 font-bold' 
                 : 'border-transparent text-slate-400 hover:text-white hover:bg-slate-800/30'
@@ -459,7 +467,7 @@ export default function App() {
 
           <button
             onClick={() => setActiveTab('teachers')}
-            className={`w-full flex items-center gap-3 px-6 py-3 border-l-4 text-xs font-semibold uppercase tracking-wider transition-all text-left cursor-pointer ${
+            className={`w-full flex items-center gap-3 px-6 py-3 border-l-4 text-[13px] font-semibold uppercase tracking-wider transition-all text-left cursor-pointer ${
               activeTab === 'teachers' 
                 ? 'bg-blue-600/10 border-blue-500 text-blue-400 font-bold' 
                 : 'border-transparent text-slate-400 hover:text-white hover:bg-slate-800/30'
@@ -471,7 +479,7 @@ export default function App() {
 
           <button
             onClick={() => setActiveTab('teaching')}
-            className={`w-full flex items-center gap-3 px-6 py-3 border-l-4 text-xs font-semibold uppercase tracking-wider transition-all text-left cursor-pointer ${
+            className={`w-full flex items-center gap-3 px-6 py-3 border-l-4 text-[13px] font-semibold uppercase tracking-wider transition-all text-left cursor-pointer ${
               activeTab === 'teaching' 
                 ? 'bg-blue-600/10 border-blue-500 text-blue-400 font-bold' 
                 : 'border-transparent text-slate-400 hover:text-white hover:bg-slate-800/30'
@@ -483,7 +491,7 @@ export default function App() {
 
           <button
             onClick={() => setActiveTab('research')}
-            className={`w-full flex items-center gap-3 px-6 py-3 border-l-4 text-xs font-semibold uppercase tracking-wider transition-all text-left cursor-pointer ${
+            className={`w-full flex items-center gap-3 px-6 py-3 border-l-4 text-[13px] font-semibold uppercase tracking-wider transition-all text-left cursor-pointer ${
               activeTab === 'research' 
                 ? 'bg-blue-600/10 border-blue-500 text-blue-400 font-bold' 
                 : 'border-transparent text-slate-400 hover:text-white hover:bg-slate-800/30'
@@ -495,7 +503,7 @@ export default function App() {
 
           <button
             onClick={() => setActiveTab('standards')}
-            className={`w-full flex items-center gap-3 px-6 py-3 border-l-4 text-xs font-semibold uppercase tracking-wider transition-all text-left cursor-pointer ${
+            className={`w-full flex items-center gap-3 px-6 py-3 border-l-4 text-[13px] font-semibold uppercase tracking-wider transition-all text-left cursor-pointer ${
               activeTab === 'standards' 
                 ? 'bg-blue-600/10 border-blue-500 text-blue-400 font-bold' 
                 : 'border-transparent text-slate-400 hover:text-white hover:bg-slate-800/30'
@@ -507,7 +515,7 @@ export default function App() {
 
           <button
             onClick={() => setActiveTab('account')}
-            className={`w-full flex items-center gap-3 px-6 py-3 border-l-4 text-xs font-semibold uppercase tracking-wider transition-all text-left cursor-pointer ${
+            className={`w-full flex items-center gap-3 px-6 py-3 border-l-4 text-[13px] font-semibold uppercase tracking-wider transition-all text-left cursor-pointer ${
               activeTab === 'account' 
                 ? 'bg-blue-600/10 border-blue-500 text-blue-400 font-bold' 
                 : 'border-transparent text-slate-400 hover:text-white hover:bg-slate-800/30'
@@ -523,14 +531,14 @@ export default function App() {
 
               <button
                 onClick={() => setActiveTab('settings')}
-                className={`w-full flex items-center gap-3 px-6 py-3 border-l-4 text-xs font-semibold uppercase tracking-wider transition-all text-left cursor-pointer ${
+                className={`w-full flex items-center gap-3 px-6 py-3 border-l-4 text-[13px] font-semibold uppercase tracking-wider transition-all text-left cursor-pointer ${
                   activeTab === 'settings' 
                     ? 'bg-blue-600/10 border-blue-500 text-blue-400 font-bold' 
                     : 'border-transparent text-slate-400 hover:text-white hover:bg-slate-800/30'
                 }`}
               >
                 <Settings className="w-4 h-4 shrink-0" />
-                <span>Cài đặt</span>
+                <span>Cấu hình định mức</span>
               </button>
             </>
           )}
@@ -538,32 +546,60 @@ export default function App() {
 
         <div className="p-4 border-t border-slate-800/80 space-y-3.5 shrink-0 bg-slate-900">
           <div className="flex items-center gap-2 px-2">
-            {currentUser?.role === 'admin' ? (
-              <>
-                <div className="w-7 h-7 rounded-lg bg-blue-600 flex items-center justify-center font-extrabold text-[11px] text-white font-mono">AD</div>
-                <div className="text-xs min-w-0 flex-1">
-                  <p className="font-bold text-slate-200 truncate">Admin Quản lý</p>
-                  <p className="text-[9px] text-slate-400">Trưởng khoa / Trợ lý khoa</p>
-                </div>
-              </>
-            ) : (
-              <>
-                <div className="w-7 h-7 rounded-lg bg-emerald-600 flex items-center justify-center font-extrabold text-[11px] text-white font-mono">GV</div>
-                <div className="text-xs min-w-0 flex-1">
-                  <p className="font-bold text-slate-200 truncate">
-                    {teachers.find(t => t.id === currentUser?.teacherId)?.name || 'Giảng viên'}
-                  </p>
-                  <p className="text-[9px] text-slate-400 truncate">Giảng viên Khoa</p>
-                </div>
-              </>
-            )}
+            {(() => {
+              const matchedTeacher = teachers.find(t => 
+                t.id === currentUser?.teacherId || 
+                (currentUser?.email && t.email && t.email.toLowerCase() === currentUser.email.toLowerCase())
+              );
+              const displayName = matchedTeacher?.name || currentUser?.displayName || (currentUser?.role === 'admin' ? 'Admin Quản lý' : 'Giảng viên');
+              
+              if (currentUser?.role === 'admin') {
+                return (
+                  <>
+                    {currentUser?.photoURL ? (
+                      <img 
+                        src={currentUser.photoURL} 
+                        alt="Avatar" 
+                        className="w-7 h-7 rounded-lg object-cover bg-slate-850"
+                        referrerPolicy="no-referrer"
+                      />
+                    ) : (
+                      <div className="w-7 h-7 rounded-lg bg-blue-600 flex items-center justify-center font-extrabold text-[13px] text-white font-mono">AD</div>
+                    )}
+                    <div className="text-[13px] min-w-0 flex-1">
+                      <p className="font-bold text-slate-200 truncate">{displayName}</p>
+                      <p className="text-[13px] text-slate-400">Trưởng khoa / Trợ lý khoa</p>
+                    </div>
+                  </>
+                );
+              } else {
+                return (
+                  <>
+                    {currentUser?.photoURL ? (
+                      <img 
+                        src={currentUser.photoURL} 
+                        alt="Avatar" 
+                        className="w-7 h-7 rounded-lg object-cover bg-slate-850"
+                        referrerPolicy="no-referrer"
+                      />
+                    ) : (
+                      <div className="w-7 h-7 rounded-lg bg-emerald-600 flex items-center justify-center font-extrabold text-[13px] text-white font-mono">GV</div>
+                    )}
+                    <div className="text-[13px] min-w-0 flex-1">
+                      <p className="font-bold text-slate-200 truncate">{displayName}</p>
+                      <p className="text-[13px] text-slate-400 truncate">Giảng viên Khoa</p>
+                    </div>
+                  </>
+                );
+              }
+            })()}
           </div>
           <button
             onClick={handleLogout}
-            className="w-full flex items-center justify-center gap-2 bg-slate-800 hover:bg-rose-950/40 hover:text-rose-400 text-slate-400 font-bold text-[10px] py-1.5 px-3 rounded-lg border border-slate-700/60 cursor-pointer transition-colors"
+            className="w-full flex items-center justify-center gap-2 bg-slate-800 hover:bg-rose-950/40 hover:text-rose-400 text-slate-400 font-bold text-[13px] py-1.5 px-3 rounded-lg border border-slate-700/60 cursor-pointer transition-colors"
           >
             <LogOut className="w-3.5 h-3.5" />
-            Đăng xuất tài khoản
+            Đăng xuất
           </button>
         </div>
       </aside>
@@ -579,20 +615,20 @@ export default function App() {
             <div>
               <h2 className="text-sm sm:text-lg font-bold text-slate-800 flex items-center gap-2">
                 Hệ thống Quản lý Giờ giảng & NCKH
-                <span className="text-[10px] bg-blue-50 text-blue-700 px-1.5 py-0.2 rounded font-mono font-bold">FEMS v1.2</span>
+                <span className="text-[13px] bg-blue-50 text-blue-700 px-1.5 py-0.2 rounded font-mono font-bold">FEMS v1.2</span>
               </h2>
-              <p className="text-[10px] text-slate-400 font-medium hidden sm:block">Khoa Ô tô - Trường Đại học Kỹ thuật và Công nghệ</p>
+              <p className="text-[13px] text-slate-400 font-medium hidden sm:block">Khoa Ô tô - Trường Sĩ quan kỹ thuật quân sự</p>
             </div>
           </div>
 
           <div className="flex items-center gap-3">
-            <div className="flex items-center gap-1.5 text-xs text-slate-500 font-semibold bg-slate-50 border border-slate-200 rounded-lg py-1.5 px-3">
+            <div className="flex items-center gap-1.5 text-[13px] text-slate-500 font-semibold bg-slate-50 border border-slate-200 rounded-lg py-1.5 px-3">
               <Calendar className="w-3.5 h-3.5 text-blue-500" />
-              <span className="hidden xs:inline">Năm học tác vụ: </span>
+              <span className="hidden xs:inline">Năm học: </span>
               <span className="font-bold text-slate-800 font-mono">{selectedYear}</span>
             </div>
             
-            <div className="hidden md:flex items-center gap-1 text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2.5 py-1.5 rounded-full border border-emerald-100 shadow-3xs">
+            <div className="hidden md:flex items-center gap-1 text-[13px] font-bold text-emerald-700 bg-emerald-50 px-2.5 py-1.5 rounded-full border border-emerald-100 shadow-3xs">
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
               Local OK
             </div>
@@ -605,7 +641,7 @@ export default function App() {
             <div className="flex gap-1.5">
               <button
                 onClick={() => setActiveTab('stats')}
-                className={`text-[11px] font-bold px-3 py-1.5 rounded-lg transition-all shrink-0 cursor-pointer ${
+                className={`text-[13px] font-bold px-3 py-1.5 rounded-lg transition-all shrink-0 cursor-pointer ${
                   activeTab === 'stats' 
                     ? 'bg-blue-600 text-white' 
                     : 'text-slate-400 hover:text-white'
@@ -615,7 +651,7 @@ export default function App() {
               </button>
               <button
                 onClick={() => setActiveTab('teachers')}
-                className={`text-[11px] font-bold px-3 py-1.5 rounded-lg transition-all shrink-0 cursor-pointer ${
+                className={`text-[13px] font-bold px-3 py-1.5 rounded-lg transition-all shrink-0 cursor-pointer ${
                   activeTab === 'teachers' 
                     ? 'bg-blue-600 text-white' 
                     : 'text-slate-400 hover:text-white'
@@ -625,7 +661,7 @@ export default function App() {
               </button>
               <button
                 onClick={() => setActiveTab('teaching')}
-                className={`text-[11px] font-bold px-3 py-1.5 rounded-lg transition-all shrink-0 cursor-pointer ${
+                className={`text-[13px] font-bold px-3 py-1.5 rounded-lg transition-all shrink-0 cursor-pointer ${
                   activeTab === 'teaching' 
                     ? 'bg-blue-600 text-white' 
                     : 'text-slate-400 hover:text-white'
@@ -635,7 +671,7 @@ export default function App() {
               </button>
               <button
                 onClick={() => setActiveTab('research')}
-                className={`text-[11px] font-bold px-3 py-1.5 rounded-lg transition-all shrink-0 cursor-pointer ${
+                className={`text-[13px] font-bold px-3 py-1.5 rounded-lg transition-all shrink-0 cursor-pointer ${
                   activeTab === 'research' 
                     ? 'bg-blue-600 text-white' 
                     : 'text-slate-400 hover:text-white'
@@ -645,7 +681,7 @@ export default function App() {
               </button>
               <button
                 onClick={() => setActiveTab('standards')}
-                className={`text-[11px] font-bold px-3 py-1.5 rounded-lg transition-all shrink-0 cursor-pointer ${
+                className={`text-[13px] font-bold px-3 py-1.5 rounded-lg transition-all shrink-0 cursor-pointer ${
                   activeTab === 'standards' 
                     ? 'bg-blue-600 text-white' 
                     : 'text-slate-400 hover:text-white'
@@ -655,7 +691,7 @@ export default function App() {
               </button>
               <button
                 onClick={() => setActiveTab('account')}
-                className={`text-[11px] font-bold px-3 py-1.5 rounded-lg transition-all shrink-0 cursor-pointer ${
+                className={`text-[13px] font-bold px-3 py-1.5 rounded-lg transition-all shrink-0 cursor-pointer ${
                   activeTab === 'account' 
                     ? 'bg-blue-600 text-white' 
                     : 'text-slate-400 hover:text-white'
@@ -666,7 +702,7 @@ export default function App() {
               {currentUser?.role === 'admin' && (
                 <button
                   onClick={() => setActiveTab('settings')}
-                  className={`text-[11px] font-bold px-3 py-1.5 rounded-lg transition-all shrink-0 cursor-pointer ${
+                  className={`text-[13px] font-bold px-3 py-1.5 rounded-lg transition-all shrink-0 cursor-pointer ${
                     activeTab === 'settings' 
                       ? 'bg-blue-600 text-white' 
                       : 'text-slate-400 hover:text-white'
@@ -729,6 +765,7 @@ export default function App() {
                   teachers={teachers}
                   researchLogs={researchLogs}
                   selectedYear={selectedYear}
+                  academicYears={academicYears}
                   onAddResearchLog={handleAddResearchLog}
                   onEditResearchLog={handleEditResearchLog}
                   onDeleteResearchLog={handleDeleteResearchLog}
@@ -771,13 +808,11 @@ export default function App() {
 
         {/* Humble, clean professional footer */}
         <footer className="bg-white border-t border-slate-200 py-5 px-4 sm:px-8">
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-400">
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-4 text-[13px] text-slate-400">
             <div className="flex items-center gap-1">
               <span>© {new Date().getFullYear()} FEMS-Portal. Hệ thống thông tin phân bộ giảng dạy chuẩn khoa.</span>
             </div>
-            <div className="flex items-center gap-3 font-semibold text-slate-400">
-              <span>Chuẩn Bộ Giáo dục & Đào tạo Việt Nam</span>
-            </div>
+
           </div>
         </footer>
       </div>
