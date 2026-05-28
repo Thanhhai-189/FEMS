@@ -530,7 +530,7 @@ export default function App() {
                 }`}
               >
                 <Settings className="w-4 h-4 shrink-0" />
-                <span>Cấu hình định mức</span>
+                <span>Cài đặt</span>
               </button>
             </>
           )}
