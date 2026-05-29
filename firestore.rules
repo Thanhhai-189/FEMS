@@ -14,8 +14,8 @@ service cloud.firestore {
 
     function isAdmin() {
       return isSignedIn() && (
-        exists(/databases/$(database)/documents/admins/$(request.auth.uid)) || 
-        request.auth.token.email == "thanhhaihvkt@gmail.com"
+        request.auth.token.email == 'thanhhaihvkt@gmail.com' ||
+        exists(/databases/$(database)/documents/admins/$(request.auth.uid))
       );
     }
 
@@ -31,11 +31,11 @@ service cloud.firestore {
     function isValidTeacher(data) {
       return data.id is string && data.id.size() <= 128 
           && data.code is string && data.code.size() <= 50
-          && data.name is string && data.name.size() <= 100
-          && data.email is string && data.email.size() <= 100
-          && data.department is string && data.department.size() <= 100
-          && data.rank is string && (data.rank == 'GS' || data.rank == 'PGS' || data.rank == 'TS' || data.rank == 'ThS' || data.rank == 'CN')
-          && data.position is string && data.position.size() <= 150
+          && data.name is string && data.name.size() <= 200
+          && data.email is string && data.email.size() <= 150
+          && data.department is string && data.department.size() <= 150
+          && data.rank is string && (data.rank == 'GS' || data.rank == 'PGS' || data.rank == 'TS' || data.rank == 'ThS' || data.rank == 'CN' || data.rank == 'KS')
+          && data.position is string && data.position.size() <= 200
           && data.status is string && (data.status == 'A' || data.status == 'I')
           && data.reductionRate is number;
     }
