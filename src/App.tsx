@@ -22,7 +22,7 @@ import {
 } from 'lucide-react';
 import { motion, LayoutGroup } from 'motion/react';
 import { onAuthStateChanged, signOut } from 'firebase/auth';
-import { collection, onSnapshot, doc, setDoc, deleteDoc, updateDoc, getDocs, getDoc } from 'firebase/firestore';
+import { collection, onSnapshot, doc, setDoc, deleteDoc, updateDoc, getDocs, getDoc, query, where } from 'firebase/firestore';
 import { db, auth, handleFirestoreError, OperationType, cleanDocData } from './firebase';
 
 export default function App() {
@@ -176,29 +176,39 @@ export default function App() {
           setCurrentUser({ role: 'admin', teacherId: uid, photoURL, displayName, email });
         } else {
           try {
-            const docRef = doc(db, 'teachers', uid);
-            const docSnap = await getDoc(docRef);
-            if (docSnap.exists()) {
-              setCurrentUser({ role: 'teacher', teacherId: uid, photoURL, displayName, email });
+            // Pre-validation to match existing teacher record pre-created by the admin
+            const q = query(collection(db, 'teachers'), where('email', '==', email.trim().toLowerCase()));
+            const querySnapshot = await getDocs(q);
+            
+            if (!querySnapshot.empty) {
+              const teacherDoc = querySnapshot.docs[0];
+              const teacherData = teacherDoc.data() as Teacher;
+              setCurrentUser({ 
+                role: 'teacher', 
+                teacherId: teacherDoc.id, 
+                photoURL, 
+                displayName: teacherData.name || displayName, 
+                email 
+              });
             } else {
-              // Creating a temporary or registered teacher record for newly logged-in user
-              const newTeacher: Teacher = {
-                id: uid,
-                code: 'GV-' + uid.substring(0, 4).toUpperCase(),
-                name: firebaseUser.displayName || email.split('@')[0],
-                email: email,
-                department: 'Nguyên lý Động cơ - Điện',
-                rank: 'ThS',
-                position: 'Giảng viên',
-                status: 'A',
-                reductionRate: 0,
-              };
-              await setDoc(doc(db, 'teachers', uid), cleanDocData(newTeacher));
-              setCurrentUser({ role: 'teacher', teacherId: uid, photoURL, displayName, email });
+              // De-authorize and instantly delete the newly created/unlisted user so they never appear in Auth
+              try {
+                await firebaseUser.delete();
+              } catch (delError) {
+                console.error('Error deleting unlisted user under onAuthStateChanged:', delError);
+              }
+              await signOut(auth);
+              setCurrentUser(null);
             }
           } catch (e) {
-            console.error('Error linking/creating teacher:', e);
-            setCurrentUser({ role: 'teacher', teacherId: uid, photoURL, displayName, email });
+            console.error('Error linking/verifying teacher email:', e);
+            try {
+              await firebaseUser.delete();
+            } catch (delError) {
+              console.error('Error deleting user under error catch branch:', delError);
+            }
+            await signOut(auth);
+            setCurrentUser(null);
           }
         }
       } else {

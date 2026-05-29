@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { Teacher } from '../types';
 import { signInWithEmailAndPassword } from 'firebase/auth';
-import { auth, loginWithGoogle } from '../firebase';
+import { auth, loginWithGoogle, db } from '../firebase';
+import { collection, query, where, getDocs } from 'firebase/firestore';
 import { 
   Mail, Lock, Eye, EyeOff, AlertCircle, Phone, FileText, HelpCircle, ShieldCheck, Download
 } from 'lucide-react';
@@ -44,20 +45,35 @@ export default function LoginScreen({ teachers, onLogin }: LoginScreenProps) {
     setLoading(true);
 
     try {
+      const isAdmin = email.toLowerCase() === 'thanhhaihvkt@gmail.com';
+      let targetTeacherId = '';
+
+      if (!isAdmin) {
+        // Query teachers list to see if the email exists in the system records
+        const q = query(collection(db, 'teachers'), where('email', '==', email.trim().toLowerCase()));
+        const querySnapshot = await getDocs(q);
+        if (querySnapshot.empty) {
+          setError('Tài khoản Email này chưa được Admin thiết lập trong danh sách cán bộ/giảng viên của Khoa. Vui lòng liên hệ Admin.');
+          setLoading(false);
+          return;
+        }
+        targetTeacherId = querySnapshot.docs[0].id;
+      }
+
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
       const user = userCredential.user;
 
-      if (!user.emailVerified && email !== 'thanhhaihvkt@gmail.com') {
+      if (!user.emailVerified && !isAdmin) {
         setNeedsVerification(true);
         setVerifyMessage(`Tài khoản của bạn chưa được xác thực email. Vui lòng kiểm tra hộp thư: ${email}`);
         setLoading(false);
         return;
       }
 
-      if (email === 'thanhhaihvkt@gmail.com') {
+      if (isAdmin) {
         onLogin('admin', user.uid);
       } else {
-        onLogin('teacher', user.uid);
+        onLogin('teacher', targetTeacherId);
       }
     } catch (err: any) {
       console.error(err);
@@ -76,11 +92,32 @@ export default function LoginScreen({ teachers, onLogin }: LoginScreenProps) {
     setLoading(true);
     try {
       const user = await loginWithGoogle();
-      if (user.email === 'thanhhaihvkt@gmail.com') {
+      const loginEmail = user.email || '';
+      const isAdmin = loginEmail.toLowerCase() === 'thanhhaihvkt@gmail.com';
+
+      if (isAdmin) {
         onLogin('admin', user.uid);
-      } else {
-        onLogin('teacher', user.uid);
+        return;
       }
+
+      // Query teachers list to see if the Google email exists in the records
+      const q = query(collection(db, 'teachers'), where('email', '==', loginEmail.trim().toLowerCase()));
+      const querySnapshot = await getDocs(q);
+      
+      if (querySnapshot.empty) {
+        // Delete unauthorized account under Google authentication immediately from Auth catalog so no new user is left created
+        try {
+          await user.delete();
+        } catch (delError) {
+          console.error('Error deleting unauthorized Google user:', delError);
+        }
+        await auth.signOut();
+        setError('Tài khoản Gmail này chưa được Admin thiết lập trong danh sách cán bộ/giảng viên của Khoa. Vui lòng liên hệ Admin.');
+        return;
+      }
+
+      const teacherDoc = querySnapshot.docs[0];
+      onLogin('teacher', teacherDoc.id);
     } catch (err: any) {
       console.error(err);
       setError('Đăng nhập bằng tài khoản Google không thành công.');
@@ -92,10 +129,25 @@ export default function LoginScreen({ teachers, onLogin }: LoginScreenProps) {
   const handleCheckReloadVerification = async () => {
     setLoading(true);
     try {
-      await auth.currentUser?.reload();
-      if (auth.currentUser?.emailVerified) {
+      const currentUser = auth.currentUser;
+      await currentUser?.reload();
+      if (currentUser?.emailVerified) {
         setNeedsVerification(false);
-        onLogin('teacher', auth.currentUser.uid);
+        const loginEmail = currentUser.email || '';
+        const q = query(collection(db, 'teachers'), where('email', '==', loginEmail.trim().toLowerCase()));
+        const querySnapshot = await getDocs(q);
+        if (!querySnapshot.empty) {
+          onLogin('teacher', querySnapshot.docs[0].id);
+        } else {
+          // Clean up auth user immediately if they got verified but are not in teacher database
+          try {
+            await currentUser?.delete();
+          } catch (delError) {
+            console.error('Error deleting unlisted verified user:', delError);
+          }
+          await auth.signOut();
+          setError('Địa chỉ email của bạn không nằm trong danh sách giảng viên.');
+        }
       } else {
         setError('Bạn vẫn chưa kích hoạt tài khoản qua email liên kết.');
       }
@@ -163,10 +215,13 @@ export default function LoginScreen({ teachers, onLogin }: LoginScreenProps) {
   }
 
   return (
-    <div className="min-h-screen bg-[#075685] flex items-center justify-center p-4 sm:p-6 lg:p-12 relative overflow-hidden font-sans text-white">
+    <div 
+      className="min-h-screen bg-[#075685] bg-cover bg-center bg-no-repeat flex items-center justify-center p-4 sm:p-6 lg:p-12 relative overflow-hidden font-sans text-white"
+      style={{ backgroundImage: "linear-gradient(to bottom, rgba(7, 86, 133, 0.4), rgba(6, 47, 74, 0.55)), url('https://i.ibb.co/xtL5MYM3/bg-tracuu2210.png')" }}
+    >
       {/* Dynamic ambient lights to enrich background */}
-      <div className="absolute top-0 left-0 w-[600px] h-[600px] bg-sky-500 rounded-full blur-3xl opacity-20 -translate-x-1/2 -translate-y-1/2 pointer-events-none" />
-      <div className="absolute bottom-0 right-0 w-[600px] h-[600px] bg-blue-500 rounded-full blur-3xl opacity-15 translate-x-1/2 translate-y-1/2 pointer-events-none" />
+      <div className="absolute top-0 left-0 w-[600px] h-[600px] bg-sky-500 rounded-full blur-3xl opacity-10 -translate-x-1/2 -translate-y-1/2 pointer-events-none" />
+      <div className="absolute bottom-0 right-0 w-[600px] h-[600px] bg-blue-500 rounded-full blur-3xl opacity-10 translate-x-1/2 translate-y-1/2 pointer-events-none" />
 
       <div className="w-full max-w-6xl z-10 grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-16 items-center">
         
