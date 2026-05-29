@@ -539,7 +539,7 @@ export default function ResearchTab({
 
                 {detailPreview.notes && (
                   <div>
-                    <span className="text-slate-400 block mb-0.5 text-[10px] uppercase font-bold tracking-wider">Ghi chú minh chứng:</span>
+                    <span className="text-slate-400 block mb-0.5 text-[13px] uppercase font-bold tracking-wider">Ghi chú minh chứng:</span>
                     <p className="text-slate-600 italic leading-normal bg-slate-50/50 p-2.5 rounded border border-dashed border-slate-200 text-[11px]">
                       "{detailPreview.notes}"
                     </p>
@@ -596,7 +596,7 @@ export default function ResearchTab({
               <form onSubmit={handleSave} className="p-5 space-y-4">
                 <div className="grid grid-cols-2 lg:grid-cols-4 gap-3.5">
                   <div className="col-span-2 lg:col-span-4">
-                    <label className="text-[10px] font-bold text-slate-400 uppercase block mb-1">
+                    <label className="text-[13px] font-bold text-slate-500 block mb-1">
                       Giảng viên thực hiện / Nhóm trưởng <span className="text-rose-500">*</span>
                     </label>
                     <select
@@ -614,7 +614,7 @@ export default function ResearchTab({
 
                   <div className="col-span-2 lg:col-span-4 relative">
                     <div className="flex justify-between items-center mb-1">
-                      <label className="text-[10px] font-bold text-slate-400 uppercase block">
+                      <label className="text-[13px] font-bold text-slate-500 block mb-1">
                         Tên công trình / Đề tài / Tên bài báo quốc tế <span className="text-rose-500">*</span>
                       </label>
                       {uniqueExistingWorks.length > 0 && (
@@ -690,7 +690,7 @@ export default function ResearchTab({
                   </div>
 
                   <div className="col-span-2 lg:col-span-2">
-                    <label className="text-[10px] font-bold text-slate-400 uppercase block mb-1">
+                    <label className="text-[13px] font-bold text-slate-500 block mb-1">
                       Chọn loại thành tựu / Đề tài NCKH <span className="text-rose-500">*</span>
                     </label>
                     <select
@@ -711,7 +711,7 @@ export default function ResearchTab({
                   </div>
 
                   <div className="col-span-2 lg:col-span-2">
-                    <label className="text-[10px] font-bold text-slate-400 uppercase block mb-1">
+                    <label className="text-[13px] font-bold text-slate-500 block mb-1">
                       Vai trò thực hiện <span className="text-rose-500">*</span>
                     </label>
                     <select
@@ -769,7 +769,7 @@ export default function ResearchTab({
                   </div>
 
                   <div className="col-span-2 lg:col-span-2">
-                    <label className="text-[10px] font-bold text-slate-400 uppercase block mb-1">
+                    <label className="text-[13px] font-bold text-slate-500 block mb-1">
                       Tạp chí / Đơn vị nghiệm thu cấp phép <span className="text-rose-500">*</span>
                     </label>
                     <input
@@ -783,7 +783,7 @@ export default function ResearchTab({
                   </div>
 
                   <div className="col-span-2 lg:col-span-1">
-                    <label className="text-[10px] font-bold text-slate-400 uppercase block mb-1">
+                    <label className="text-[13px] font-bold text-slate-500 block mb-1">
                       Năm xuất bản / nghiệm thu
                     </label>
                     <input
@@ -796,7 +796,7 @@ export default function ResearchTab({
                   </div>
 
                   <div className="col-span-2 lg:col-span-1">
-                    <label className="text-[10px] font-bold text-slate-400 uppercase block mb-1">
+                    <label className="text-[13px] font-bold text-slate-500 block mb-1">
                       Chọn Năm học <span className="text-rose-500">*</span>
                     </label>
                     <select
@@ -817,7 +817,7 @@ export default function ResearchTab({
                   </div>
 
                   <div className="col-span-2 lg:col-span-4">
-                    <label className="text-[10px] font-bold text-slate-400 uppercase block mb-1">
+                    <label className="text-[13px] font-bold text-slate-500 block mb-1">
                       Tình trạng kiểm tra
                     </label>
                     <select
@@ -833,7 +833,7 @@ export default function ResearchTab({
                   </div>
 
                   <div className="col-span-2 lg:col-span-4">
-                    <label className="text-[10px] font-bold text-slate-400 uppercase block mb-1">
+                    <label className="text-[13px] font-bold text-slate-500 block mb-1">
                       Tài liệu đính kèm hoặc Mô tả link minh chứng
                     </label>
                     <textarea

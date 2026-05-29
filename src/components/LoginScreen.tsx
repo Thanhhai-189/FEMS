@@ -18,7 +18,7 @@ const VietnamMilitaryEmblem = () => (
   <img 
     src="https://i.ibb.co/TBgCM3fw/logo-vhp-2.png" 
     alt="Logo Sĩ Quan Kỹ Thuật Quân Sự" 
-    className="w-24 h-24 object-contain mx-auto md:mx-0 drop-shadow-2xl select-none" 
+    className="w-16 h-16 md:w-24 md:h-24 object-contain shrink-0 drop-shadow-2xl select-none" 
     referrerPolicy="no-referrer"
   />
 );
@@ -223,26 +223,26 @@ export default function LoginScreen({ teachers, onLogin }: LoginScreenProps) {
       <div className="absolute top-0 left-0 w-[600px] h-[600px] bg-sky-500 rounded-full blur-3xl opacity-10 -translate-x-1/2 -translate-y-1/2 pointer-events-none" />
       <div className="absolute bottom-0 right-0 w-[600px] h-[600px] bg-blue-500 rounded-full blur-3xl opacity-10 translate-x-1/2 translate-y-1/2 pointer-events-none" />
 
-      <div className="w-full max-w-6xl z-10 grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-16 items-center">
+      <div className="w-full max-w-6xl z-10 grid grid-cols-1 lg:grid-cols-12 gap-5 md:gap-8 lg:gap-16 items-center">
         
         {/* LEFT COLUMN: BRAND & INFORMATION (Visible only on lg, or simplified on mobile) */}
-        <div className="lg:col-span-7 flex flex-col space-y-6 md:space-y-8 select-none">
-          <div className="flex flex-col md:flex-row items-center md:items-start gap-4 md:gap-6 text-center md:text-left">
+        <div className="lg:col-span-7 flex flex-col space-y-4 md:space-y-8 select-none">
+          <div className="flex flex-row items-center gap-3.5 md:gap-6 text-left">
             <VietnamMilitaryEmblem />
-            <div className="space-y-1.5 self-center">
-              <h1 className="font-extrabold text-[15px] md:text-[17px] tracking-wider uppercase text-sky-200">
+            <div className="space-y-1 md:space-y-1.5 self-center">
+              <h1 className="font-extrabold text-sm md:text-[17px] tracking-wider uppercase text-sky-200 leading-tight">
                 Khoa Ô Tô
               </h1>
-              <h2 className="font-semibold text-slate-300 text-xs md:text-[13px] uppercase tracking-wide">
+              <h2 className="font-semibold text-slate-300 text-[11px] md:text-[13px] uppercase tracking-wide leading-tight">
                 Trường Sĩ quan Kỹ thuật Quân sự
               </h2>
-              <div className="h-[2px] w-20 bg-yellow-400 mx-auto md:mx-0 mt-2" />
+              <div className="h-[2px] w-full bg-yellow-400 mt-1.5" />
             </div>
           </div>
 
-          <div className="text-center md:text-left space-y-2.5">
-            <h3 className="font-black text-xl md:text-3xl leading-tight text-white tracking-tight uppercase font-display drop-shadow-md">
-              Hệ thống quản lý đào tạo <br className="hidden md:inline" /> & Nghiên cứu khoa học
+          <div className="text-center lg:text-left space-y-2">
+            <h3 className="font-black text-lg md:text-3xl leading-tight text-white tracking-tight uppercase font-display drop-shadow-md">
+              Hệ thống quản lý đào tạo <br /> & Nghiên cứu khoa học
             </h3>
           </div>
 
@@ -304,29 +304,21 @@ export default function LoginScreen({ teachers, onLogin }: LoginScreenProps) {
             initial={{ opacity: 0, scale: 0.96 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.4 }}
-            className="w-full max-w-[440px] bg-[#094870]/90 backdrop-blur-md rounded-2xl border border-white/10 p-6 md:p-8 space-y-6 shadow-2xl relative"
+            className="w-full max-w-[440px] bg-[#094870]/90 backdrop-blur-md rounded-xl md:rounded-2xl border border-white/10 p-4 md:p-8 space-y-4 md:space-y-6 shadow-2xl relative"
           >
             {/* Dashed outer accent line matching the mockup image style */}
             <div className="absolute inset-1.5 border border-dashed border-white/20 rounded-xl pointer-events-none" />
 
-            {/* Red text Title style on the box 
-            <div className="text-center pb-2 pt-1">
-              <h2 className="text-[#d6111a] font-black tracking-wider uppercase text-lg md:text-xl font-display drop-shadow-[0_1.2px_1.2px_rgba(254,240,138,0.7)]">
-                KHOA Ô TÔ
-              </h2>
-              <div className="h-[1px] w-24 bg-red-500/30 mx-auto mt-2.5" />
-            </div>*/}
-
             {error && (
-              <div className="bg-rose-950/55 border border-rose-500/30 text-rose-300 p-3.5 rounded-xl text-[13px] font-semibold flex gap-2.5 items-center relative z-10">
+              <div className="bg-rose-950/55 border border-rose-500/30 text-rose-300 p-3 md:p-3.5 rounded-xl text-[12px] md:text-[13px] font-semibold flex gap-2 md:gap-2.5 items-center relative z-10">
                 <AlertCircle className="w-4 h-4 shrink-0 text-rose-400" />
                 <span>{error}</span>
               </div>
             )}
 
-            <form onSubmit={handleSignIn} className="space-y-4 relative z-10">
-              <div className="space-y-1.5">
-                <label className="text-[11px] font-extrabold text-blue-200 uppercase tracking-wider block">
+            <form onSubmit={handleSignIn} className="space-y-3 md:space-y-4 relative z-10">
+              <div className="space-y-1">
+                <label className="text-[10px] md:text-[11px] font-extrabold text-blue-200 uppercase tracking-wider block">
                   Tên đăng nhập / Email
                 </label>
                 <div className="relative">
@@ -335,16 +327,16 @@ export default function LoginScreen({ teachers, onLogin }: LoginScreenProps) {
                     id="login_email"
                     type="email"
                     required
-                    placeholder="nhap.email@example.com"
+                    placeholder="email@example.com"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    className="text-[13px] w-full border border-white/10 rounded-lg pl-10 pr-3.5 py-3.5 bg-slate-900/40 focus:outline-hidden focus:ring-2 focus:ring-sky-500 font-medium text-white placeholder:text-slate-400 transition-all shadow-inner"
+                    className="text-[13px] w-full border border-white/10 rounded-lg pl-10 pr-3.5 py-2.5 md:py-3.5 bg-slate-900/40 focus:outline-hidden focus:ring-2 focus:ring-sky-500 font-medium text-white placeholder:text-slate-400 transition-all shadow-inner"
                   />
                 </div>
               </div>
 
-              <div className="space-y-1.5">
-                <label className="text-[11px] font-extrabold text-blue-200 uppercase tracking-wider block">
+              <div className="space-y-1">
+                <label className="text-[10px] md:text-[11px] font-extrabold text-blue-200 uppercase tracking-wider block">
                   Mật khẩu
                 </label>
                 <div className="relative">
@@ -356,7 +348,7 @@ export default function LoginScreen({ teachers, onLogin }: LoginScreenProps) {
                     placeholder="••••••••"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    className="text-[13px] w-full border border-white/10 rounded-lg pl-10 pr-11 py-3.5 bg-slate-900/40 focus:outline-hidden focus:ring-2 focus:ring-sky-500 font-medium text-white placeholder:text-slate-400 transition-all shadow-inner"
+                    className="text-[13px] w-full border border-white/10 rounded-lg pl-10 pr-11 py-2.5 md:py-3.5 bg-slate-900/40 focus:outline-hidden focus:ring-2 focus:ring-sky-500 font-medium text-white placeholder:text-slate-400 transition-all shadow-inner"
                   />
                   <button
                     type="button"
@@ -372,17 +364,17 @@ export default function LoginScreen({ teachers, onLogin }: LoginScreenProps) {
                 id="btn_login_submit"
                 type="submit"
                 disabled={loading}
-                className="w-full inline-flex items-center justify-center gap-2 bg-[#2d9bf0] hover:bg-[#3caafd] active:bg-[#1a8be0] disabled:bg-blue-300/40 disabled:text-blue-200/50 text-white font-extrabold text-[13.5px] uppercase tracking-wider py-3.5 px-4 rounded-lg cursor-pointer transition-all duration-150 select-none shadow-md mt-2"
+                className="w-full inline-flex items-center justify-center gap-2 bg-[#2d9bf0] hover:bg-[#3caafd] active:bg-[#1a8be0] disabled:bg-blue-300/40 disabled:text-blue-200/50 text-white font-extrabold text-[13px] md:text-[13.5px] uppercase tracking-wider py-2.5 md:py-3.5 px-4 rounded-lg cursor-pointer transition-all duration-150 select-none shadow-md mt-1 md:mt-2"
               >
                 {loading ? 'Đang xác thực...' : 'Đăng nhập'}
               </button>
             </form>
 
-            <div className="relative py-1.5 z-10">
+            <div className="relative py-1 md:py-1.5 z-10">
               <div className="absolute inset-0 flex items-center">
                 <div className="w-full border-t border-white/10" />
               </div>
-              <div className="relative flex justify-center text-[10px]">
+              <div className="relative flex justify-center text-[9px] md:text-[10px]">
                 <span className="bg-[#094870] px-3 font-extrabold text-slate-300 uppercase tracking-wider">
                   Hoặc
                 </span>
@@ -393,7 +385,7 @@ export default function LoginScreen({ teachers, onLogin }: LoginScreenProps) {
               id="btn_google_signin"
               onClick={handleGoogleSignIn}
               disabled={loading}
-              className="w-full inline-flex items-center justify-center gap-2.5 bg-[#0b2f4a] border border-white/5 text-white hover:bg-[#061e31] font-bold text-[13px] py-3 px-4 rounded-lg cursor-pointer transition-all select-none duration-150 relative z-10"
+              className="w-full inline-flex items-center justify-center gap-2.5 bg-[#0b2f4a] border border-white/5 text-white hover:bg-[#061e31] font-bold text-[13px] py-2.5 md:py-3 px-4 rounded-lg cursor-pointer transition-all select-none duration-150 relative z-10"
             >
               <svg className="w-4 h-4 shrink-0" viewBox="0 0 24 24">
                 <path
@@ -415,12 +407,6 @@ export default function LoginScreen({ teachers, onLogin }: LoginScreenProps) {
               </svg>
               Đăng nhập bằng Gmail
             </button>
-
-            {/* Mobile simplified copyright & footer info */}
-            <div className="text-center pt-2 md:hidden text-[11px] text-slate-300/80 font-medium space-y-1 relative z-10">
-              <p className="font-bold text-sky-200">Khoa Ô tô - Trường Sĩ quan Kỹ thuật Quân sự</p>
-              <p className="text-slate-400">Copyright © 2026. All rights reserved.</p>
-            </div>
           </motion.div>
         </div>
 

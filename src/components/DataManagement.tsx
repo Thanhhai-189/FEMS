@@ -175,7 +175,7 @@ export default function DataManagement({
 
           <div className="space-y-3">
             <div>
-              <label className="text-[13px] font-bold text-slate-400 uppercase block mb-1">
+              <label className="text-[13px] font-bold text-slate-500 block mb-1">
                 Năm học đang kích hoạt hoạt động
               </label>
               <div className="flex gap-2">
@@ -192,7 +192,7 @@ export default function DataManagement({
             </div>
 
             <form onSubmit={handleCreateYear} className="pt-3 border-t border-slate-100">
-              <label className="text-[13px] font-bold text-slate-400 uppercase block mb-1">
+              <label className="text-[13px] font-bold text-slate-500 block mb-1">
                 Tạo chu kỳ Năm học mới
               </label>
               <div className="flex gap-2">

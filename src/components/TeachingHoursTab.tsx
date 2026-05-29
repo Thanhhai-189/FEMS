@@ -407,7 +407,7 @@ export default function TeachingHoursTab({
               <form onSubmit={handleSave} className="p-5 space-y-4">
                 <div className="grid grid-cols-2 lg:grid-cols-4 gap-3.5">
                   <div className="col-span-2 lg:col-span-4">
-                    <label className="text-[10px] font-bold text-slate-400 uppercase block mb-1">
+                    <label className="text-[13px] font-bold text-slate-500 block mb-1">
                       Giảng viên trực tiếp phụ trách <span className="text-rose-500">*</span>
                     </label>
                     <select
@@ -424,7 +424,7 @@ export default function TeachingHoursTab({
                   </div>
 
                   <div>
-                    <label className="text-[10px] font-bold text-slate-400 uppercase block mb-1">
+                    <label className="text-[13px] font-bold text-slate-500 block mb-1">
                       Tên môn học <span className="text-rose-500">*</span>
                     </label>
                     <input
@@ -438,7 +438,7 @@ export default function TeachingHoursTab({
                   </div>
 
                   <div>
-                    <label className="text-[10px] font-bold text-slate-400 uppercase block mb-1">
+                    <label className="text-[13px] font-bold text-slate-500 block mb-1">
                       Mã môn học
                     </label>
                     <input
@@ -451,7 +451,7 @@ export default function TeachingHoursTab({
                   </div>
 
                   <div>
-                    <label className="text-[10px] font-bold text-slate-400 uppercase block mb-1">
+                    <label className="text-[13px] font-bold text-slate-500 block mb-1">
                       Tên lớp chính thức <span className="text-rose-500">*</span>
                     </label>
                     <input
@@ -465,7 +465,7 @@ export default function TeachingHoursTab({
                   </div>
 
                   <div>
-                    <label className="text-[10px] font-bold text-slate-400 uppercase block mb-1">
+                    <label className="text-[13px] font-bold text-slate-500 block mb-1">
                       Số tín chỉ môn học
                     </label>
                     <input
@@ -479,7 +479,7 @@ export default function TeachingHoursTab({
                   </div>
 
                   <div>
-                    <label className="text-[10px] font-bold text-slate-400 uppercase block mb-1">
+                    <label className="text-[13px] font-bold text-slate-500 block mb-1">
                       Hình thức giảng dạy
                     </label>
                     <select
@@ -496,7 +496,7 @@ export default function TeachingHoursTab({
                   </div>
 
                   <div>
-                    <label className="text-[10px] font-bold text-slate-400 uppercase block mb-1">
+                    <label className="text-[13px] font-bold text-slate-500 block mb-1">
                       Sĩ số lớp (quy định hệ số đông)
                     </label>
                     <input
@@ -510,7 +510,7 @@ export default function TeachingHoursTab({
                   </div>
 
                   <div>
-                    <label className="text-[10px] font-bold text-slate-400 uppercase block mb-1">
+                    <label className="text-[13px] font-bold text-slate-500 block mb-1">
                       Học kỳ
                     </label>
                     <select
@@ -525,7 +525,7 @@ export default function TeachingHoursTab({
                   </div>
 
                   <div>
-                    <label className="text-[10px] font-bold text-slate-400 uppercase block mb-1">
+                    <label className="text-[13px] font-bold text-slate-500 block mb-1">
                       Năm học giảng dạy
                     </label>
                     <select
