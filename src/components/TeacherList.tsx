@@ -219,6 +219,9 @@ export default function TeacherList({
             {departments.map(d => (
               <option key={d.id} value={d.name}>{d.name}</option>
             ))}
+            {teachers.some(t => t.department === 'Ban chủ nhiệm') && (
+              <option value="Ban chủ nhiệm">Ban chủ nhiệm</option>
+            )}
           </select>
 
           {/* Rank filter */}
@@ -613,6 +616,9 @@ export default function TeacherList({
                       onChange={(e) => setFormDept(e.target.value)}
                       className="text-[13px] w-full border border-slate-200 rounded-lg px-3 py-2 bg-slate-50 focus:outline-hidden focus:ring-2 focus:ring-blue-500 font-medium"
                     >
+                      {(formPosition?.toLowerCase().includes('chủ nhiệm') || formPosition?.toLowerCase().includes('phó chủ nhiệm')) && (
+                        <option value="Ban chủ nhiệm">Ban chủ nhiệm</option>
+                      )}
                       {departments.map(d => (
                         <option key={d.id} value={d.name}>{d.name}</option>
                       ))}
@@ -628,12 +634,11 @@ export default function TeacherList({
                       onChange={(e) => setFormRank(e.target.value as AcademicRank)}
                       className="text-[13px] w-full border border-slate-200 rounded-lg px-3 py-2 bg-slate-50 focus:outline-hidden focus:ring-2 focus:ring-blue-500 font-medium"
                     >
-                     
-                       <option value="TS">Tiến sĩ</option>
-                       <option value="ThS">Thạc sĩ</option>
-                       <option value="KS">Kỹ sư</option>
-                       <option value="CN">Cử nhân</option>
-                     </select>
+                      <option value="TS">Tiến sĩ</option>
+                      <option value="ThS">Thạc sĩ</option>
+                      <option value="KS">Kỹ sư</option>
+                      <option value="CN">Cử nhân</option>
+                    </select>
                   </div>
 
                   <div>
@@ -642,7 +647,17 @@ export default function TeacherList({
                     </label>
                     <select
                       value={formPosition}
-                      onChange={(e) => setFormPosition(e.target.value)}
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        setFormPosition(val);
+                        if (val.toLowerCase().includes('chủ nhiệm') || val.toLowerCase().includes('phó chủ nhiệm')) {
+                          setFormDept('Ban chủ nhiệm');
+                        } else {
+                          if (formDept === 'Ban chủ nhiệm') {
+                            setFormDept(departments[0]?.name || 'Nguyên lý Động cơ - Điện');
+                          }
+                        }
+                      }}
                       className="text-[13px] w-full border border-slate-200 rounded-lg px-3 py-2 bg-slate-50 focus:outline-hidden focus:ring-2 focus:ring-blue-500 font-medium"
                     >
                       <option value="Giảng viên">Giảng viên / Trợ giảng</option>
@@ -652,6 +667,8 @@ export default function TeacherList({
                       <option value="Nhân viên">Nhân viên (Không tính định mức)</option>
                     </select>
                   </div>
+
+
 
                   <div>
                     <label className="text-[13px] font-bold text-slate-400 uppercase block mb-1">
