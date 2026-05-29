@@ -445,7 +445,12 @@ export default function App() {
       {/* Sidebar Navigation */}
       <aside className="w-64 bg-slate-900 text-white flex flex-col shrink-0 hidden md:flex h-screen sticky top-0 border-r border-slate-800">
         <div className="p-6 flex items-center gap-3 border-b border-slate-800/80 shrink-0">
-          <div className="w-8 h-8 bg-blue-600 rounded flex items-center justify-center font-bold text-lg text-white font-display">F</div>
+          <img 
+            src="https://i.ibb.co/TBgCM3fw/logo-vhp-2.png" 
+            alt="Logo Sĩ Quan Kỹ Thuật Quân Sự" 
+            className="w-10 h-10 object-contain select-none" 
+            referrerPolicy="no-referrer"
+          />
           <div className="leading-tight">
             <h1 className="font-bold text-[13px] tracking-wider text-white uppercase font-display">TRƯỜNG SQKTQS</h1>
             <p className="text-[13px] text-slate-400 font-medium font-bold text-blue-400/90 header-khoa">KHOA Ô TÔ </p>
@@ -560,7 +565,7 @@ export default function App() {
                       <img 
                         src={currentUser.photoURL} 
                         alt="Avatar" 
-                        className="w-7 h-7 rounded-lg object-cover bg-slate-850"
+                        className="w-8 h-8 rounded-lg object-cover bg-slate-850"
                         referrerPolicy="no-referrer"
                       />
                     ) : (
@@ -568,7 +573,7 @@ export default function App() {
                     )}
                     <div className="text-[13px] min-w-0 flex-1">
                       <p className="font-bold text-slate-200 truncate">{displayName}</p>
-                      <p className="text-[13px] text-slate-400">Trưởng khoa / Trợ lý khoa</p>
+                      <p className="text-[13px] text-slate-400">Admin</p>
                     </div>
                   </>
                 );
@@ -579,7 +584,7 @@ export default function App() {
                       <img 
                         src={currentUser.photoURL} 
                         alt="Avatar" 
-                        className="w-7 h-7 rounded-lg object-cover bg-slate-850"
+                        className="w-8 h-8 rounded-lg object-cover bg-slate-850"
                         referrerPolicy="no-referrer"
                       />
                     ) : (
@@ -609,15 +614,16 @@ export default function App() {
         {/* Header */}
         <header className="h-16 bg-white border-b border-slate-200 px-4 sm:px-8 flex items-center justify-between sticky top-0 z-40 shadow-xs">
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center text-white md:hidden">
-              <GraduationCap className="w-5 h-5" />
-            </div>
+            <img 
+              src="https://i.ibb.co/TBgCM3fw/logo-vhp-2.png" 
+              alt="Logo" 
+              className="w-8 h-8 object-contain select-none md:hidden" 
+              referrerPolicy="no-referrer"
+            />
             <div>
               <h2 className="text-sm sm:text-lg font-bold text-slate-800 flex items-center gap-2">
-                Hệ thống Quản lý Giờ giảng & NCKH
-                <span className="text-[13px] bg-blue-50 text-blue-700 px-1.5 py-0.2 rounded font-mono font-bold">FEMS v1.2</span>
+                Hệ thống Quản lý Đào tạo & NCKH
               </h2>
-              <p className="text-[13px] text-slate-400 font-medium hidden sm:block">Khoa Ô tô - Trường Sĩ quan kỹ thuật quân sự</p>
             </div>
           </div>
 
