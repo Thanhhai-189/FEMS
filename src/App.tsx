@@ -45,7 +45,8 @@ export default function App() {
   const [researchLogs, setResearchLogs] = useState<ResearchLog[]>([]);
   const [rankNorms, setRankNorms] = useState<RankNorm[]>([]);
   const [academicYears, setAcademicYears] = useState<AcademicYearConfig[]>([]);
-  const [selectedYear, setSelectedYear] = useState<string>('2024-2025');
+  const [selectedYear, setSelectedYear] = useState<string>('2025-2026');
+  const [hasInitYearOnFetch, setHasInitYearOnFetch] = useState(false);
 
   // Seeding initial data if empty
   const initializeFirebaseDataIfEmpty = async () => {
@@ -81,8 +82,8 @@ export default function App() {
     if (localSelectedYear) {
       setSelectedYear(localSelectedYear);
     } else {
-      setSelectedYear('2024-2025');
-      localStorage.setItem('faculty_selected_year', '2024-2025');
+      setSelectedYear('2025-2026');
+      localStorage.setItem('faculty_selected_year', '2025-2026');
     }
   }, []);
 
@@ -153,6 +154,15 @@ export default function App() {
         list.push(docSnap.data() as AcademicYearConfig);
       });
       setAcademicYears(list);
+
+      // Auto-select the newest cycle on initial data fetch of the database
+      if (list.length > 0 && !hasInitYearOnFetch) {
+        const sorted = [...list].sort((a, b) => b.year.localeCompare(a.year));
+        const latestYear = sorted[0].year;
+        setSelectedYear(latestYear);
+        localStorage.setItem('faculty_selected_year', latestYear);
+        setHasInitYearOnFetch(true);
+      }
     }, (err) => {
       handleFirestoreError(err, OperationType.GET, 'academic_years');
     });
@@ -453,8 +463,8 @@ export default function App() {
   return (
     <div className="min-h-screen bg-slate-50 flex text-slate-900 font-sans antialiased">
       {/* Sidebar Navigation */}
-      <aside className="w-64 bg-slate-900 text-white flex flex-col shrink-0 hidden md:flex h-screen sticky top-0 border-r border-slate-800">
-        <div className="p-6 flex items-center gap-3 border-b border-slate-800/80 shrink-0">
+      <aside className="w-64 bg-[#062f4a] text-white flex flex-col shrink-0 hidden md:flex h-screen sticky top-0 border-r border-white/10">
+        <div className="p-6 flex items-center gap-3 border-b border-white/10 shrink-0">
           <img 
             src="https://i.ibb.co/TBgCM3fw/logo-vhp-2.png" 
             alt="Logo Sĩ Quan Kỹ Thuật Quân Sự" 
@@ -463,7 +473,7 @@ export default function App() {
           />
           <div className="leading-tight">
             <h1 className="font-bold text-[13px] tracking-wider text-white uppercase font-display">TRƯỜNG SQKTQS</h1>
-            <p className="text-[13px] text-slate-400 font-medium font-bold text-blue-400/90 header-khoa">KHOA Ô TÔ </p>
+            <p className="text-[13px] font-extrabold text-sky-300 header-khoa">KHOA Ô TÔ </p>
           </div>
         </div>
         
@@ -472,8 +482,8 @@ export default function App() {
             onClick={() => setActiveTab('stats')}
             className={`w-full flex items-center gap-3 px-6 py-3 border-l-4 text-[13px] font-semibold uppercase tracking-wider transition-all text-left cursor-pointer ${
               activeTab === 'stats' 
-                ? 'bg-blue-600/10 border-blue-500 text-blue-400 font-bold' 
-                : 'border-transparent text-slate-400 hover:text-white hover:bg-slate-800/30'
+                ? 'bg-[#094870]/50 border-sky-400 text-sky-200 font-extrabold' 
+                : 'border-transparent text-slate-300/85 hover:text-white hover:bg-white/5'
             }`}
           >
             <BarChart3 className="w-4 h-4 shrink-0" />
@@ -484,8 +494,8 @@ export default function App() {
             onClick={() => setActiveTab('teachers')}
             className={`w-full flex items-center gap-3 px-6 py-3 border-l-4 text-[13px] font-semibold uppercase tracking-wider transition-all text-left cursor-pointer ${
               activeTab === 'teachers' 
-                ? 'bg-blue-600/10 border-blue-500 text-blue-400 font-bold' 
-                : 'border-transparent text-slate-400 hover:text-white hover:bg-slate-800/30'
+                ? 'bg-[#094870]/50 border-sky-400 text-sky-200 font-extrabold' 
+                : 'border-transparent text-slate-300/85 hover:text-white hover:bg-white/5'
             }`}
           >
             <Users className="w-4 h-4 shrink-0" />
@@ -496,8 +506,8 @@ export default function App() {
             onClick={() => setActiveTab('teaching')}
             className={`w-full flex items-center gap-3 px-6 py-3 border-l-4 text-[13px] font-semibold uppercase tracking-wider transition-all text-left cursor-pointer ${
               activeTab === 'teaching' 
-                ? 'bg-blue-600/10 border-blue-500 text-blue-400 font-bold' 
-                : 'border-transparent text-slate-400 hover:text-white hover:bg-slate-800/30'
+                ? 'bg-[#094870]/50 border-sky-400 text-sky-200 font-extrabold' 
+                : 'border-transparent text-slate-300/85 hover:text-white hover:bg-white/5'
             }`}
           >
             <BookOpen className="w-4 h-4 shrink-0" />
@@ -508,8 +518,8 @@ export default function App() {
             onClick={() => setActiveTab('research')}
             className={`w-full flex items-center gap-3 px-6 py-3 border-l-4 text-[13px] font-semibold uppercase tracking-wider transition-all text-left cursor-pointer ${
               activeTab === 'research' 
-                ? 'bg-blue-600/10 border-blue-500 text-blue-400 font-bold' 
-                : 'border-transparent text-slate-400 hover:text-white hover:bg-slate-800/30'
+                ? 'bg-[#094870]/50 border-sky-400 text-sky-200 font-extrabold' 
+                : 'border-transparent text-slate-300/85 hover:text-white hover:bg-white/5'
             }`}
           >
             <FileCode2 className="w-4 h-4 shrink-0" />
@@ -520,8 +530,8 @@ export default function App() {
             onClick={() => setActiveTab('standards')}
             className={`w-full flex items-center gap-3 px-6 py-3 border-l-4 text-[13px] font-semibold uppercase tracking-wider transition-all text-left cursor-pointer ${
               activeTab === 'standards' 
-                ? 'bg-blue-600/10 border-blue-500 text-blue-400 font-bold' 
-                : 'border-transparent text-slate-400 hover:text-white hover:bg-slate-800/30'
+                ? 'bg-[#094870]/50 border-sky-400 text-sky-200 font-extrabold' 
+                : 'border-transparent text-slate-300/85 hover:text-white hover:bg-white/5'
             }`}
           >
             <Award className="w-4 h-4 shrink-0" />
@@ -532,8 +542,8 @@ export default function App() {
             onClick={() => setActiveTab('account')}
             className={`w-full flex items-center gap-3 px-6 py-3 border-l-4 text-[13px] font-semibold uppercase tracking-wider transition-all text-left cursor-pointer ${
               activeTab === 'account' 
-                ? 'bg-blue-600/10 border-blue-500 text-blue-400 font-bold' 
-                : 'border-transparent text-slate-400 hover:text-white hover:bg-slate-800/30'
+                ? 'bg-[#094870]/50 border-sky-400 text-sky-200 font-extrabold' 
+                : 'border-transparent text-slate-300/85 hover:text-white hover:bg-white/5'
             }`}
           >
             <ShieldCheck className="w-4 h-4 shrink-0" />
@@ -542,24 +552,24 @@ export default function App() {
 
           {currentUser?.role === 'admin' && (
             <>
-              <div className="h-px bg-slate-800/60 my-4 mx-6" />
+              <div className="h-px bg-white/10 my-4 mx-6" />
 
               <button
                 onClick={() => setActiveTab('settings')}
                 className={`w-full flex items-center gap-3 px-6 py-3 border-l-4 text-[13px] font-semibold uppercase tracking-wider transition-all text-left cursor-pointer ${
                   activeTab === 'settings' 
-                    ? 'bg-blue-600/10 border-blue-500 text-blue-400 font-bold' 
-                    : 'border-transparent text-slate-400 hover:text-white hover:bg-slate-800/30'
+                    ? 'bg-[#094870]/50 border-sky-400 text-sky-200 font-extrabold' 
+                    : 'border-transparent text-slate-300/85 hover:text-white hover:bg-white/5'
                 }`}
               >
-                <Settings className="w-4 h-4 shrink-0" />
-                <span>Cấu hình định mức</span>
+                <Settings className="w-4 h-4 shrink-0 text-sky-300" />
+                <span>Cài đặt</span>
               </button>
             </>
           )}
         </nav>
 
-        <div className="p-4 border-t border-slate-800/80 space-y-3.5 shrink-0 bg-slate-900">
+        <div className="p-4 border-t border-white/10 space-y-3.5 shrink-0 bg-[#042236]">
           <div className="flex items-center gap-2 px-2">
             {(() => {
               const matchedTeacher = teachers.find(t => 
@@ -583,7 +593,7 @@ export default function App() {
                     )}
                     <div className="text-[13px] min-w-0 flex-1">
                       <p className="font-bold text-slate-200 truncate">{displayName}</p>
-                      <p className="text-[13px] text-slate-400">Admin</p>
+                      <p className="text-[13px] text-sky-200/70">Admin</p>
                     </div>
                   </>
                 );
@@ -602,7 +612,7 @@ export default function App() {
                     )}
                     <div className="text-[13px] min-w-0 flex-1">
                       <p className="font-bold text-slate-200 truncate">{displayName}</p>
-                      <p className="text-[13px] text-slate-400 truncate">Giảng viên Khoa</p>
+                      <p className="text-[13px] text-sky-200/70 truncate">Giảng viên Khoa</p>
                     </div>
                   </>
                 );
@@ -611,7 +621,7 @@ export default function App() {
           </div>
           <button
             onClick={handleLogout}
-            className="w-full flex items-center justify-center gap-2 bg-slate-800 hover:bg-rose-950/40 hover:text-rose-400 text-slate-400 font-bold text-[13px] py-1.5 px-3 rounded-lg border border-slate-700/60 cursor-pointer transition-colors"
+            className="w-full flex items-center justify-center gap-2 bg-[#094870]/40 hover:bg-rose-950/40 hover:text-rose-300 text-blue-200 hover:border-rose-500/30 font-bold text-[13px] py-1.5 px-3 rounded-lg border border-white/10 cursor-pointer transition-colors"
           >
             <LogOut className="w-3.5 h-3.5" />
             Đăng xuất
@@ -638,29 +648,42 @@ export default function App() {
           </div>
 
           <div className="flex items-center gap-3">
-            <div className="flex items-center gap-1.5 text-[13px] text-slate-500 font-semibold bg-slate-50 border border-slate-200 rounded-lg py-1.5 px-3">
-              <Calendar className="w-3.5 h-3.5 text-blue-500" />
-              <span className="hidden xs:inline">Năm học: </span>
-              <span className="font-bold text-slate-800 font-mono">{selectedYear}</span>
-            </div>
-            
-            <div className="hidden md:flex items-center gap-1 text-[13px] font-bold text-emerald-700 bg-emerald-50 px-2.5 py-1.5 rounded-full border border-emerald-100 shadow-3xs">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-              Local OK
+            <div className="flex items-center gap-1.5 text-[13px] text-slate-500 font-semibold bg-slate-50 border border-slate-200 rounded-lg py-1 px-2.5 shadow-2xs">
+              <Calendar className="w-3.5 h-3.5 text-blue-500 shrink-0" />
+              <span className="hidden xs:inline shrink-0">Năm học: </span>
+              <select
+                value={selectedYear}
+                onChange={(e) => {
+                  setSelectedYear(e.target.value);
+                  localStorage.setItem('faculty_selected_year', e.target.value);
+                }}
+                className="font-bold text-slate-800 font-mono bg-transparent border-none focus:outline-hidden pr-1 cursor-pointer"
+              >
+                {!academicYears.some((item) => item.year === selectedYear) && (
+                  <option value={selectedYear}>{selectedYear}</option>
+                )}
+                {[...academicYears]
+                  .sort((a, b) => b.year.localeCompare(a.year))
+                  .map((item) => (
+                    <option key={item.id || item.year} value={item.year}>
+                      {item.year}
+                    </option>
+                  ))}
+              </select>
             </div>
           </div>
         </header>
 
         {/* Mobile Navigation Bar */}
-        <nav className="md:hidden bg-slate-900 border-b border-slate-800 py-1.5 sticky top-16 z-30 shadow-xs">
+        <nav className="md:hidden bg-[#062f4a] border-b border-white/10 py-1.5 sticky top-16 z-30 shadow-xs">
           <div className="px-4 overflow-x-auto no-scrollbar py-0.5">
             <div className="flex gap-1.5">
               <button
                 onClick={() => setActiveTab('stats')}
                 className={`text-[13px] font-bold px-3 py-1.5 rounded-lg transition-all shrink-0 cursor-pointer ${
                   activeTab === 'stats' 
-                    ? 'bg-blue-600 text-white' 
-                    : 'text-slate-400 hover:text-white'
+                    ? 'bg-[#094870] text-white font-extrabold shadow-sm border border-white/10' 
+                    : 'text-blue-200/80 hover:text-white'
                 }`}
               >
                 Tổng quan
@@ -669,8 +692,8 @@ export default function App() {
                 onClick={() => setActiveTab('teachers')}
                 className={`text-[13px] font-bold px-3 py-1.5 rounded-lg transition-all shrink-0 cursor-pointer ${
                   activeTab === 'teachers' 
-                    ? 'bg-blue-600 text-white' 
-                    : 'text-slate-400 hover:text-white'
+                    ? 'bg-[#094870] text-white font-extrabold shadow-sm border border-white/10' 
+                    : 'text-blue-200/80 hover:text-white'
                 }`}
               >
                 Giảng viên
@@ -679,8 +702,8 @@ export default function App() {
                 onClick={() => setActiveTab('teaching')}
                 className={`text-[13px] font-bold px-3 py-1.5 rounded-lg transition-all shrink-0 cursor-pointer ${
                   activeTab === 'teaching' 
-                    ? 'bg-blue-600 text-white' 
-                    : 'text-slate-400 hover:text-white'
+                    ? 'bg-[#094870] text-white font-extrabold shadow-sm border border-white/10' 
+                    : 'text-blue-200/80 hover:text-white'
                 }`}
               >
                 Giờ giảng
@@ -689,8 +712,8 @@ export default function App() {
                 onClick={() => setActiveTab('research')}
                 className={`text-[13px] font-bold px-3 py-1.5 rounded-lg transition-all shrink-0 cursor-pointer ${
                   activeTab === 'research' 
-                    ? 'bg-blue-600 text-white' 
-                    : 'text-slate-400 hover:text-white'
+                    ? 'bg-[#094870] text-white font-extrabold shadow-sm border border-white/10' 
+                    : 'text-blue-200/80 hover:text-white'
                 }`}
               >
                 NCKH
@@ -699,8 +722,8 @@ export default function App() {
                 onClick={() => setActiveTab('standards')}
                 className={`text-[13px] font-bold px-3 py-1.5 rounded-lg transition-all shrink-0 cursor-pointer ${
                   activeTab === 'standards' 
-                    ? 'bg-blue-600 text-white' 
-                    : 'text-slate-400 hover:text-white'
+                    ? 'bg-[#094870] text-white font-extrabold shadow-sm border border-white/10' 
+                    : 'text-blue-200/80 hover:text-white'
                 }`}
               >
                 Chức danh
@@ -709,8 +732,8 @@ export default function App() {
                 onClick={() => setActiveTab('account')}
                 className={`text-[13px] font-bold px-3 py-1.5 rounded-lg transition-all shrink-0 cursor-pointer ${
                   activeTab === 'account' 
-                    ? 'bg-blue-600 text-white' 
-                    : 'text-slate-400 hover:text-white'
+                    ? 'bg-[#094870] text-white font-extrabold shadow-sm border border-white/10' 
+                    : 'text-blue-200/80 hover:text-white'
                 }`}
               >
                 Tài khoản
@@ -720,11 +743,11 @@ export default function App() {
                   onClick={() => setActiveTab('settings')}
                   className={`text-[13px] font-bold px-3 py-1.5 rounded-lg transition-all shrink-0 cursor-pointer ${
                     activeTab === 'settings' 
-                      ? 'bg-blue-600 text-white' 
-                      : 'text-slate-400 hover:text-white'
+                      ? 'bg-[#094870] text-white font-extrabold shadow-sm border border-white/10' 
+                      : 'text-blue-200/80 hover:text-white'
                   }`}
                 >
-                  Hệ thống
+                  Cài đặt
                 </button>
               )}
             </div>

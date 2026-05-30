@@ -719,145 +719,6 @@ export default function StandardsTab({ teachers, researchLogs }: StandardsTabPro
         </div>
       </div>
 
-      {/* Official requirements checklist cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        {/* Card 1: Giảng viên */}
-        <div className="bg-white rounded-xl border border-slate-200/80 p-4 shadow-3xs flex flex-col justify-between">
-          <div>
-            <div className="flex justify-between items-start mb-3">
-              <span className="text-slate-800 font-extrabold text-[13px] uppercase tracking-wider px-2.5 py-1 bg-slate-100 rounded-md">
-                Giảng viên (Hạng III)
-              </span>
-            </div>
-            <ul className="space-y-2 text-[13px] text-slate-600 font-medium">
-              <li className="flex items-start gap-2">
-                <Clock className="w-3.5 h-3.5 text-blue-500 shrink-0 mt-0.5" />
-                <span>
-                  <b>Thời gian công tác:</b> Thời gian làm công tác giảng dạy tối thiểu <b>01 năm</b> tính đến thời điểm đăng ký hồ sơ xét duyệt.
-                </span>
-              </li>
-              <li className="flex items-start gap-2 text-blue-700 bg-blue-50/50 p-1.5 rounded-md border border-blue-105">
-                <Info className="w-3.5 h-3.5 shrink-0 mt-0.5" />
-                <span className="text-[12px] leading-relaxed">
-                  <b>Lưu ý học viên SQ:</b> Giảng viên giảng dạy bậc đại học tại trường sĩ quan phải có bằng <b>Thạc sĩ trở lên</b>. Đi thực tế, đào tạo, bồi dưỡng được tính vào thời gian giảng dạy.
-                </span>
-              </li>
-              <li className="flex items-start gap-2">
-                <Globe2 className="w-3.5 h-3.5 text-blue-500 shrink-0 mt-0.5" />
-                <span><b>Ngoại ngữ:</b> Trình độ ngoại ngữ đạt từ cực tiểu <b>Bậc 2</b> trở lên.</span>
-              </li>
-              <li className="flex items-start gap-2">
-                <MapPin className="w-3.5 h-3.5 text-blue-500 shrink-0 mt-0.5" />
-                <span><b>Thực tế đơn vị:</b> Yêu cầu đi thực tế từ <b>cấp tiểu đoàn trở lên</b>.</span>
-              </li>
-              <li className="flex items-start gap-2">
-                <FileCode2 className="w-3.5 h-3.5 text-blue-500 shrink-0 mt-0.5" />
-                <span><b>Tin học & Nghiệp vụ:</b> Sư phạm đầy đủ & kỹ năng sử dụng CNTT cơ bản.</span>
-              </li>
-            </ul>
-          </div>
-          <div className="border-t border-slate-100 mt-4 pt-3 flex items-center justify-between text-[13px] text-slate-400">
-            <span>Tiêu chuẩn Hạng III (Điều 22)</span>
-            <span className="text-blue-700 font-bold bg-blue-50 px-1.5 rounded">Thạc sĩ (SQ)</span>
-          </div>
-        </div>
-
-        {/* Card 2: Giảng viên chính */}
-        <div className="bg-white rounded-xl border border-slate-300 p-4 shadow-3xs flex flex-col justify-between relative overflow-hidden bg-gradient-to-b from-blue-50/10 to-transparent">
-          <div className="absolute top-0 right-0 w-16 h-16 bg-blue-500/5 rounded-bl-full pointer-events-none" />
-          <div>
-            <div className="flex justify-between items-start mb-3">
-              <span className="text-blue-800 font-extrabold text-[13px] uppercase tracking-wider px-2.5 py-1 bg-blue-50 rounded-md">
-                Giảng viên chính (Hạng II)
-              </span>
-            </div>
-            <ul className="space-y-2 text-[13px] text-slate-600 font-medium">
-              <li className="flex items-start gap-2">
-                <Clock className="w-3.5 h-3.5 text-blue-600 shrink-0 mt-0.5" />
-                <span>
-                  <b>Thời gian giữ ngạch:</b> Giữ ngạch chức danh Giảng viên tối thiểu <b>06 năm</b>.
-                </span>
-              </li>
-              <li className="flex items-start gap-2">
-                <CheckCircle2 className="w-3.5 h-3.5 text-blue-600 shrink-0 mt-0.5" />
-                <span>
-                  <b>Điều kiện kèm theo:</b> Thời gian gần nhất giữ chức danh Giảng viên tối thiểu <b>01 năm</b> tính đến thời điểm nộp hồ sơ.
-                </span>
-              </li>
-              <li className="flex items-start gap-2 text-violet-700 bg-violet-50/50 p-2 rounded-md border border-violet-100">
-                <Sparkles className="w-3.5 h-3.5 shrink-0 mt-0.5 text-violet-500" />
-                <span className="text-[12px] leading-relaxed">
-                  <b>Trường hợp đặc biệt (nếu chưa đủ 06 năm):</b>
-                  <span className="block mt-1">• Có bằng ThS tối thiểu 06 năm hoặc Tiến sĩ tối thiểu 02 năm, và 01 năm cuối đang là giảng viên trường.</span>
-                  <span className="block mt-0.5">• Đã giữ chức vụ chỉ huy cấp tiểu đoàn hoặc tương đương trở lên.</span>
-                </span>
-              </li>
-              <li className="flex items-start gap-2">
-                <MapPin className="w-3.5 h-3.5 text-blue-600 shrink-0 mt-0.5" />
-                <span><b>Thực tế đơn vị:</b> Yêu cầu đi thực tế từ <b>cấp trung (lữ) đoàn trở lên</b>.</span>
-              </li>
-              <li className="flex items-start gap-2">
-                <FileCode2 className="w-3.5 h-3.5 text-blue-600 shrink-0 mt-0.5" />
-                <span><b>NCKH:</b> Chủ trì 01 hoặc tham gia 02 đề tài cấp cơ sở; 02 bài báo & chủ biên 01 GT/tài liệu.</span>
-              </li>
-            </ul>
-          </div>
-          <div className="border-t border-slate-100 mt-4 pt-3 flex items-center justify-between text-[13px] text-blue-600 font-semibold">
-            <span>Tiêu chuẩn Hạng II (Điều 23)</span>
-            <span className="bg-blue-100 text-blue-800 text-[13px] px-1.5 rounded">Thạc sĩ</span>
-          </div>
-        </div>
-
-        {/* Card 3: Giảng viên cao cấp */}
-        <div className="bg-white rounded-xl border border-amber-200 p-4 shadow-3xs flex flex-col justify-between bg-gradient-to-b from-amber-50/10 to-transparent">
-          <div>
-            <div className="flex justify-between items-start mb-3">
-              <span className="text-amber-800 font-extrabold text-[13px] uppercase tracking-wider px-2.5 py-1 bg-amber-50 rounded-md">
-                Giảng viên cao cấp (Hạng I)
-              </span>
-            </div>
-            <ul className="space-y-2 text-[13px] text-slate-600 font-medium">
-              <li className="flex items-start gap-2">
-                <Clock className="w-3.5 h-3.5 text-amber-600 shrink-0 mt-0.5" />
-                <span>
-                  <b>Thời gian giữ ngạch:</b> Giữ ngạch chức danh Giảng viên chính tối thiểu <b>06 năm</b>.
-                </span>
-              </li>
-              <li className="flex items-start gap-2">
-                <CheckCircle2 className="w-3.5 h-3.5 text-amber-600 shrink-0 mt-0.5" />
-                <span>
-                  <b>Điều kiện kèm theo:</b> Thời gian gần nhất giữ chức danh Giảng viên chính tối thiểu <b>01 năm</b> tính đến thời điểm nộp hồ sơ.
-                </span>
-              </li>
-              <li className="flex items-start gap-2 text-amber-800 bg-amber-50/50 p-2 rounded-md border border-amber-150">
-                <Sparkles className="w-3.5 h-3.5 shrink-0 mt-0.5 text-amber-500" />
-                <span className="text-[12px] leading-relaxed">
-                  <b>Trường hợp đặc biệt (nếu chưa đủ 06 năm):</b>
-                  <span className="block mt-1">• Có bằng Tiến sĩ tối thiểu 06 năm và 01 năm cuối đang là giảng viên chính của trường.</span>
-                  <span className="block mt-0.5">• Đã giữ chức vụ chỉ huy cấp trung (lữ) đoàn hoặc tương đương trở lên.</span>
-                </span>
-              </li>
-              <li className="flex items-start gap-2">
-                <Globe2 className="w-3.5 h-3.5 text-amber-600 shrink-0 mt-0.5" />
-                <span><b>Ngoại ngữ & Trình độ:</b> Tiêu chuẩn ngoại ngữ Bậc 4 & Học vị Tiến sĩ.</span>
-              </li>
-              <li className="flex items-start gap-2">
-                <MapPin className="w-3.5 h-3.5 text-amber-600 shrink-0 mt-0.5" />
-                <span><b>Thực tế đơn vị:</b> Yêu cầu đi thực tế từ <b>cấp trung (lữ) đoàn trở lên</b>.</span>
-              </li>
-              <li className="flex items-start gap-2">
-                <FileCode2 className="w-3.5 h-3.5 text-amber-600 shrink-0 mt-0.5" />
-                <span><b>NCKH:</b> Chủ chủ trì 02 đề tài cơ sở hoặc 01 Bộ/Ngành; 03 bài báo & chủ biên 02 GT/tài liệu; hướng dẫn 02 Ths hoặc 01 NCS.</span>
-              </li>
-            </ul>
-          </div>
-          <div className="border-t border-slate-100 mt-4 pt-3 flex items-center justify-between text-[13px] text-amber-600 font-semibold">
-            <span>Tiêu chuẩn Hạng I (Điều 24)</span>
-            <span className="bg-amber-100 text-amber-800 text-[13px] px-1.5 rounded">Tiến sĩ</span>
-          </div>
-        </div>
-      </div>
-
       {/* Control panel: search, filter */}
       <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-3xs flex flex-col md:flex-row gap-3.5 items-center justify-between">
         <div className="relative w-full md:w-96">
@@ -1306,6 +1167,145 @@ export default function StandardsTab({ teachers, researchLogs }: StandardsTabPro
               )}
             </tbody>
           </table>
+        </div>
+      </div>
+
+      {/* Official requirements checklist cards */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        {/* Card 1: Giảng viên */}
+        <div className="bg-white rounded-xl border border-slate-200/80 p-4 shadow-3xs flex flex-col justify-between">
+          <div>
+            <div className="flex justify-between items-start mb-3">
+              <span className="text-slate-800 font-extrabold text-[13px] uppercase tracking-wider px-2.5 py-1 bg-slate-100 rounded-md">
+                Giảng viên (Hạng III)
+              </span>
+            </div>
+            <ul className="space-y-2 text-[13px] text-slate-600 font-medium">
+              <li className="flex items-start gap-2">
+                <Clock className="w-3.5 h-3.5 text-blue-500 shrink-0 mt-0.5" />
+                <span>
+                  <b>Thời gian công tác:</b> Thời gian làm công tác giảng dạy tối thiểu <b>01 năm</b> tính đến thời điểm đăng ký hồ sơ xét duyệt.
+                </span>
+              </li>
+              <li className="flex items-start gap-2 text-blue-700 bg-blue-50/50 p-1.5 rounded-md border border-blue-105">
+                <Info className="w-3.5 h-3.5 shrink-0 mt-0.5" />
+                <span className="text-[12px] leading-relaxed">
+                  <b>Lưu ý học viên SQ:</b> Giảng viên giảng dạy bậc đại học tại trường sĩ quan phải có bằng <b>Thạc sĩ trở lên</b>. Đi thực tế, đào tạo, bồi dưỡng được tính vào thời gian giảng dạy.
+                </span>
+              </li>
+              <li className="flex items-start gap-2">
+                <Globe2 className="w-3.5 h-3.5 text-blue-500 shrink-0 mt-0.5" />
+                <span><b>Ngoại ngữ:</b> Trình độ ngoại ngữ đạt từ cực tiểu <b>Bậc 2</b> trở lên.</span>
+              </li>
+              <li className="flex items-start gap-2">
+                <MapPin className="w-3.5 h-3.5 text-blue-500 shrink-0 mt-0.5" />
+                <span><b>Thực tế đơn vị:</b> Yêu cầu đi thực tế từ <b>cấp tiểu đoàn trở lên</b>.</span>
+              </li>
+              <li className="flex items-start gap-2">
+                <FileCode2 className="w-3.5 h-3.5 text-blue-500 shrink-0 mt-0.5" />
+                <span><b>Tin học & Nghiệp vụ:</b> Sư phạm đầy đủ & kỹ năng sử dụng CNTT cơ bản.</span>
+              </li>
+            </ul>
+          </div>
+          <div className="border-t border-slate-100 mt-4 pt-3 flex items-center justify-between text-[13px] text-slate-400">
+            <span>Tiêu chuẩn Hạng III (Điều 22)</span>
+            <span className="text-blue-700 font-bold bg-blue-50 px-1.5 rounded">Thạc sĩ (SQ)</span>
+          </div>
+        </div>
+
+        {/* Card 2: Giảng viên chính */}
+        <div className="bg-white rounded-xl border border-slate-300 p-4 shadow-3xs flex flex-col justify-between relative overflow-hidden bg-gradient-to-b from-blue-50/10 to-transparent">
+          <div className="absolute top-0 right-0 w-16 h-16 bg-blue-500/5 rounded-bl-full pointer-events-none" />
+          <div>
+            <div className="flex justify-between items-start mb-3">
+              <span className="text-blue-800 font-extrabold text-[13px] uppercase tracking-wider px-2.5 py-1 bg-blue-50 rounded-md">
+                Giảng viên chính (Hạng II)
+              </span>
+            </div>
+            <ul className="space-y-2 text-[13px] text-slate-600 font-medium">
+              <li className="flex items-start gap-2">
+                <Clock className="w-3.5 h-3.5 text-blue-600 shrink-0 mt-0.5" />
+                <span>
+                  <b>Thời gian giữ ngạch:</b> Giữ ngạch chức danh Giảng viên tối thiểu <b>06 năm</b>.
+                </span>
+              </li>
+              <li className="flex items-start gap-2">
+                <CheckCircle2 className="w-3.5 h-3.5 text-blue-600 shrink-0 mt-0.5" />
+                <span>
+                  <b>Điều kiện kèm theo:</b> Thời gian gần nhất giữ chức danh Giảng viên tối thiểu <b>01 năm</b> tính đến thời điểm nộp hồ sơ.
+                </span>
+              </li>
+              <li className="flex items-start gap-2 text-violet-700 bg-violet-50/50 p-2 rounded-md border border-violet-100">
+                <Sparkles className="w-3.5 h-3.5 shrink-0 mt-0.5 text-violet-500" />
+                <span className="text-[12px] leading-relaxed">
+                  <b>Trường hợp đặc biệt (nếu chưa đủ 06 năm):</b>
+                  <span className="block mt-1">• Có bằng ThS tối thiểu 06 năm hoặc Tiến sĩ tối thiểu 02 năm, và 01 năm cuối đang là giảng viên trường.</span>
+                  <span className="block mt-0.5">• Đã giữ chức vụ chỉ huy cấp tiểu đoàn hoặc tương đương trở lên.</span>
+                </span>
+              </li>
+              <li className="flex items-start gap-2">
+                <MapPin className="w-3.5 h-3.5 text-blue-600 shrink-0 mt-0.5" />
+                <span><b>Thực tế đơn vị:</b> Yêu cầu đi thực tế từ <b>cấp trung (lữ) đoàn trở lên</b>.</span>
+              </li>
+              <li className="flex items-start gap-2">
+                <FileCode2 className="w-3.5 h-3.5 text-blue-600 shrink-0 mt-0.5" />
+                <span><b>NCKH:</b> Chủ trì 01 hoặc tham gia 02 đề tài cấp cơ sở; 02 bài báo & chủ biên 01 GT/tài liệu.</span>
+              </li>
+            </ul>
+          </div>
+          <div className="border-t border-slate-100 mt-4 pt-3 flex items-center justify-between text-[13px] text-blue-600 font-semibold">
+            <span>Tiêu chuẩn Hạng II (Điều 23)</span>
+            <span className="bg-blue-100 text-blue-800 text-[13px] px-1.5 rounded">Thạc sĩ</span>
+          </div>
+        </div>
+
+        {/* Card 3: Giảng viên cao cấp */}
+        <div className="bg-white rounded-xl border border-amber-200 p-4 shadow-3xs flex flex-col justify-between bg-gradient-to-b from-amber-50/10 to-transparent">
+          <div>
+            <div className="flex justify-between items-start mb-3">
+              <span className="text-amber-800 font-extrabold text-[13px] uppercase tracking-wider px-2.5 py-1 bg-amber-50 rounded-md">
+                Giảng viên cao cấp (Hạng I)
+              </span>
+            </div>
+            <ul className="space-y-2 text-[13px] text-slate-600 font-medium">
+              <li className="flex items-start gap-2">
+                <Clock className="w-3.5 h-3.5 text-amber-600 shrink-0 mt-0.5" />
+                <span>
+                  <b>Thời gian giữ ngạch:</b> Giữ ngạch chức danh Giảng viên chính tối thiểu <b>06 năm</b>.
+                </span>
+              </li>
+              <li className="flex items-start gap-2">
+                <CheckCircle2 className="w-3.5 h-3.5 text-amber-600 shrink-0 mt-0.5" />
+                <span>
+                  <b>Điều kiện kèm theo:</b> Thời gian gần nhất giữ chức danh Giảng viên chính tối thiểu <b>01 năm</b> tính đến thời điểm nộp hồ sơ.
+                </span>
+              </li>
+              <li className="flex items-start gap-2 text-amber-800 bg-amber-50/50 p-2 rounded-md border border-amber-150">
+                <Sparkles className="w-3.5 h-3.5 shrink-0 mt-0.5 text-amber-500" />
+                <span className="text-[12px] leading-relaxed">
+                  <b>Trường hợp đặc biệt (nếu chưa đủ 06 năm):</b>
+                  <span className="block mt-1">• Có bằng Tiến sĩ tối thiểu 06 năm và 01 năm cuối đang là giảng viên chính của trường.</span>
+                  <span className="block mt-0.5">• Đã giữ chức vụ chỉ huy cấp trung (lữ) đoàn hoặc tương đương trở lên.</span>
+                </span>
+              </li>
+              <li className="flex items-start gap-2">
+                <Globe2 className="w-3.5 h-3.5 text-amber-600 shrink-0 mt-0.5" />
+                <span><b>Ngoại ngữ & Trình độ:</b> Tiêu chuẩn ngoại ngữ Bậc 4 & Học vị Tiến sĩ.</span>
+              </li>
+              <li className="flex items-start gap-2">
+                <MapPin className="w-3.5 h-3.5 text-amber-600 shrink-0 mt-0.5" />
+                <span><b>Thực tế đơn vị:</b> Yêu cầu đi thực tế từ <b>cấp trung (lữ) đoàn trở lên</b>.</span>
+              </li>
+              <li className="flex items-start gap-2">
+                <FileCode2 className="w-3.5 h-3.5 text-amber-600 shrink-0 mt-0.5" />
+                <span><b>NCKH:</b> Chủ chủ trì 02 đề tài cơ sở hoặc 01 Bộ/Ngành; 03 bài báo & chủ biên 02 GT/tài liệu; hướng dẫn 02 Ths hoặc 01 NCS.</span>
+              </li>
+            </ul>
+          </div>
+          <div className="border-t border-slate-100 mt-4 pt-3 flex items-center justify-between text-[13px] text-amber-600 font-semibold">
+            <span>Tiêu chuẩn Hạng I (Điều 24)</span>
+            <span className="bg-amber-100 text-amber-800 text-[13px] px-1.5 rounded">Tiến sĩ</span>
+          </div>
         </div>
       </div>
 

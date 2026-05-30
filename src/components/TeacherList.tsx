@@ -282,7 +282,7 @@ export default function TeacherList({
                     </span>
                     {teacher.status === 'I' && (
                       <span className="text-[13px] font-bold bg-rose-50 text-rose-600 px-1.5 rounded-full">
-                        Đang nghỉ/Đi học
+                        Đang nghỉ/phóng đi học
                       </span>
                     )}
                   </div>
@@ -545,7 +545,7 @@ export default function TeacherList({
       {/* Interactive Modal for Add/Edit */}
       <AnimatePresence>
         {isModalOpen && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-xs p-4">
+          <div className="fixed inset-0 z-50 overflow-y-auto bg-slate-900/40 backdrop-blur-xs p-4 flex items-start justify-center">
             <motion.div 
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
@@ -567,7 +567,7 @@ export default function TeacherList({
               <form onSubmit={handleSave} className="p-5 space-y-4">
                 <div className="grid grid-cols-2 lg:grid-cols-4 gap-3.5">
                   <div className="col-span-2 lg:col-span-2">
-                    <label className="text-[13px] font-bold text-slate-500 block mb-1">
+                    <label className="text-[13px] font-bold text-slate-400 uppercase block mb-1">
                       Họ và Tên giảng viên <span className="text-rose-500">*</span>
                     </label>
                     <input
@@ -581,7 +581,7 @@ export default function TeacherList({
                   </div>
 
                   <div>
-                    <label className="text-[13px] font-bold text-slate-500 block mb-1">
+                    <label className="text-[13px] font-bold text-slate-400 uppercase block mb-1">
                       Số điện thoại
                     </label>
                     <input
@@ -594,7 +594,7 @@ export default function TeacherList({
                   </div>
 
                   <div>
-                    <label className="text-[13px] font-bold text-slate-500 block mb-1">
+                    <label className="text-[13px] font-bold text-slate-400 uppercase block mb-1">
                       Email <span className="text-rose-500">*</span>
                     </label>
                     <input
@@ -608,7 +608,7 @@ export default function TeacherList({
                   </div>
 
                   <div>
-                    <label className="text-[13px] font-bold text-slate-500 block mb-1">
+                    <label className="text-[13px] font-bold text-slate-400 uppercase block mb-1">
                       Bộ môn
                     </label>
                     <select
@@ -626,7 +626,7 @@ export default function TeacherList({
                   </div>
 
                   <div>
-                    <label className="text-[13px] font-bold text-slate-500 block mb-1">
+                    <label className="text-[13px] font-bold text-slate-400 uppercase block mb-1">
                       Học vị
                     </label>
                     <select
@@ -642,7 +642,7 @@ export default function TeacherList({
                   </div>
 
                   <div>
-                    <label className="text-[13px] font-bold text-slate-500 block mb-1">
+                    <label className="text-[13px] font-bold text-slate-400 uppercase block mb-1">
                       Chức vụ
                     </label>
                     <select
@@ -671,7 +671,7 @@ export default function TeacherList({
 
 
                   <div>
-                    <label className="text-[13px] font-bold text-slate-500 block mb-1">
+                    <label className="text-[13px] font-bold text-slate-400 uppercase block mb-1">
                       Chức vụ Đảng
                     </label>
                     <select
@@ -687,7 +687,7 @@ export default function TeacherList({
                   </div>
 
                   <div>
-                    <label className="text-[13px] font-bold text-slate-500 block mb-1">
+                    <label className="text-[13px] font-bold text-slate-400 uppercase block mb-1">
                       Tình trạng nhân sự
                     </label>
                     <select
@@ -702,7 +702,7 @@ export default function TeacherList({
                   </div>
 
                   <div>
-                    <label className="text-[13px] font-bold text-slate-500 block mb-1">
+                    <label className="text-[13px] font-bold text-slate-400 uppercase block mb-1">
                       % Giảm trừ định mức (0-100%)
                     </label>
                     <input
@@ -723,7 +723,7 @@ export default function TeacherList({
                   </div>
 
                   <div>
-                    <label className="text-[13px] font-bold text-slate-500 block mb-1">
+                    <label className="text-[13px] font-bold text-slate-400 uppercase block mb-1">
                       Năm bắt đầu giảng dạy
                     </label>
                     <input
@@ -738,7 +738,7 @@ export default function TeacherList({
                   </div>
 
                   <div>
-                    <label className="text-[13px] font-bold text-slate-500 block mb-1">
+                    <label className="text-[13px] font-bold text-slate-400 uppercase block mb-1">
                       Năm nhận bằng Thạc sĩ
                     </label>
                     <input
@@ -753,7 +753,7 @@ export default function TeacherList({
                   </div>
 
                   <div>
-                    <label className="text-[13px] font-bold text-slate-500 block mb-1">
+                    <label className="text-[13px] font-bold text-slate-400 uppercase block mb-1">
                       Năm nhận bằng Tiến sĩ
                     </label>
                     <input
@@ -768,7 +768,7 @@ export default function TeacherList({
                   </div>
 
                   <div>
-                    <label className="text-[13px] font-bold text-slate-500 block mb-1">
+                    <label className="text-[13px] font-bold text-slate-400 uppercase block mb-1">
                       Năm có CC nghiệp vụ sư phạm
                     </label>
                     <input
@@ -781,7 +781,7 @@ export default function TeacherList({
                   </div>
 
                   <div>
-                    <label className="text-[13px] font-bold text-slate-500 block mb-1">
+                    <label className="text-[13px] font-bold text-slate-400 uppercase block mb-1">
                       Chứng chỉ Ngoại ngữ
                     </label>
                     <input
@@ -794,7 +794,7 @@ export default function TeacherList({
                   </div>
 
                   <div>
-                    <label className="text-[13px] font-bold text-slate-500 block mb-1">
+                    <label className="text-[13px] font-bold text-slate-400 uppercase block mb-1">
                       Chứng chỉ Tin học
                     </label>
                     <input
@@ -807,7 +807,7 @@ export default function TeacherList({
                   </div>
 
                   <div>
-                    <label className="text-[13px] font-bold text-slate-500 block mb-1">
+                    <label className="text-[13px] font-bold text-slate-400 uppercase block mb-1">
                       Chức danh chuyên môn
                     </label>
                     <select
@@ -823,7 +823,7 @@ export default function TeacherList({
                   </div>
 
                   <div>
-                    <label className="text-[13px] font-bold text-slate-500 block mb-1">
+                    <label className="text-[13px] font-bold text-slate-400 uppercase block mb-1">
                       Năm nhận chức danh
                     </label>
                     <input
@@ -837,7 +837,7 @@ export default function TeacherList({
                   </div>
 
                   <div>
-                    <label className="text-[13px] font-bold text-slate-500 block mb-1">
+                    <label className="text-[13px] font-bold text-slate-400 uppercase block mb-1">
                       Thực tế đơn vị (Đơn vị)
                     </label>
                     <select
@@ -854,7 +854,7 @@ export default function TeacherList({
                   </div>
 
                   <div>
-                    <label className="text-[13px] font-bold text-slate-500 block mb-1">
+                    <label className="text-[13px] font-bold text-slate-400 uppercase block mb-1">
                       Năm đi thực tế
                     </label>
                     <input

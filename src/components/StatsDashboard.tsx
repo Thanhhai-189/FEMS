@@ -1,11 +1,11 @@
-import { useState, useMemo } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Teacher, TeachingLog, ResearchLog, RankNorm } from '../types';
 import { getRankString, getTeachingTypeName, getResearchTypeName, getTeacherTeachingNorm, ACTIVITY_DATA } from '../data';
 import { motion } from 'motion/react';
 import { 
   Users, BookOpen, FileCode2, Award, 
   CheckCircle2, AlertTriangle, HelpCircle, 
-  ChevronRight, TrendingUp, Filter, BarChart3, PieChart
+  ChevronRight, TrendingUp, Filter, BarChart3, PieChart as PieIcon
 } from 'lucide-react';
 
 interface StatsDashboardProps {
@@ -15,6 +15,166 @@ interface StatsDashboardProps {
   rankNorms: RankNorm[];
   academicYear: string;
 }
+
+// ── Component PieChart SVG ──
+interface PieChartProps {
+  data: { label: string; hours: number }[];
+  size?: number;
+  totalHours: number;
+}
+
+const PieChart = React.memo(({ data, size = 280, totalHours }: PieChartProps) => {
+  const [hoveredArc, setHoveredArc] = React.useState<number | null>(null);
+  const [tooltipPos, setTooltipPos] = React.useState({ x: 0, y: 0 });
+
+  if (data.length === 0) return null;
+  const cx = size / 2, cy = size / 2, r = size / 2 - 15;
+  const total = data.reduce((s, d) => s + d.hours, 0);
+  if (total <= 0) return null;
+
+  const COLORS = [
+    '#6366f1', '#10b981', '#f59e0b', '#ef4444', '#3b82f6',
+    '#8b5cf6', '#ec4899', '#14b8a6', '#f97316', '#84cc16',
+    '#06b6d4', '#a855f7', '#e11d48', '#0ea5e9', '#d946ef',
+  ];
+
+  // Tính các arc
+  const arcs: {
+    path: string;
+    isFullCircle?: boolean;
+    fill: string;
+    label: string;
+    percent: number;
+    hours: number;
+    color: string;
+    midX: number;
+    midY: number;
+  }[] = [];
+  let currentAngle = -90;
+
+  data.forEach((d, i) => {
+    const percent = d.hours / total;
+    const angle = percent * 360;
+    const startAngle = currentAngle;
+    const endAngle = currentAngle + angle;
+    currentAngle = endAngle;
+
+    if (angle < 0.01) return;
+
+    if (percent >= 0.999) {
+      arcs.push({
+        path: '',
+        isFullCircle: true,
+        fill: COLORS[i % COLORS.length],
+        label: d.label,
+        percent: percent * 100,
+        hours: d.hours,
+        color: COLORS[i % COLORS.length],
+        midX: cx,
+        midY: cy - r * 0.65,
+      });
+      return;
+    }
+
+    const startRad = (startAngle * Math.PI) / 180;
+    const endRad = (endAngle * Math.PI) / 180;
+
+    const x1 = cx + r * Math.cos(startRad);
+    const y1 = cy + r * Math.sin(startRad);
+    const x2 = cx + r * Math.cos(endRad);
+    const y2 = cy + r * Math.sin(endRad);
+
+    const largeArc = angle > 180 ? 1 : 0;
+
+    // Tính góc giữa để đặt tooltip
+    const midAngle = startAngle + angle / 2;
+    const midRad = (midAngle * Math.PI) / 180;
+    const tooltipDist = r * 0.65;
+
+    arcs.push({
+      path: `M${cx},${cy} L${x1},${y1} A${r},${r} 0 ${largeArc},1 ${x2},${y2} Z`,
+      fill: COLORS[i % COLORS.length],
+      label: d.label,
+      percent: percent * 100,
+      hours: d.hours,
+      color: COLORS[i % COLORS.length],
+      midX: cx + tooltipDist * Math.cos(midRad),
+      midY: cy + tooltipDist * Math.sin(midRad),
+    });
+  });
+
+  const handleMouseMove = (e: React.MouseEvent<SVGSVGElement>) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    setTooltipPos({ x: e.clientX - rect.left, y: e.clientY - rect.top });
+  };
+
+  return (
+    <div className="flex flex-col items-center justify-center p-4 relative">
+      <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} className="cursor-pointer" onMouseMove={handleMouseMove}>
+        {arcs.map((arc, i) => (
+          <g key={i}>
+            {arc.isFullCircle ? (
+              <circle
+                cx={cx}
+                cy={cy}
+                r={r}
+                fill={arc.fill}
+                stroke="white"
+                strokeWidth="2"
+                onMouseEnter={() => setHoveredArc(i)}
+                onMouseLeave={() => setHoveredArc(null)}
+                className="transition-all duration-150"
+                style={{ opacity: hoveredArc !== null && hoveredArc !== i ? 0.4 : 1 }}
+              />
+            ) : (
+              <path
+                d={arc.path}
+                fill={arc.fill}
+                stroke="white"
+                strokeWidth="2"
+                onMouseEnter={() => setHoveredArc(i)}
+                onMouseLeave={() => setHoveredArc(null)}
+                className="transition-all duration-150"
+                style={{ opacity: hoveredArc !== null && hoveredArc !== i ? 0.4 : 1, transformOrigin: `${cx}px ${cy}px` }}
+              />
+            )}
+          </g>
+        ))}
+        {/* Vòng tròn trắng ở giữa */}
+        <circle cx={cx} cy={cy} r={r * 0.4} fill="white" />
+        <text x={cx} y={cy - 4} textAnchor="middle" fill="#334155" fontSize="16" fontWeight="bold">
+          {totalHours.toFixed(1)}
+        </text>
+        <text x={cx} y={cy + 14} textAnchor="middle" fill="#94a3b8" fontSize="11">
+          Tổng giờ
+        </text>
+      </svg>
+
+      {/* Tooltip */}
+      {hoveredArc !== null && arcs[hoveredArc] && (() => {
+        const arc = arcs[hoveredArc];
+        const tipX = Math.min(arc.midX, size - 10);
+        const tipY = Math.min(arc.midY, size - 10);
+        return (
+          <div
+            className="absolute z-10 pointer-events-none"
+            style={{
+              left: tipX,
+              top: tipY,
+              transform: 'translate(-50%, -100%) translateY(-8px)',
+            }}
+          >
+            <div className="bg-white/95 backdrop-blur-sm shadow-lg border border-slate-200 rounded-lg px-3 py-2 text-center overflow-visible">
+              <p className="text-xs font-black text-slate-700 whitespace-nowrap">{arc.label}</p>
+              <p className="text-lg font-black mt-0.5" style={{ color: arc.color }}>{arc.hours.toFixed(1)} giờ</p>
+              <p className="text-[10px] font-bold text-slate-400">({arc.percent.toFixed(1)}%)</p>
+            </div>
+          </div>
+        );
+      })()}
+    </div>
+  );
+});
 
 export default function StatsDashboard({ teachers, teachingLogs, researchLogs, rankNorms, academicYear }: StatsDashboardProps) {
   const [selectedDepartment, setSelectedDepartment] = useState<string>('all');
@@ -186,6 +346,16 @@ export default function StatsDashboard({ teachers, teachingLogs, researchLogs, r
     }));
   }, [teachingLogs, filteredTeacherIds, academicYear]);
 
+  // Compute data for CustomPieChart Component
+  const pieChartData = useMemo(() => {
+    return teachingHoursByType
+      .filter(item => item.value > 0)
+      .map(item => ({
+        label: item.name,
+        hours: item.value,
+      }));
+  }, [teachingHoursByType]);
+
   // Research hours by main category groups matching ACTIVITY_DATA
   const researchHoursByCategory = useMemo(() => {
     const groups = {
@@ -288,7 +458,7 @@ export default function StatsDashboard({ teachers, teachingLogs, researchLogs, r
             onChange={(e) => setSelectedDepartment(e.target.value)}
             className="text-[13px] border border-slate-200 rounded-lg px-3 py-1.5 bg-slate-50 font-medium focus:outline-hidden focus:ring-2 focus:ring-blue-500"
           >
-            <option value="all">Tất cả Bộ môn</option>
+            <option value="all">Toàn Khoa</option>
             {departments.filter(d => d !== 'all').map(dept => (
               <option key={dept} value={dept}>{dept}</option>
             ))}
@@ -308,12 +478,12 @@ export default function StatsDashboard({ teachers, teachingLogs, researchLogs, r
             <Users className="w-6 h-6" />
           </div>
           <div>
-            <span className="text-[13px] text-slate-500 block font-medium">Giảng viên nhân sự</span>
+            <span className="text-[13px] text-slate-500 block font-medium">Quân số</span>
             <span className="text-2xl font-bold text-slate-800">
               {aggregateMetrics.teachersCount}
             </span>
-            <span className="text-[13px] text-emerald-600 font-medium bg-emerald-50 px-1.5 py-0.5 rounded ml-1.5">
-              {aggregateMetrics.activeCount} Hoạt động
+            <span className="text-[13px] text-slate-500 block mt-0.5">
+              {aggregateMetrics.activeCount} Làm việc
             </span>
           </div>
         </motion.div>
@@ -376,7 +546,7 @@ export default function StatsDashboard({ teachers, teachingLogs, researchLogs, r
               {aggregateMetrics.metBothRate}%
             </span>
             <span className="text-[13px] text-slate-500 block mt-0.5">
-              Giảng viên hoàn thành 100% hai định mức
+              GV hoàn thành 100% hai định mức
             </span>
           </div>
         </motion.div>
@@ -384,11 +554,11 @@ export default function StatsDashboard({ teachers, teachingLogs, researchLogs, r
 
       {/* Visual charts row */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Chart 1: Teaching hours by type */}
+        {/* Chart 1: Teaching hours by type - Done as Pie/Donut Chart */}
         <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
           <div className="flex justify-between items-center mb-4">
             <h3 className="text-sm font-bold text-slate-800 flex items-center gap-2 font-display">
-              <PieChart className="w-4 h-4 text-blue-500" />
+              <PieIcon className="w-4 h-4 text-blue-500" />
               Cơ cấu giờ giảng dạy quy đổi
             </h3>
             <span className="text-[13px] bg-blue-50 text-blue-700 px-2 py-0.5 rounded-full font-semibold">
@@ -396,43 +566,63 @@ export default function StatsDashboard({ teachers, teachingLogs, researchLogs, r
             </span>
           </div>
           
-          <div className="space-y-4">
-            {/* Horizontal custom bar comparison */}
-            <div className="h-6 w-full bg-slate-100 rounded-full overflow-hidden flex">
-              {teachingHoursByType.map((item, idx) => {
-                const colors = [
-                  'bg-blue-600 hover:bg-blue-700', 
-                  'bg-sky-500 hover:bg-sky-600', 
-                  'bg-emerald-500 hover:bg-emerald-600', 
-                  'bg-violet-500 hover:bg-violet-600', 
-                  'bg-amber-500 hover:bg-amber-600'
-                ];
-                return item.value > 0 ? (
-                  <div 
-                    key={item.key}
-                    style={{ width: `${item.percentage}%` }}
-                    className={`${colors[idx % colors.length]} transition-all duration-300 relative group cursor-pointer h-full`}
-                    title={`${item.name}: ${item.value} giờ (${item.percentage}%)`}
-                  />
-                ) : null;
-              })}
+          <div className="flex flex-col items-center gap-4 pt-2">
+            {/* SVG Pie / Donut Chart */}
+            <div className="relative shrink-0 flex items-center justify-center">
+              {aggregateMetrics.totalTeachingHours === 0 ? (
+                <div className="w-48 h-48 flex items-center justify-center">
+                  <svg viewBox="0 0 200 200" className="w-full h-full">
+                    <circle cx="100" cy="100" r="80" className="fill-slate-50 stroke-slate-200" strokeWidth="2" />
+                    <text x="100" y="105" textAnchor="middle" className="fill-slate-400 font-bold text-[13px]">Chưa có dữ liệu</text>
+                  </svg>
+                </div>
+              ) : (
+                <PieChart 
+                  data={pieChartData} 
+                  size={250} 
+                  totalHours={aggregateMetrics.totalTeachingHours} 
+                />
+              )}
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
-              {teachingHoursByType.map((item, idx) => {
-                const colors = ['bg-blue-600', 'bg-sky-500', 'bg-emerald-500', 'bg-violet-500', 'bg-amber-500'];
-                return (
-                  <div key={item.key} className="flex items-center gap-2 bg-slate-50 p-2.5 rounded-lg">
-                    <div className={`w-3 h-3 rounded-xs ${colors[idx % colors.length]}`} />
-                    <div className="flex-1 min-w-0">
-                      <span className="text-[13px] font-semibold text-slate-700 block truncate">{item.name}</span>
-                      <span className="text-[13px] text-slate-400 font-mono">
-                        {item.value} giờ quy đổi ({item.percentage}%)
-                      </span>
-                    </div>
-                  </div>
-                );
-              })}
+            {/* Detailed Legend List - Placed below, only showing categories with values > 0 in a beautiful grid */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 w-full">
+              {pieChartData.length === 0 ? (
+                <div className="text-center text-slate-400 text-[13px] py-4 w-full col-span-full">
+                  Chưa ghi nhận giờ giảng quy đổi cho năm học này.
+                </div>
+              ) : (
+                (() => {
+                  const COLORS = [
+                    '#6366f1', '#10b981', '#f59e0b', '#ef4444', '#3b82f6',
+                    '#8b5cf6', '#ec4899', '#14b8a6', '#f97316', '#84cc16',
+                    '#06b6d4', '#a855f7', '#e11d48', '#0ea5e9', '#d946ef',
+                  ];
+                  return pieChartData.map((slice, idx) => {
+                    const color = COLORS[idx % COLORS.length];
+                    const percent = aggregateMetrics.totalTeachingHours > 0 
+                      ? (slice.hours / aggregateMetrics.totalTeachingHours) * 100 
+                      : 0;
+                    return (
+                      <div 
+                        key={slice.label} 
+                        className="flex items-center gap-3 bg-slate-50/60 p-2.5 border border-slate-100 hover:border-slate-200 hover:bg-slate-50 rounded-lg transition-colors group"
+                      >
+                        <div 
+                          className="w-3 h-3 rounded-xs shrink-0 group-hover:scale-110 transition-transform" 
+                          style={{ backgroundColor: color }} 
+                        />
+                        <div className="flex-1 min-w-0 flex items-center justify-between gap-2">
+                          <span className="text-[13px] font-bold text-slate-700 truncate">{slice.label}</span>
+                          <span className="text-[13px] text-slate-500 font-mono font-bold whitespace-nowrap">
+                            {slice.hours}h <span className="text-slate-400 font-normal">({percent.toFixed(1)}%)</span>
+                          </span>
+                        </div>
+                      </div>
+                    );
+                  });
+                })()
+              )}
             </div>
           </div>
         </div>

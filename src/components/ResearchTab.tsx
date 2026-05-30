@@ -274,12 +274,10 @@ export default function ResearchTab({
   }, [researchLogs, selectedYear, searchQuery, selectedType, selectedStatus, selectedTeacherId, teachers]);
 
   const stats = useMemo(() => {
-    const totalPoints = filteredResearchLogs.reduce((acc, log) => acc + log.points, 0);
     const totalHours = filteredResearchLogs.reduce((acc, log) => acc + log.convertedHours, 0);
     const approvedCount = filteredResearchLogs.filter(l => l.status === 'approved').length;
     const pendingCount = filteredResearchLogs.filter(l => l.status === 'pending').length;
     return {
-      points: Math.round(totalPoints * 10) / 10,
       hours: Math.round(totalHours * 10) / 10,
       approvedCount,
       pendingCount
@@ -339,14 +337,10 @@ export default function ResearchTab({
       </div>
 
       {/* Aggregate Indicators grid */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-xs">
           <span className="text-slate-400 font-medium text-[10px] block uppercase">Tổng công trình</span>
           <span className="text-lg font-extrabold text-slate-800 font-mono mt-0.5 block">{filteredResearchLogs.length} đề tài/bài báo</span>
-        </div>
-        <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-xs">
-          <span className="text-slate-400 font-medium text-[10px] block uppercase">Tổng điểm khoa học</span>
-          <span className="text-lg font-extrabold text-slate-800 font-mono mt-0.5 block">{stats.points} điểm</span>
         </div>
         <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-xs">
           <span className="text-emerald-600 font-bold text-[10px] block uppercase">Đã phê duyệt</span>
@@ -500,17 +494,11 @@ export default function ResearchTab({
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 gap-3">
                   <div>
                     <span className="text-slate-400 block mb-0.5 text-[12px] uppercase font-bold tracking-wider">Năm xuất bản:</span>
                     <div className="font-semibold text-slate-700 font-mono">
                       {detailPreview.publicationYear}
-                    </div>
-                  </div>
-                  <div>
-                    <span className="text-slate-400 block mb-0.5 text-[10px] uppercase font-bold tracking-wider">Điểm chất lượng:</span>
-                    <div className="font-semibold text-emerald-600 font-bold font-mono">
-                      {detailPreview.points} điểm KH
                     </div>
                   </div>
                 </div>
@@ -574,7 +562,7 @@ export default function ResearchTab({
       {/* Insert modal dialog */}
       <AnimatePresence>
         {isModalOpen && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-xs p-4">
+          <div className="fixed inset-0 z-50 overflow-y-auto bg-slate-900/40 backdrop-blur-xs p-4 flex items-start justify-center">
             <motion.div 
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
@@ -597,7 +585,7 @@ export default function ResearchTab({
                 <div className="grid grid-cols-2 lg:grid-cols-4 gap-3.5">
                   <div className="col-span-2 lg:col-span-4">
                     <label className="text-[13px] font-bold text-slate-500 block mb-1">
-                      Giảng viên thực hiện / Nhóm trưởng <span className="text-rose-500">*</span>
+                      Giảng viên thực hiện <span className="text-rose-500">*</span>
                     </label>
                     <select
                       value={formTeacherId}
@@ -816,7 +804,7 @@ export default function ResearchTab({
                     </select>
                   </div>
 
-                  <div className="col-span-2 lg:col-span-4">
+                  <div className="col-span-2 lg:col-span-2">
                     <label className="text-[13px] font-bold text-slate-500 block mb-1">
                       Tình trạng kiểm tra
                     </label>
@@ -827,12 +815,12 @@ export default function ResearchTab({
                       className={`text-[13px] w-full border border-slate-200 rounded-lg px-3 py-2 bg-slate-50 focus:outline-hidden focus:ring-2 focus:ring-blue-500 font-medium ${!isAdmin ? 'opacity-70 cursor-not-allowed' : ''}`}
                     >
                       <option value="approved">Đã kiểm tra chứng minh & duyệt</option>
-                      <option value="pending">Đang chờ tổ bộ môn xét duyệt</option>
+                      <option value="pending">Đang chờ bộ môn xét duyệt</option>
                       <option value="rejected">Mất minh chứng / Từ chối tính điểm</option>
                     </select>
                   </div>
 
-                  <div className="col-span-2 lg:col-span-4">
+                  <div className="col-span-2 lg:col-span-2">
                     <label className="text-[13px] font-bold text-slate-500 block mb-1">
                       Tài liệu đính kèm hoặc Mô tả link minh chứng
                     </label>
@@ -850,7 +838,7 @@ export default function ResearchTab({
                 <div className="bg-emerald-50/50 rounded-xl p-3.5 border border-emerald-100 flex gap-3 text-[13px]">
                   <Sparkles className="w-5 h-5 text-emerald-600 shrink-0 mt-0.5" />
                   <div className="space-y-1.5 flex-1">
-                    <span className="font-bold text-emerald-950 block">Điểm quy đổi & Giờ chuẩn khoa học:</span>
+                    <span className="font-bold text-emerald-950 block">Quy đổi Giờ chuẩn khoa học:</span>
                     <div className="grid grid-cols-2 gap-y-1 gap-x-2 text-[11px] text-slate-600">
                       <div>
                         <span>Giờ quy chuẩn:</span>
