@@ -3,7 +3,8 @@ import { Teacher, TeachingLog, TeachingType, AcademicYearConfig } from '../types
 import { getRankString, getTeachingTypeName } from '../data';
 import { 
   Plus, Search, Edit2, Trash2, BookOpen, AlertCircle, 
-  HelpCircle, Check, X, Filter, Sparkles, Receipt
+  HelpCircle, Check, X, Filter, Sparkles, Receipt,
+  Users, Calendar, GraduationCap, CheckCircle
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 
@@ -41,6 +42,9 @@ export default function TeachingHoursTab({
   // Form Modal state
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingLog, setEditingLog] = useState<TeachingLog | null>(null);
+
+  // Preview Modal state
+  const [detailPreview, setDetailPreview] = useState<TeachingLog | null>(null);
 
   // Custom delete state
   const [logToDelete, setLogToDelete] = useState<{ id: string; subject: string; className: string } | null>(null);
@@ -307,30 +311,34 @@ export default function TeachingHoursTab({
                 filteredLogs.map((log) => {
                   const teacher = teachers.find(t => t.id === log.teacherId);
                   return (
-                    <tr key={log.id} className="hover:bg-slate-50/50 transition-colors text-[13px] items-center">
-                      <td className="py-3.5 px-4">
+                    <tr 
+                      key={log.id} 
+                      className="hover:bg-slate-50/80 transition-colors text-sm cursor-pointer"
+                      onClick={() => setDetailPreview(log)}
+                    >
+                      <td className="py-3 px-4">
                         <div>
                           <span className="font-bold text-slate-800 block">{teacher ? teacher.name : 'N/A'}</span>
-                          <span className="text-[10px] text-slate-400">{teacher ? teacher.department : 'N/A'}</span>
+                          <span className="text-[11px] text-slate-400">{teacher ? teacher.department : 'N/A'}</span>
                         </div>
                       </td>
-                      <td className="py-3.5 px-4">
+                      <td className="py-3 px-4">
                         <div>
-                          <span className="font-semibold text-slate-700 block">{log.subjectName}</span>
-                          <span className="text-[10px] text-slate-400 font-mono">{log.subjectCode} • {log.credits} tín chỉ</span>
+                          <span className="font-bold text-slate-800 block hover:text-blue-600">{log.subjectName}</span>
+                          <span className="text-[11px] text-slate-400 font-mono">{log.subjectCode} • {log.credits} tín chỉ</span>
                         </div>
                       </td>
-                      <td className="py-3.5 px-4">
+                      <td className="py-3 px-4">
                         <div>
-                          <span className="font-medium text-slate-700 font-mono block">{log.className}</span>
-                          <span className="text-[10px] text-slate-505 font-semibold text-slate-400">{log.studentCount} sinh viên</span>
+                          <span className="font-semibold text-slate-700 font-mono block">{log.className}</span>
+                          <span className="text-[11px] font-semibold text-slate-400">{log.studentCount} sinh viên</span>
                         </div>
                       </td>
-                      <td className="py-3.5 px-4 font-semibold text-slate-600">
+                      <td className="py-3 px-4 font-semibold text-slate-600 text-xs">
                         {log.semester === 'HK1' ? 'Học kỳ 1' : log.semester === 'HK2' ? 'Học kỳ 2' : 'Học kỳ phụ (HK3)'}
                       </td>
-                      <td className="py-3.5 px-4">
-                        <span className={`inline-block text-[10px] font-bold px-2 py-0.5 rounded-sm ${
+                      <td className="py-3 px-4">
+                        <span className={`inline-block text-[10px] font-bold px-2 py-0.5 rounded ${
                           log.type === 'theoretical' ? 'bg-blue-50 text-blue-700 border border-blue-100' :
                           log.type === 'practical' ? 'bg-emerald-50 text-emerald-700 border border-emerald-100' :
                           'bg-amber-50 text-amber-700 border border-amber-100'
@@ -338,30 +346,36 @@ export default function TeachingHoursTab({
                           {getTeachingTypeName(log.type)}
                         </span>
                       </td>
-                      <td className="py-3.5 px-4 text-center font-mono font-bold text-slate-600">
+                      <td className="py-3 px-4 text-center font-mono font-bold text-slate-650">
                         {log.actualHours}
                       </td>
-                      <td className="py-3.5 px-4 text-center">
+                      <td className="py-3 px-4 text-center">
                         <span className="font-mono bg-slate-100 text-slate-700 px-1.5 py-0.2 rounded font-bold text-[10px]">
                           x{log.coefficient}
                         </span>
                       </td>
-                      <td className="py-3.5 px-4 text-right font-mono font-extrabold text-blue-600">
+                      <td className="py-3 px-4 text-right font-mono font-extrabold text-blue-600">
                         {log.convertedHours} h
                       </td>
-                      <td className="py-3.5 px-4 text-center">
+                      <td className="py-3 px-4 text-center" onClick={(e) => e.stopPropagation()}>
                         <div className="flex justify-center gap-1">
                           {(isAdmin || log.teacherId === currentTeacherId) ? (
                             <>
                               <button
-                                onClick={() => openEditModal(log)}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  openEditModal(log);
+                                }}
                                 className="p-1 hover:bg-blue-50 rounded-md text-blue-600 cursor-pointer"
                                 title="Sửa hồ sơ"
                               >
                                 <Edit2 className="w-3.5 h-3.5" />
                               </button>
                               <button
-                                onClick={() => handleDeleteClick(log.id, log.subjectName, log.className)}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleDeleteClick(log.id, log.subjectName, log.className);
+                                }}
                                 className="p-1 hover:bg-rose-50 rounded-md text-rose-600 cursor-pointer"
                                 title="Xóa hồ sơ"
                               >
@@ -369,7 +383,7 @@ export default function TeachingHoursTab({
                               </button>
                             </>
                           ) : (
-                            <span className="text-[10px] text-slate-400 font-medium select-none">Bảo mật</span>
+                            <span className="text-[11px] text-slate-400 font-medium select-none">Bảo mật</span>
                           )}
                         </div>
                       </td>
@@ -635,6 +649,153 @@ export default function TeachingHoursTab({
                   className="px-3.5 py-1.5 bg-rose-600 hover:bg-rose-700 text-white font-bold text-[13px] rounded-lg cursor-pointer shadow-xs transition-colors"
                 >
                   Xác nhận Xóa
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+
+        {detailPreview && (
+          <div className="fixed inset-0 z-50 overflow-y-auto bg-slate-900/40 backdrop-blur-xs p-4 flex items-center justify-center animate-fade-in">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              className="bg-white rounded-2xl shadow-xl border border-slate-200 max-w-lg w-full overflow-hidden flex flex-col max-h-[90vh]"
+            >
+              {/* Header */}
+              <div className="px-5 py-3.5 border-b border-slate-100 flex justify-between items-center bg-slate-50/55">
+                <h4 className="text-xs font-extrabold text-slate-400 header-font-mono uppercase tracking-widest">
+                  Chi tiết giờ giảng dạy
+                </h4>
+                <button
+                  onClick={() => setDetailPreview(null)}
+                  className="text-slate-400 hover:text-slate-600 p-1.5 hover:bg-slate-100 rounded-lg transition-colors cursor-pointer"
+                >
+                  <X className="w-4.5 h-4.5" />
+                </button>
+              </div>
+
+              {/* Scrollable Content */}
+              <div className="px-5 py-4 overflow-y-auto space-y-4 text-slate-700">
+                <div className="pb-3 border-b border-slate-100 flex flex-col gap-1">
+                  <span className={`inline-block text-[11px] font-bold px-2.5 py-0.5 rounded border self-start ${
+                    detailPreview.type === 'theoretical' ? 'bg-blue-50 text-blue-700 border-blue-100' :
+                    detailPreview.type === 'practical' ? 'bg-emerald-50 text-emerald-700 border-emerald-100' :
+                    'bg-amber-50 text-amber-700 border-amber-100'
+                  }`}>
+                    {getTeachingTypeName(detailPreview.type)}
+                  </span>
+                  <span className="text-base font-extrabold text-slate-900 tracking-tight block mt-1 leading-relaxed">
+                    {detailPreview.subjectName}
+                  </span>
+                  <span className="text-xs font-mono font-semibold text-slate-400 block">
+                    Mã học phần: {detailPreview.subjectCode || 'N/A'} • {detailPreview.credits} tín chỉ
+                  </span>
+                </div>
+
+                <div className="space-y-3.5 text-sm">
+                  <div>
+                    <span className="text-slate-450 block mb-0.5 text-[11px] uppercase font-bold tracking-wider">Giảng viên đảm nhiệm:</span>
+                    <div className="font-semibold text-slate-800 flex items-center gap-1.5">
+                      <GraduationCap className="w-4 h-4 text-slate-400 shrink-0" />
+                      <div>
+                        <span className="font-bold text-slate-900">
+                          {teachers.find(t => t.id === detailPreview.teacherId)?.name || 'N/A'}
+                        </span>
+                        <span className="text-xs text-slate-400 font-medium ml-1.5 block sm:inline">
+                          ({teachers.find(t => t.id === detailPreview.teacherId)?.department || 'Bộ môn'})
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <span className="text-slate-450 block mb-0.5 text-[11px] uppercase font-bold tracking-wider">Lớp học:</span>
+                      <div className="font-bold text-slate-800 text-xs bg-slate-50 px-2.5 py-1 rounded border border-slate-100 inline-block font-mono">
+                        {detailPreview.className}
+                      </div>
+                    </div>
+
+                    <div>
+                      <span className="text-slate-450 block mb-0.5 text-[11px] uppercase font-bold tracking-wider">Sĩ số sinh viên:</span>
+                      <div className="font-semibold text-slate-700 text-xs bg-slate-50 px-2.5 py-1 rounded border border-slate-100 inline-block font-mono">
+                        {detailPreview.studentCount} sinh viên
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <span className="text-slate-450 block mb-0.5 text-[11px] uppercase font-bold tracking-wider">Học kỳ:</span>
+                      <div className="font-bold text-slate-800 text-xs">
+                        {detailPreview.semester === 'HK1' ? 'Học kỳ 1' : detailPreview.semester === 'HK2' ? 'Học kỳ 2' : 'Học kỳ phụ (HK3)'}
+                      </div>
+                    </div>
+
+                    <div>
+                      <span className="text-slate-450 block mb-0.5 text-[11px] uppercase font-bold tracking-wider">Năm học:</span>
+                      <div className="font-semibold text-slate-700 font-mono text-xs">
+                        {detailPreview.academicYear}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="bg-slate-50/60 p-3.5 rounded-xl border border-slate-100 grid grid-cols-2 gap-3 text-center text-xs font-semibold text-slate-600">
+                    <div>
+                      <span className="text-[10px] text-slate-400 block uppercase font-bold tracking-wider mb-0.5">Số tiết thực tế</span>
+                      <span className="font-mono text-slate-800 bg-white px-2.5 py-1 rounded border border-slate-200/50 text-[13px] font-bold">
+                        {detailPreview.actualHours} tiết
+                      </span>
+                    </div>
+                    <div>
+                      <span className="text-[10px] text-slate-400 block uppercase font-bold tracking-wider mb-0.5">Hệ số quy đổi</span>
+                      <span className="font-mono text-slate-800 bg-white px-2.5 py-1 rounded border border-slate-200/50 text-[13px] font-bold text-amber-700">
+                        x{detailPreview.coefficient}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="pt-3 border-t border-slate-100">
+                    <span className="text-slate-450 block mb-1.5 text-[11px] uppercase font-bold tracking-wider font-semibold">Thành quả quy chuẩn:</span>
+                    <div className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-xl p-3 flex justify-between items-center shadow-sm">
+                      <div className="space-y-0.5">
+                        <span className="text-[10px] text-blue-100 block font-semibold uppercase tracking-wider">Giờ chuẩn quy đổi</span>
+                        <span className="text-base font-extrabold font-mono text-white block">+{detailPreview.convertedHours} giờ chuẩn</span>
+                      </div>
+                      <div className="bg-white/10 rounded-full p-1 text-emerald-300">
+                        <CheckCircle className="w-5 h-5 text-white" />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Footer */}
+              <div className="px-5 py-3 border-t border-slate-100 bg-slate-50/55 flex justify-end gap-2.5">
+                {(isAdmin || detailPreview.teacherId === currentTeacherId) && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const copyingLog = { ...detailPreview };
+                      setDetailPreview(null);
+                      setTimeout(() => {
+                        openEditModal(copyingLog);
+                      }, 200);
+                    }}
+                    className="inline-flex items-center justify-center gap-1.5 bg-blue-50 hover:bg-blue-100 active:bg-blue-200 text-blue-700 font-bold text-xs px-3.5 py-1.5 rounded-lg border border-blue-200 cursor-pointer transition-all"
+                  >
+                    <Edit2 className="w-3.5 h-3.5" />
+                    Sửa thông tin
+                  </button>
+                )}
+                <button
+                  type="button"
+                  onClick={() => setDetailPreview(null)}
+                  className="bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold text-xs px-3.5 py-1.5 rounded-lg cursor-pointer transition-all"
+                >
+                  Đóng
                 </button>
               </div>
             </motion.div>
