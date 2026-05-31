@@ -468,12 +468,14 @@ export default function App() {
           <img 
             src="https://i.ibb.co/TBgCM3fw/logo-vhp-2.png" 
             alt="Logo Sĩ Quan Kỹ Thuật Quân Sự" 
-            className="w-10 h-10 object-contain select-none" 
+            className="w-12 h-12 object-contain select-none" 
             referrerPolicy="no-referrer"
           />
           <div className="leading-tight">
-            <h1 className="font-bold text-[13px] tracking-wider text-white uppercase font-display">TRƯỜNG SQKTQS</h1>
             <p className="text-[13px] font-extrabold text-sky-300 header-khoa">KHOA Ô TÔ </p>
+            <h1 className="font-bold text-[13px] tracking-wider text-white uppercase font-display">TRƯỜNG SQKTQS</h1>
+            <div className="h-[2px] w-full bg-yellow-400 mt-1.5" />
+
           </div>
         </div>
         

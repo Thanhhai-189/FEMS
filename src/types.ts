@@ -29,6 +29,7 @@ export interface Teacher {
   phone?: string; // Số điện thoại
   academicTitle?: string; // Chức danh
   academicTitleYear?: string; // Năm nhận chức danh
+  gvgYears?: string; // Các năm đạt danh hiệu Giảng viên giỏi
   notes?: string; // Ghi chú thêm/ghi nhớ mật khẩu từ admin
 }
 

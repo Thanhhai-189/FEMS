@@ -352,212 +352,385 @@ export default function ResearchTab({
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Main List */}
-        <div className="lg:col-span-2 space-y-3.5">
-          {filteredResearchLogs.length === 0 ? (
-            <div className="bg-white p-12 text-center rounded-xl border border-dashed border-slate-200">
-              <FileCode2 className="w-10 h-10 text-slate-200 mx-auto mb-2" />
-              <p className="text-[13px] text-slate-400 font-medium">Không tìm thấy minh chứng nghiên cứu khoa học nào phù hợp bộ lọc.</p>
+      {/* Main List & Table with w-full */}
+      <div className="w-full mt-6">
+        {filteredResearchLogs.length === 0 ? (
+          <div className="bg-white p-12 text-center rounded-xl border border-dashed border-slate-200">
+            <FileCode2 className="w-10 h-10 text-slate-200 mx-auto mb-2" />
+            <p className="text-[13px] text-slate-400 font-medium">Không tìm thấy minh chứng nghiên cứu khoa học nào phù hợp bộ lọc.</p>
+          </div>
+        ) : (
+          <>
+            {/* Desktop Table view */}
+            <div className="hidden md:block overflow-x-auto bg-white rounded-xl border border-slate-200 shadow-xs">
+              <table className="w-full text-sm text-left border-collapse">
+                <thead className="bg-slate-50 border-b border-slate-200 text-xs font-extrabold text-slate-500 uppercase tracking-wider">
+                  <tr>
+                    <th className="px-4 py-3 min-w-[320px]">Tên đề tài / bài báo</th>
+                    <th className="px-4 py-3">Tác giả</th>
+                    <th className="px-4 py-3">Vai trò</th>
+                    <th className="px-4 py-3">Nơi công bố</th>
+                    <th className="px-4 py-3 text-right">Giờ quy đổi</th>
+                    <th className="px-4 py-3 text-center">Trạng thái</th>
+                    <th className="px-4 py-3 text-right">Thao tác</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100">
+                  {filteredResearchLogs.map((log) => {
+                    const teacher = teachers.find(t => t.id === log.teacherId);
+                    return (
+                      <tr 
+                        key={log.id} 
+                        className="hover:bg-slate-50/80 transition-colors cursor-pointer"
+                        onClick={() => setDetailPreview(log)}
+                      >
+                        <td className="px-4 py-3.5">
+                          <div className="space-y-1">
+                            <div className="flex items-center gap-1.5 flex-wrap">
+                              <span className="text-[10px] font-mono font-bold text-slate-400 bg-slate-50 px-1.5 py-0.2 rounded border border-slate-100">
+                                {log.publicationYear}
+                              </span>
+                              <span className="text-[10px] font-semibold text-slate-500 bg-slate-100/65 px-1.5 py-0.2 rounded">
+                                {getResearchTypeName(log.type)}
+                              </span>
+                            </div>
+                            <h4 className="text-[13px] font-bold text-slate-800 leading-snug hover:text-blue-600 block mt-1 line-clamp-2">
+                              {log.title}
+                            </h4>
+                          </div>
+                        </td>
+                        <td className="px-4 py-3.5 font-bold text-slate-700 whitespace-nowrap">
+                          {teacher ? teacher.name : 'N/A'}
+                        </td>
+                        <td className="px-4 py-3.5 whitespace-nowrap">
+                          <span className="text-blue-600 font-bold bg-blue-50 px-2 py-0.5 rounded text-xs">
+                            {getRoleName(log.role)}
+                          </span>
+                        </td>
+                        <td className="px-4 py-3.5 text-slate-600 max-w-[150px] truncate" title={log.journalOrOrganization}>
+                          {log.journalOrOrganization}
+                        </td>
+                        <td className="px-4 py-3.5 text-right font-extrabold text-blue-600 font-mono">
+                          {log.convertedHours} h
+                        </td>
+                        <td className="px-4 py-3.5 text-center whitespace-nowrap">
+                          <span className={`inline-block text-[10px] font-bold px-2 py-0.5 rounded ${
+                            log.status === 'approved' ? 'bg-emerald-50 text-emerald-700 border border-emerald-150' :
+                            log.status === 'pending' ? 'bg-amber-50 text-amber-700 border border-amber-150' :
+                            'bg-rose-50 text-rose-700 border border-rose-150'
+                          }`}>
+                            {log.status === 'approved' ? 'Đã duyệt' : log.status === 'pending' ? 'Chờ duyệt' : 'Từ chối'}
+                          </span>
+                        </td>
+                        <td className="px-4 py-3.5 text-right whitespace-nowrap" onClick={(e) => e.stopPropagation()}>
+                          <div className="flex items-center justify-end gap-1.5">
+                            {isAdmin && onApproveLog && (
+                              <button 
+                                onClick={() => toggleApproval(log.id, log.status)}
+                                className={`inline-flex items-center gap-0.5 px-2 py-0.5 rounded-sm border font-extrabold text-[10px] cursor-pointer transition-colors ${
+                                  log.status === 'approved' 
+                                    ? 'bg-amber-50 text-amber-700 border-amber-100 hover:bg-amber-100' 
+                                    : 'bg-emerald-50 text-emerald-700 border-emerald-100 hover:bg-emerald-100'
+                                }`}
+                                title={log.status === 'approved' ? 'Hủy phê duyệt xuống chờ duyệt' : 'Phê duyệt nhanh chỉ số'}
+                              >
+                                {log.status === 'approved' ? <Clock className="w-3 h-3" /> : <Check className="w-3 h-3" />}
+                                {log.status === 'approved' ? 'Hủy' : 'Duyệt'}
+                              </button>
+                            )}
+                            
+                            {(isAdmin || log.teacherId === currentTeacherId) ? (
+                              <>
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    openEditModal(log);
+                                  }}
+                                  className="p-1 hover:bg-blue-50 rounded-md text-blue-600 cursor-pointer"
+                                  title="Sửa bản ghi nghiên cứu"
+                                >
+                                  <Edit2 className="w-3.5 h-3.5" />
+                                </button>
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleDeleteClick(log.id, log.title);
+                                  }}
+                                  className="p-1 hover:bg-rose-50 rounded-md text-rose-600 cursor-pointer"
+                                  title="Xóa bản ghi"
+                                >
+                                  <Trash2 className="w-3.5 h-3.5" />
+                                </button>
+                              </>
+                            ) : (
+                              <span className="text-[10px] text-slate-400 font-medium select-none bg-slate-100 px-1.5 py-0.5 rounded">Bảo mật</span>
+                            )}
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
             </div>
-          ) : (
-            filteredResearchLogs.map((log) => {
-              const teacher = teachers.find(t => t.id === log.teacherId);
-              return (
-                <motion.div 
-                  layout
-                  key={log.id}
-                  className={`bg-white p-4.5 rounded-xl border ${
-                    detailPreview?.id === log.id ? 'border-blue-500 ring-1 ring-blue-50/50' : 'border-slate-100'
-                  } shadow-2xs hover:border-slate-200 transition-all space-y-2.5 cursor-pointer`}
-                  onClick={() => setDetailPreview(log)}
-                >
-                  <div className="flex justify-between items-start gap-3">
-                    <div className="space-y-1 flex-1 min-w-0">
-                      <div className="flex items-center gap-1.5 flex-wrap">
-                        <span className={`inline-block text-[9px] font-bold px-1.5 py-0.2 rounded ${
-                          log.status === 'approved' ? 'bg-emerald-50 text-emerald-700 border border-emerald-100' :
-                          log.status === 'pending' ? 'bg-amber-50 text-amber-700 border border-amber-100' :
-                          'bg-rose-50 text-rose-700 border border-rose-100'
-                        }`}>
-                          {log.status === 'approved' ? 'Đã duyệt' : log.status === 'pending' ? 'Chờ thẩm định' : 'Từ chối'}
-                        </span>
+
+            {/* Mobile Card view (still w-full, but layout as responsive cards) */}
+            <div className="block md:hidden space-y-3.5">
+              {filteredResearchLogs.map((log) => {
+                const teacher = teachers.find(t => t.id === log.teacherId);
+                return (
+                  <motion.div 
+                    layout
+                    key={log.id}
+                    className="bg-white p-4 rounded-xl border border-slate-100 shadow-2xs hover:border-slate-200 transition-all space-y-2.5 cursor-pointer"
+                    onClick={() => setDetailPreview(log)}
+                  >
+                    <div className="flex justify-between items-start gap-2">
+                      <div className="space-y-1 flex-1 min-w-0">
+                        <div className="flex items-center gap-1.5 flex-wrap">
+                          <span className={`inline-block text-[9px] font-bold px-1.5 py-0.2 rounded ${
+                            log.status === 'approved' ? 'bg-emerald-50 text-emerald-700 border border-emerald-100' :
+                            log.status === 'pending' ? 'bg-amber-50 text-amber-700 border border-amber-100' :
+                            'bg-rose-50 text-rose-700 border border-rose-100'
+                          }`}>
+                            {log.status === 'approved' ? 'Đã duyệt' : log.status === 'pending' ? 'Chờ thẩm định' : 'Từ chối'}
+                          </span>
+                          
+                          <span className="text-[10px] font-mono font-bold text-slate-400 bg-slate-50 px-1.5 py-0.2 rounded border border-slate-100">
+                            {log.publicationYear}
+                          </span>
+
+                          <span className="text-[10px] font-semibold text-slate-500">
+                            {getResearchTypeName(log.type)}
+                          </span>
+                        </div>
                         
-                        <span className="text-[10px] font-mono font-bold text-slate-400 bg-slate-50 px-1 py-0.2 rounded border border-slate-100">
-                          {log.publicationYear}
-                        </span>
-
-                        <span className="text-[10px] font-semibold text-slate-500">
-                          {getResearchTypeName(log.type)}
-                        </span>
+                        <h4 className="text-[13px] font-bold text-slate-800 leading-relaxed block hover:text-blue-600">
+                          {log.title}
+                        </h4>
                       </div>
-                      
-                      <h4 className="text-[13px] font-bold text-slate-800 leading-relaxed block hover:text-blue-600">
-                        {log.title}
-                      </h4>
-                    </div>
 
-                    <div className="text-right shrink-0">
-                      <span className="text-[10px] text-slate-400 font-medium block">Giờ chuẩn quy đổi</span>
-                      <span className="text-[13px] font-extrabold text-blue-600 font-mono">{log.convertedHours} h</span>
-                    </div>
-                  </div>
-
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 pt-2 border-t border-slate-100 text-[11px] text-slate-500">
-                    <div className="flex items-center gap-3">
-                      <div>
-                        <span className="text-slate-400">Tác giả:</span> <b className="text-slate-700">{teacher ? teacher.name : 'N/A'}</b>
-                      </div>
-                      <div className="h-3 w-px bg-slate-200 hidden sm:block" />
-                      <div>
-                        <span className="text-slate-400">Vai trò:</span> <span className="text-blue-600 font-bold bg-blue-50/50 px-1 rounded-sm">{getRoleName(log.role)}</span>
+                      <div className="text-right shrink-0">
+                        <span className="text-[10px] text-slate-400 font-medium block">Quy đổi</span>
+                        <span className="text-[13px] font-extrabold text-blue-600 font-mono">{log.convertedHours} h</span>
                       </div>
                     </div>
 
-                    <div className="flex items-center gap-2 self-start sm:self-auto" onClick={(e) => e.stopPropagation()}>
-                      {isAdmin && onApproveLog && (
-                        <button 
-                          onClick={() => toggleApproval(log.id, log.status)}
-                          className={`inline-flex items-center gap-0.5 px-2 py-0.5 rounded-sm border font-extrabold text-[10px] cursor-pointer transition-colors ${
-                            log.status === 'approved' 
-                              ? 'bg-amber-50 text-amber-700 border-amber-100 hover:bg-amber-100' 
-                              : 'bg-emerald-50 text-emerald-700 border-emerald-100 hover:bg-emerald-100'
-                          }`}
-                          title={log.status === 'approved' ? 'Hủy phê duyệt xuống chờ duyệt' : 'Phê duyệt nhanh chỉ số'}
-                        >
-                          {log.status === 'approved' ? <Clock className="w-3 h-3" /> : <Check className="w-3 h-3" />}
-                          {log.status === 'approved' ? 'Hủy Duyệt' : 'Duyệt'}
-                        </button>
-                      )}
-                      
-                      {(isAdmin || log.teacherId === currentTeacherId) ? (
-                        <>
-                          <button
-                            onClick={() => openEditModal(log)}
-                            className="p-1 hover:bg-blue-50 rounded-md text-blue-600 cursor-pointer"
-                            title="Sửa bản ghi nghiên cứu"
+                    <div className="flex flex-col gap-2 pt-2 border-t border-slate-100 text-[11px] text-slate-500">
+                      <div className="flex items-center gap-3">
+                        <div>
+                          <span className="text-slate-400">Tác giả:</span> <b className="text-slate-700">{teacher ? teacher.name : 'N/A'}</b>
+                        </div>
+                        <div className="h-3 w-px bg-slate-200" />
+                        <div>
+                          <span className="text-slate-400">Vai trò:</span> <span className="text-blue-600 font-bold bg-blue-50/50 px-1 rounded-sm">{getRoleName(log.role)}</span>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
+                        {isAdmin && onApproveLog && (
+                          <button 
+                            onClick={() => toggleApproval(log.id, log.status)}
+                            className={`inline-flex items-center gap-0.5 px-2 py-0.5 rounded-sm border font-extrabold text-[10px] cursor-pointer transition-colors ${
+                              log.status === 'approved' 
+                                ? 'bg-amber-50 text-amber-700 border-amber-100 hover:bg-amber-100' 
+                                : 'bg-emerald-50 text-emerald-700 border-emerald-100 hover:bg-emerald-100'
+                            }`}
                           >
-                            <Edit2 className="w-3 h-3" />
+                            {log.status === 'approved' ? <Clock className="w-3 h-3" /> : <Check className="w-3 h-3" />}
+                            {log.status === 'approved' ? 'Hủy' : 'Duyệt'}
                           </button>
-                          <button
-                            onClick={() => handleDeleteClick(log.id, log.title)}
-                            className="p-1 hover:bg-rose-50 rounded-md text-rose-600 cursor-pointer"
-                            title="Xóa bản ghi"
-                          >
-                            <Trash2 className="w-3 h-3" />
-                          </button>
-                        </>
-                      ) : (
-                        <span className="text-[10px] text-slate-400 font-medium select-none bg-slate-100 px-1.5 py-0.5 rounded">Bảo mật</span>
-                      )}
+                        )}
+                        
+                        {(isAdmin || log.teacherId === currentTeacherId) ? (
+                          <>
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                openEditModal(log);
+                              }}
+                              className="p-1 hover:bg-blue-50 rounded-md text-blue-600 cursor-pointer ml-auto"
+                            >
+                              <Edit2 className="w-3 h-3" />
+                            </button>
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleDeleteClick(log.id, log.title);
+                              }}
+                              className="p-1 hover:bg-rose-50 rounded-md text-rose-600 cursor-pointer"
+                            >
+                              <Trash2 className="w-3 h-3" />
+                            </button>
+                          </>
+                        ) : (
+                          <span className="text-[10px] text-slate-400 font-medium select-none bg-slate-100 px-1.5 py-0.5 rounded ml-auto">Bảo mật</span>
+                        )}
+                      </div>
                     </div>
-                  </div>
-                </motion.div>
-              );
-            })
-          )}
-        </div>
+                  </motion.div>
+                );
+              })}
+            </div>
+          </>
+        )}
+      </div>
 
-        {/* Selected research logs review side profile */}
-        <div className="lg:col-span-1">
-          {detailPreview ? (
-            <motion.div 
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm space-y-4 sticky top-4"
+      {/* Floating popup modal for Research Details review */}
+      <AnimatePresence>
+        {detailPreview && (
+          <div className="fixed inset-0 z-50 overflow-y-auto bg-slate-900/40 backdrop-blur-xs p-4 flex items-center justify-center">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              className="bg-white rounded-2xl shadow-xl border border-slate-200 max-w-lg w-full overflow-hidden flex flex-col max-h-[90vh]"
             >
-              <div className="flex justify-between items-start">
-                <h4 className="text-[13px] font-bold text-slate-400 uppercase tracking-widest">
-                  Chi tiết minh chứng
+              {/* Header */}
+              <div className="px-5 py-3.5 border-b border-slate-100 flex justify-between items-center bg-slate-50/55">
+                <h4 className="text-xs font-extrabold text-slate-400 uppercase tracking-widest">
+                  Chi tiết minh chứng nghiên cứu
                 </h4>
-                <button 
+                <button
                   onClick={() => setDetailPreview(null)}
-                  className="text-slate-400 hover:text-slate-600 p-0.5 hover:bg-slate-50 rounded-md"
+                  className="text-slate-400 hover:text-slate-600 p-1.5 hover:bg-slate-100 rounded-lg transition-colors cursor-pointer"
                 >
-                  <X className="w-4 h-4" />
+                  <X className="w-4.5 h-4.5" />
                 </button>
               </div>
 
-              <div className="pb-3 border-b border-slate-100">
-                <span className="text-[12px] font-bold text-blue-600 bg-blue-50 px-2 py-0.2 rounded-full border border-blue-100">
-                  {getResearchTypeName(detailPreview.type)}
-                </span>
-                <span className="text-[13px] font-bold text-slate-800 mt-2.5 block leading-relaxed">{detailPreview.title}</span>
+              {/* Scrollable Content */}
+              <div className="px-5 py-4 overflow-y-auto space-y-4 text-slate-700">
+                <div className="pb-3 border-b border-slate-100 flex flex-col gap-1">
+                  <span className="text-xs font-bold text-blue-600 bg-blue-50 px-2 py-0.5 rounded-full border border-blue-100 self-start">
+                    {getResearchTypeName(detailPreview.type)}
+                  </span>
+                  <span className="text-base font-extrabold text-slate-900 tracking-tight block mt-1 leading-relaxed">
+                    {detailPreview.title}
+                  </span>
+                </div>
+
+                <div className="space-y-3.5 text-sm">
+                  <div>
+                    <span className="text-slate-440 block mb-0.5 text-[11px] uppercase font-bold tracking-wider">Đơn vị xuất bản / Quỹ tài trợ:</span>
+                    <div className="font-semibold text-slate-800 flex items-center gap-1.5">
+                      <BookOpen className="w-4 h-4 text-slate-400 shrink-0" />
+                      {detailPreview.journalOrOrganization}
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <span className="text-slate-440 block mb-0.5 text-[11px] uppercase font-bold tracking-wider">Năm xuất bản:</span>
+                      <div className="font-semibold text-slate-700 font-mono text-xs bg-slate-50 px-2 py-0.5 rounded border border-slate-100 inline-block">
+                        {detailPreview.publicationYear}
+                      </div>
+                    </div>
+
+                    <div>
+                      <span className="text-slate-440 block mb-0.5 text-[11px] uppercase font-bold tracking-wider">Tác giả:</span>
+                      <div className="font-bold text-slate-800 text-xs">
+                        {teachers.find(t => t.id === detailPreview.teacherId)?.name || 'N/A'}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <span className="text-slate-440 block mb-0.5 text-[11px] uppercase font-bold tracking-wider">Vai trò nghiên cứu:</span>
+                      <div className="font-bold text-blue-700 bg-blue-50 px-2 py-0.5 rounded border border-blue-100 inline-block text-xs">
+                        {getRoleName(detailPreview.role)}
+                      </div>
+                    </div>
+
+                    <div>
+                      <span className="text-slate-440 block mb-0.5 text-[11px] uppercase font-bold tracking-wider">Năm học:</span>
+                      <div className="font-semibold text-slate-700 font-mono text-xs">
+                        {detailPreview.period}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="bg-slate-50/60 p-3 rounded-xl border border-slate-100 grid grid-cols-3 gap-2 text-center text-xs font-semibold text-slate-600">
+                    <div>
+                      <span className="text-[9px] text-slate-400 block uppercase font-bold tracking-wider mb-0.5">Số lượng</span>
+                      <span className="font-mono text-slate-800 bg-white px-2 py-0.5 rounded border border-slate-200/50">{detailPreview.quantity || 1}</span>
+                    </div>
+                    <div>
+                      <span className="text-[9px] text-slate-400 block uppercase font-bold tracking-wider mb-0.5">Số năm</span>
+                      <span className="font-mono text-slate-800 bg-white px-2 py-0.5 rounded border border-slate-200/50">{detailPreview.years || 1}</span>
+                    </div>
+                    <div>
+                      <span className="text-[9px] text-slate-400 block uppercase font-bold tracking-wider mb-0.5">Số thành viên</span>
+                      <span className="font-mono text-slate-800 bg-white px-2 py-0.5 rounded border border-slate-200/50">{detailPreview.members || 1}</span>
+                    </div>
+                  </div>
+
+                  {detailPreview.notes && (
+                    <div>
+                      <span className="text-slate-440 block mb-1 text-[11px] uppercase font-bold tracking-wider">Tài liệu đính kèm / Ghi chú:</span>
+                      <p className="text-slate-600 leading-relaxed bg-slate-50/40 p-3 rounded-xl border border-dashed border-slate-200 text-xs break-all">
+                        {detailPreview.notes}
+                      </p>
+                    </div>
+                  )}
+
+                  <div className="pt-3 border-t border-slate-100">
+                    <span className="text-slate-440 block mb-1.5 text-[11px] uppercase font-bold tracking-wider">Thành quả quy đổi:</span>
+                    <div className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-xl p-3 flex justify-between items-center shadow-sm">
+                      <div className="space-y-0.5">
+                        <span className="text-[10px] text-blue-100 block font-semibold uppercase tracking-wider">Giờ chuẩn đóng góp</span>
+                        <span className="text-sm font-extrabold font-mono text-white block">+{detailPreview.convertedHours} giờ</span>
+                      </div>
+                      <div className="flex items-center gap-1.5">
+                        <span className={`inline-flex items-center gap-1 font-bold text-xs px-2 py-0.5 rounded-full ${
+                          detailPreview.status === 'approved' ? 'bg-emerald-500/20 text-emerald-200' :
+                          detailPreview.status === 'pending' ? 'bg-amber-500/20 text-amber-200' :
+                          'bg-rose-500/20 text-rose-200'
+                        }`}>
+                          {detailPreview.status === 'approved' ? 'Đã duyệt' : detailPreview.status === 'pending' ? 'Chở duyệt' : 'Từ chối'}
+                        </span>
+                        {detailPreview.status === 'approved' && (
+                          <div className="bg-white/10 rounded-full p-1 text-emerald-300">
+                            <CheckCircle className="w-5 h-5" />
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </div>
               </div>
 
-              <div className="space-y-3 text-xs">
-                <div>
-                  <span className="text-slate-400 block mb-0.5 text-[10px] uppercase font-bold tracking-wider">Đơn vị xuất bản / Quỹ tài trợ:</span>
-                  <div className="font-semibold text-slate-700 flex items-center gap-1.5">
-                    <BookOpen className="w-3.5 h-3.5 text-slate-400" />
-                    {detailPreview.journalOrOrganization}
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 gap-3">
-                  <div>
-                    <span className="text-slate-400 block mb-0.5 text-[12px] uppercase font-bold tracking-wider">Năm xuất bản:</span>
-                    <div className="font-semibold text-slate-700 font-mono">
-                      {detailPreview.publicationYear}
-                    </div>
-                  </div>
-                </div>
-
-                <div className="bg-slate-50/50 p-2.5 rounded border border-slate-100 grid grid-cols-3 gap-1.5 text-center text-[11px] font-semibold text-slate-600">
-                  <div>
-                    <span className="text-[9px] text-slate-400 block uppercase font-bold tracking-wider">Số lượng</span>
-                    <span className="font-mono text-slate-800">{detailPreview.quantity || 1}</span>
-                  </div>
-                  <div>
-                    <span className="text-[9px] text-slate-400 block uppercase font-bold tracking-wider">Số năm</span>
-                    <span className="font-mono text-slate-800">{detailPreview.years || 1}</span>
-                  </div>
-                  <div>
-                    <span className="text-[9px] text-slate-400 block uppercase font-bold tracking-wider">Số thành viên</span>
-                    <span className="font-mono text-slate-800">{detailPreview.members || 1}</span>
-                  </div>
-                </div>
-
-                <div>
-                  <span className="text-slate-400 block mb-0.5 text-[10px] uppercase font-bold tracking-wider">Vai trò nghiên cứu:</span>
-                  <div className="font-semibold text-slate-700 bg-slate-50 px-2.5 py-1.5 rounded border border-slate-100">
-                    {getRoleName(detailPreview.role)}
-                  </div>
-                </div>
-
-                {detailPreview.notes && (
-                  <div>
-                    <span className="text-slate-400 block mb-0.5 text-[13px] uppercase font-bold tracking-wider">Ghi chú minh chứng:</span>
-                    <p className="text-slate-600 italic leading-normal bg-slate-50/50 p-2.5 rounded border border-dashed border-slate-200 text-[11px]">
-                      "{detailPreview.notes}"
-                    </p>
-                  </div>
+              {/* Footer */}
+              <div className="px-5 py-3 border-t border-slate-100 bg-slate-50/55 flex justify-end gap-2.5">
+                {(isAdmin || detailPreview.teacherId === currentTeacherId) && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const copyingLog = { ...detailPreview };
+                      setDetailPreview(null);
+                      setTimeout(() => {
+                        openEditModal(copyingLog);
+                      }, 200);
+                    }}
+                    className="inline-flex items-center justify-center gap-1 bg-blue-50 hover:bg-blue-100 active:bg-blue-200 text-blue-700 font-bold text-[12px] px-3 py-1.5 rounded-lg border border-blue-200 cursor-pointer transition-all"
+                  >
+                    <Edit2 className="w-3.5 h-3.5" />
+                    Sửa thông tin
+                  </button>
                 )}
-
-                <div>
-                  <span className="text-slate-400 block mb-1 text-[10px] uppercase font-bold tracking-wider">Thành quả quy đổi:</span>
-                  <div className="bg-blue-600 text-white rounded-xl p-3 flex justify-between items-center shadow-xs">
-                    <div>
-                      <span className="text-[9px] text-blue-100 block font-semibold uppercase">Giờ chuẩn đóng góp</span>
-                      <span className="text-sm font-extrabold font-mono text-white block">+{detailPreview.convertedHours} giờ</span>
-                    </div>
-                    {detailPreview.status === 'approved' && (
-                      <div className="bg-white/10 rounded-full p-1 text-emerald-300">
-                        <CheckCircle className="w-6 h-6" />
-                      </div>
-                    )}
-                  </div>
-                </div>
+                <button
+                  type="button"
+                  onClick={() => setDetailPreview(null)}
+                  className="bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold text-[12px] px-3 py-1.5 rounded-lg cursor-pointer transition-all"
+                >
+                  Đóng
+                </button>
               </div>
             </motion.div>
-          ) : (
-            <div className="bg-slate-50 border border-slate-200 p-8 rounded-xl text-center text-slate-400 text-[13px] font-medium">
-              <FileText className="w-8 h-8 text-slate-200 mx-auto mb-2" />
-              Chọn một bài báo hay đề tài khoa học từ bảng danh sách bên để kiểm định nhanh các minh chứng liên quan.
-            </div>
-          )}
-        </div>
-      </div>
+          </div>
+        )}
+      </AnimatePresence>
 
       {/* Insert modal dialog */}
       <AnimatePresence>

@@ -4,7 +4,7 @@ import { getRankString } from '../data';
 import { 
   UserPlus, Search, Edit2, Trash2, Shield, Mail, Building, 
   MapPin, UserCheck, UserX, X, AlertTriangle, ChevronRight, Eye,
-  Calendar, Award, Briefcase, GraduationCap
+  Calendar, Award, Briefcase, GraduationCap, Sparkles
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 
@@ -60,6 +60,7 @@ export default function TeacherList({
   const [formPhone, setFormPhone] = useState('');
   const [formAcademicTitle, setFormAcademicTitle] = useState('Không');
   const [formAcademicTitleYear, setFormAcademicTitleYear] = useState('');
+  const [formGvgYears, setFormGvgYears] = useState('');
 
   // Sate for custom delete confirmation modal
   const [teacherToDelete, setTeacherToDelete] = useState<{ id: string; name: string } | null>(null);
@@ -95,6 +96,7 @@ export default function TeacherList({
     setFormPhone('');
     setFormAcademicTitle('Không');
     setFormAcademicTitleYear('');
+    setFormGvgYears('');
     setIsModalOpen(true);
   };
 
@@ -121,6 +123,7 @@ export default function TeacherList({
     setFormPhone(teacher.phone || '');
     setFormAcademicTitle(teacher.academicTitle || 'Không');
     setFormAcademicTitleYear(teacher.academicTitleYear || '');
+    setFormGvgYears(teacher.gvgYears || '');
     setIsModalOpen(true);
   };
 
@@ -152,7 +155,8 @@ export default function TeacherList({
       unitExperienceYear: formUnitExperienceYear.trim() || undefined,
       phone: formPhone.trim() || undefined,
       academicTitle: formAcademicTitle,
-      academicTitleYear: formAcademicTitleYear.trim() || undefined
+      academicTitleYear: formAcademicTitleYear.trim() || undefined,
+      gvgYears: formGvgYears.trim() || undefined
     };
 
     if (editingTeacher) {
@@ -248,9 +252,9 @@ export default function TeacherList({
         )}
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Main Teacher List Grid */}
-        <div className="lg:col-span-2 space-y-3">
+      <div className="w-full">
+        {/* Main Teacher List Grid - 1 Column Layout as before */}
+        <div className="space-y-3">
           {filteredTeachers.length === 0 ? (
             <div className="bg-white p-12 text-center rounded-xl border border-dashed border-slate-200">
               <Shield className="w-10 h-10 text-slate-300 mx-auto mb-3" />
@@ -262,32 +266,55 @@ export default function TeacherList({
               <motion.div 
                 layout
                 key={teacher.id}
-                className={`bg-white p-4 rounded-xl border ${
-                  selectedTeacherProfile?.id === teacher.id ? 'border-blue-500 ring-1 ring-blue-100' : 'border-slate-100'
-                } shadow-xs hover:border-slate-200 transition-all flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4`}
+                className="bg-white p-4 rounded-xl border border-slate-100 shadow-xs hover:border-slate-200 hover:shadow-xs transition-all flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4"
               >
                 <div 
                   className="flex-1 min-w-0 cursor-pointer"
                   onClick={() => setSelectedTeacherProfile(teacher)}
                 >
-                  <div className="flex items-center gap-2">
-                    <span className="text-[13px] font-extrabold text-slate-800 hover:text-blue-600 flex items-center gap-1">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className="text-sm font-extrabold text-slate-800 hover:text-blue-600 flex items-center gap-1">
                       {teacher.name}
                     </span>
-                    <span className={`text-[13px] font-bold px-1.5 py-0.2 rounded-full ${
-                      teacher.rank === 'GS' || teacher.rank === 'PGS' ? 'bg-amber-100 text-amber-800 border-amber-200' :
+                    <span className={`text-[11px] font-bold px-1.5 py-0.2 rounded-full ${
+                      teacher.rank === 'GS' || teacher.rank === 'PGS' ? 'bg-amber-100 text-amber-800 border border-amber-200' :
                       teacher.rank === 'TS' ? 'bg-blue-50 text-blue-700' : 'bg-slate-100 text-slate-600'
                     }`}>
                       {getRankString(teacher.rank)}
                     </span>
+                    
+                    {/* Added: Chức danh badge */}
+                    {teacher.academicTitle && teacher.academicTitle !== 'Không' && (
+                      <span className="text-[11px] font-bold px-1.5 py-0.2 rounded-md bg-indigo-50 text-indigo-700 border border-indigo-100/60 inline-flex items-center gap-0.5">
+                        <Award className="w-3 h-3 text-indigo-500" />
+                        {teacher.academicTitle}
+                      </span>
+                    )}
+
+                    {/* Added: GVG badge */}
+                    {teacher.gvgYears && (
+                      <span className="text-[11px] font-bold px-1.5 py-0.2 rounded-md bg-rose-50 text-rose-700 border border-rose-100 inline-flex items-center gap-0.5">
+                        <Sparkles className="w-2.5 h-2.5 text-rose-500" />
+                        GVG: {teacher.gvgYears}
+                      </span>
+                    )}
+
+                    {/* Added: Thực tế đơn vị badge */}
+                    {teacher.unitExperience && teacher.unitExperience !== 'Chưa đi thực tế' && (
+                      <span className="text-[11px] font-bold px-1.5 py-0.2 rounded-md bg-amber-50 text-amber-700 border border-amber-100/80 inline-flex items-center gap-0.5">
+                        <Briefcase className="w-2.5 h-2.5 text-amber-500" />
+                        Thực tế: {teacher.unitExperience}
+                      </span>
+                    )}
+
                     {teacher.status === 'I' && (
-                      <span className="text-[13px] font-bold bg-rose-50 text-rose-600 px-1.5 rounded-full">
-                        Đang nghỉ/phóng đi học
+                      <span className="text-[11px] font-bold bg-rose-50 text-rose-600 px-1.5 py-0.2 rounded-full">
+                        Nghỉ/Phóng đi học
                       </span>
                     )}
                   </div>
                   
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-y-1 gap-x-3 mt-1.5 text-[11px] text-slate-500">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-y-1 gap-x-3 mt-1.5 text-xs text-slate-500">
                     <div className="flex items-center gap-1.5 truncate">
                       <Mail className="w-3.5 h-3.5 text-slate-400 shrink-0" />
                       <span>{teacher.email}</span>
@@ -296,15 +323,15 @@ export default function TeacherList({
                       <Building className="w-3.5 h-3.5 text-slate-400 shrink-0" />
                       <span>{teacher.department}</span>
                     </div>
-                    <div className="flex items-center gap-1.5 col-span-2">
-                      <span className="text-slate-400 font-medium">Chức vụ:</span>
+                    <div className="flex items-center gap-1.5 col-span-2 text-xs">
+                      <span className="text-slate-450 font-medium">Chức vụ:</span>
                       <span className="text-slate-700 font-semibold">{teacher.position}</span>
                       {teacher.party && teacher.party !== 'Không kiêm nhiệm' && (
                         <span className="text-blue-600 font-semibold"> • {teacher.party}</span>
                       )}
                       {teacher.reductionRate > 0 && (
-                        <span className="text-rose-600 font-semibold text-[13px] bg-rose-50 px-1 rounded-sm ml-1">
-                          (Giảm {teacher.reductionRate}% định mức)
+                        <span className="text-rose-600 font-bold text-[11px] bg-rose-50 border border-rose-100 px-1.5 py-0.2 rounded-sm ml-1.5">
+                          Giảm {teacher.reductionRate}%
                         </span>
                       )}
                     </div>
@@ -314,27 +341,30 @@ export default function TeacherList({
                 <div className="flex items-center gap-1.5 w-full sm:w-auto justify-end border-t border-slate-50 pt-3 sm:border-0 sm:pt-0">
                   <button
                     onClick={() => setSelectedTeacherProfile(teacher)}
-                    className="p-1.5 hover:bg-slate-100 rounded-md text-slate-500 hover:text-slate-800 cursor-pointer tooltip"
+                    className="p-1.5 hover:bg-slate-100 rounded-md text-slate-500 hover:text-slate-800 cursor-pointer tooltip flex items-center gap-1 text-[12px] font-semibold"
                     title="Xem chi tiết"
                   >
                     <Eye className="w-3.5 h-3.5" />
+                    <span className="sm:hidden">Xem hồ sơ</span>
                   </button>
                   {(isAdmin || teacher.id === currentTeacherId) && (
                     <button
                       onClick={() => openEditModal(teacher)}
-                      className="p-1.5 hover:bg-blue-50 rounded-md text-blue-600 cursor-pointer animate-pulse-slow font-medium"
+                      className="p-1.5 hover:bg-blue-50 rounded-md text-blue-600 cursor-pointer font-semibold flex items-center gap-1 text-[12px]"
                       title={teacher.id === currentTeacherId ? "Tự sửa thông tin của bạn" : "Sửa thông tin giảng viên"}
                     >
                       <Edit2 className="w-3.5 h-3.5" />
+                      <span className="sm:hidden">Sửa</span>
                     </button>
                   )}
                   {isAdmin && (
                     <button
                       onClick={() => handleDeleteClick(teacher.id, teacher.name)}
-                      className="p-1.5 hover:bg-rose-50 rounded-md text-rose-600 cursor-pointer"
+                      className="p-1.5 hover:bg-rose-50 rounded-md text-rose-600 cursor-pointer flex items-center gap-1 text-[12px]"
                       title="Xóa giảng viên"
                     >
                       <Trash2 className="w-3.5 h-3.5" />
+                      <span className="sm:hidden">Xóa</span>
                     </button>
                   )}
                 </div>
@@ -342,205 +372,250 @@ export default function TeacherList({
             ))
           )}
         </div>
+      </div>
 
-        {/* Selected Teacher Details Cards Column */}
-        <div className="lg:col-span-1">
-          {selectedTeacherProfile ? (
-            <motion.div 
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm space-y-4 sticky top-4"
+      {/* Interactive Modal for Teacher Profile Details */}
+      <AnimatePresence>
+        {selectedTeacherProfile && (
+          <div className="fixed inset-0 z-50 overflow-y-auto bg-slate-900/40 backdrop-blur-xs p-4 flex items-center justify-center">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              className="bg-white rounded-2xl shadow-xl border border-slate-200 max-w-md w-full overflow-hidden flex flex-col max-h-[90vh]"
             >
-              <div className="flex justify-between items-start">
-                <h4 className="text-[13px] font-bold text-slate-400 uppercase tracking-widest">
-                  Chi tiết giảng viên
+              {/* Header */}
+              <div className="px-5 py-3.5 border-b border-slate-100 flex justify-between items-center bg-slate-50/55">
+                <h4 className="text-xs font-extrabold text-slate-400 uppercase tracking-widest">
+                  Chi tiết hồ sơ giảng viên
                 </h4>
-                <button 
+                <button
+                  type="button"
                   onClick={() => setSelectedTeacherProfile(null)}
-                  className="text-slate-400 hover:text-slate-600 p-0.5 hover:bg-slate-50 rounded-md"
+                  className="text-slate-400 hover:text-slate-600 p-1.5 hover:bg-slate-100 rounded-lg transition-colors cursor-pointer"
                 >
-                  <X className="w-4 h-4" />
+                  <X className="w-4.5 h-4.5" />
                 </button>
               </div>
 
-              <div className="pb-3 border-b border-slate-100">
-                <span className="text-sm font-bold text-slate-800 mt-1 block">{selectedTeacherProfile.name}</span>
-                <span className="text-[13px] text-slate-500 font-medium block mt-0.5">{selectedTeacherProfile.department}</span>
+              {/* Scrollable Content - Compact, elegant text-sm structure */}
+              <div className="px-5 py-4 overflow-y-auto space-y-4 text-slate-700">
+                
+                <div className="pb-3 border-b border-slate-100 flex flex-col gap-0.5">
+                  <span className="text-base font-extrabold text-slate-900 tracking-tight block">{selectedTeacherProfile.name}</span>
+                  <span className="text-xs text-slate-500 font-bold block">{selectedTeacherProfile.department}</span>
+                </div>
+
+                <div className="space-y-3.5">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-35">
+                    <div>
+                      <span className="text-slate-400 block mb-0.5 text-[11px] uppercase font-bold tracking-wider">Học vị:</span>
+                      <div className="text-sm font-bold text-slate-800">
+                        {getRankString(selectedTeacherProfile.rank)} ({selectedTeacherProfile.rank})
+                      </div>
+                    </div>
+
+                    <div>
+                      <span className="text-slate-400 block mb-0.5 text-[11px] uppercase font-bold tracking-wider">Chức vụ:</span>
+                      <div className="text-sm font-bold text-slate-850">
+                        {selectedTeacherProfile.position}
+                        {selectedTeacherProfile.party && selectedTeacherProfile.party !== 'Không kiêm nhiệm' && (
+                          <span className="text-blue-600 font-bold"> • {selectedTeacherProfile.party}</span>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 border-t border-slate-100/60 pt-3">
+                    <div>
+                      <span className="text-slate-440 block mb-0.5 text-[11px] uppercase font-bold tracking-wider">Liên hệ Email:</span>
+                      <div className="font-mono text-slate-600 font-bold text-xs truncate" title={selectedTeacherProfile.email}>
+                        {selectedTeacherProfile.email}
+                      </div>
+                    </div>
+                    <div>
+                      <span className="text-slate-440 block mb-0.5 text-[11px] uppercase font-bold tracking-wider">Số điện thoại:</span>
+                      <div className="font-mono text-slate-700 font-bold text-xs truncate" title={selectedTeacherProfile.phone}>
+                        {selectedTeacherProfile.phone || 'Chưa cập nhật'}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Professional Qualifications & Credentials Box - exact style & perfect text-sm matching */}
+                  <div className="pt-3 border-t border-slate-100 space-y-2">
+                    <span className="text-slate-440 block mb-1 text-[11px] uppercase font-bold tracking-wider">Hồ sơ chuyên môn & Chứng chỉ:</span>
+                    
+                    <div className="grid grid-cols-1 gap-2 bg-slate-50/70 p-3.5 rounded-xl border border-slate-100 text-xs">
+                      <div className="flex items-center gap-2">
+                        <Calendar className="w-4 h-4 text-blue-500 shrink-0" />
+                        <div>
+                          <span className="text-slate-500 font-bold">Thâm niên giảng dạy: </span>
+                          <span className="font-bold text-slate-800">
+                            {selectedTeacherProfile.startYear 
+                              ? `${new Date().getFullYear() - selectedTeacherProfile.startYear} năm (Bắt đầu từ ${selectedTeacherProfile.startYear})` 
+                              : 'Chưa cập nhật'}
+                          </span>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-2">
+                        <GraduationCap className="w-4 h-4 text-indigo-505 shrink-0" />
+                        <div>
+                          <span className="text-slate-500 font-bold">Bồi dưỡng NV sư phạm: </span>
+                          <span className="font-bold text-slate-800">
+                            {selectedTeacherProfile.pedagogyCertYear 
+                              ? `Năm ${selectedTeacherProfile.pedagogyCertYear}` 
+                              : 'Chưa cập nhật'}
+                          </span>
+                        </div>
+                      </div>
+
+                      {selectedTeacherProfile.masterObtainYear && (
+                        <div className="flex items-center gap-2">
+                          <GraduationCap className="w-4 h-4 text-teal-500 shrink-0" />
+                          <div>
+                            <span className="text-slate-500 font-bold">Năm nhận bằng ThS: </span>
+                            <span className="font-bold text-slate-800">
+                              Năm {selectedTeacherProfile.masterObtainYear}
+                            </span>
+                          </div>
+                        </div>
+                      )}
+
+                      {selectedTeacherProfile.phdObtainYear && (
+                        <div className="flex items-center gap-2">
+                          <GraduationCap className="w-4 h-4 text-rose-500 shrink-0" />
+                          <div>
+                            <span className="text-slate-500 font-bold">Năm nhận bằng TS: </span>
+                            <span className="font-bold text-slate-800">
+                              Năm {selectedTeacherProfile.phdObtainYear}
+                            </span>
+                          </div>
+                        </div>
+                      )}
+
+                      <div className="flex items-center gap-2">
+                        <Award className="w-4 h-4 text-blue-600 shrink-0" />
+                        <div>
+                          <span className="text-slate-500 font-bold">Chức danh: </span>
+                          <span className="font-bold text-slate-800">
+                            {selectedTeacherProfile.academicTitle && selectedTeacherProfile.academicTitle !== 'Không'
+                              ? `${selectedTeacherProfile.academicTitle}${selectedTeacherProfile.academicTitleYear ? ` (Năm ${selectedTeacherProfile.academicTitleYear})` : ''}`
+                              : 'Chưa cập nhật/Không'}
+                          </span>
+                        </div>
+                      </div>
+
+                      {selectedTeacherProfile.gvgYears && (
+                        <div className="flex items-center gap-2">
+                          <Sparkles className="w-4 h-4 text-rose-500 shrink-0" />
+                          <div>
+                            <span className="text-slate-500 font-bold">Giảng viên giỏi (GVG): </span>
+                            <span className="font-bold text-rose-700 bg-rose-50/50 border border-rose-100 rounded px-1.5 py-0.2 text-[11px]">
+                              Năm {selectedTeacherProfile.gvgYears}
+                            </span>
+                          </div>
+                        </div>
+                      )}
+
+                      <div className="flex items-center gap-2">
+                        <Award className="w-4 h-4 text-emerald-505 shrink-0" />
+                        <div>
+                          <span className="text-slate-505 font-bold">Ngoại ngữ: </span>
+                          <span className="font-bold text-slate-800">
+                            {selectedTeacherProfile.languageCert || 'Chưa cập nhật'}
+                          </span>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-2">
+                        <Award className="w-4 h-4 text-cyan-505 shrink-0" />
+                        <div>
+                          <span className="text-slate-500 font-bold">Tin học: </span>
+                          <span className="font-bold text-slate-800">
+                            {selectedTeacherProfile.itCert || 'Chưa cập nhật'}
+                          </span>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-2">
+                        <Briefcase className="w-4 h-4 text-amber-500 shrink-0" />
+                        <div>
+                          <span className="text-slate-500 font-bold">Thực tế đơn vị: </span>
+                          <span className={`font-bold inline-block px-1.5 py-0.2 rounded text-[11px] ${
+                            selectedTeacherProfile.unitExperience && selectedTeacherProfile.unitExperience !== 'Chưa đi thực tế'
+                              ? 'bg-amber-50 text-amber-700 border border-amber-150'
+                              : 'bg-slate-100 text-slate-600'
+                          }`}>
+                            {selectedTeacherProfile.unitExperience 
+                              ? `${selectedTeacherProfile.unitExperience}${selectedTeacherProfile.unitExperienceYear ? ` (Năm đi: ${selectedTeacherProfile.unitExperienceYear})` : ''}` 
+                              : 'Chưa đi thực tế'}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div>
+                    <span className="text-slate-440 block mb-1 text-[11px] uppercase font-bold tracking-wider">Tình trạng miễn giảm:</span>
+                    <div className="bg-slate-50 p-3 rounded-xl flex items-center justify-between border border-slate-100">
+                      <div>
+                        <span className="text-slate-500 font-bold block text-[11px]">Tỷ lệ giảm:</span>
+                        <span className="text-sm font-black text-rose-600">{selectedTeacherProfile.reductionRate}%</span>
+                      </div>
+                      <div className="text-right">
+                        <span className="text-slate-500 font-bold block text-[11px]">Trạng thái:</span>
+                        <span className={`inline-flex items-center gap-1 font-bold text-xs ${
+                          selectedTeacherProfile.status === 'A' ? 'text-emerald-700' : 'text-slate-500'
+                        }`}>
+                          {selectedTeacherProfile.status === 'A' ? (
+                            <>
+                              <UserCheck className="w-4 h-4 text-emerald-600" />
+                              Đang hoạt động
+                            </>
+                          ) : (
+                            <>
+                              <UserX className="w-4 h-4 text-rose-500" />
+                              Nghỉ thai sản/học tập
+                            </>
+                          )}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
               </div>
 
-              <div className="space-y-3.5 text-[13px]">
-                <div>
-                  <span className="text-slate-400 block mb-0.5 text-[13px] uppercase font-bold tracking-wider">Học vị:</span>
-                  <div className="font-semibold text-slate-700">
-                    {getRankString(selectedTeacherProfile.rank)} ({selectedTeacherProfile.rank})
-                  </div>
-                </div>
-
-                <div>
-                  <span className="text-slate-400 block mb-0.5 text-[13px] uppercase font-bold tracking-wider">Chức vụ:</span>
-                  <div className="font-semibold text-slate-700">
-                    {selectedTeacherProfile.position}
-                    {selectedTeacherProfile.party && selectedTeacherProfile.party !== 'Không kiêm nhiệm' && (
-                      <span className="text-blue-600 font-semibold"> • {selectedTeacherProfile.party}</span>
-                    )}
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-2 gap-2">
-                  <div>
-                    <span className="text-slate-400 block mb-0.5 text-[13px] uppercase font-bold tracking-wider">Liên hệ Email:</span>
-                    <div className="font-mono text-slate-600 truncate" title={selectedTeacherProfile.email}>
-                      {selectedTeacherProfile.email}
-                    </div>
-                  </div>
-                  <div>
-                    <span className="text-slate-400 block mb-0.5 text-[13px] uppercase font-bold tracking-wider">Số điện thoại:</span>
-                    <div className="font-mono text-slate-700 font-semibold truncate" title={selectedTeacherProfile.phone}>
-                      {selectedTeacherProfile.phone || 'Chưa cập nhật'}
-                    </div>
-                  </div>
-                </div>
-
-                {/* Professional Qualifications & Credentials */}
-                <div className="pt-3 border-t border-slate-100 space-y-2">
-                  <span className="text-slate-400 block mb-1 text-[13px] uppercase font-bold tracking-wider">Hồ sơ chuyên môn & Chứng chỉ:</span>
-                  
-                  <div className="grid grid-cols-1 gap-2 bg-slate-50/60 p-3 rounded-lg border border-slate-100 text-[13px]">
-                    <div className="flex items-center gap-2">
-                      <Calendar className="w-3.5 h-3.5 text-blue-500 shrink-0" />
-                      <div>
-                        <span className="text-slate-400 font-medium">Thâm niên giảng dạy: </span>
-                        <span className="font-bold text-slate-700">
-                          {selectedTeacherProfile.startYear 
-                            ? `${new Date().getFullYear() - selectedTeacherProfile.startYear} năm (Bắt đầu từ ${selectedTeacherProfile.startYear})` 
-                            : 'Chưa cập nhật'}
-                        </span>
-                      </div>
-                    </div>
-
-                    <div className="flex items-center gap-2">
-                      <GraduationCap className="w-3.5 h-3.5 text-indigo-500 shrink-0" />
-                      <div>
-                        <span className="text-slate-400 font-medium">Bồi dưỡng NV sư phạm: </span>
-                        <span className="font-semibold text-slate-700">
-                          {selectedTeacherProfile.pedagogyCertYear 
-                            ? `Năm ${selectedTeacherProfile.pedagogyCertYear}` 
-                            : 'Chưa cập nhật'}
-                        </span>
-                      </div>
-                    </div>
-
-                    {selectedTeacherProfile.masterObtainYear && (
-                      <div className="flex items-center gap-2">
-                        <GraduationCap className="w-3.5 h-3.5 text-teal-500 shrink-0" />
-                        <div>
-                          <span className="text-slate-400 font-medium">Năm nhận bằng ThS: </span>
-                          <span className="font-semibold text-slate-700">
-                            Năm {selectedTeacherProfile.masterObtainYear}
-                          </span>
-                        </div>
-                      </div>
-                    )}
-
-                    {selectedTeacherProfile.phdObtainYear && (
-                      <div className="flex items-center gap-2">
-                        <GraduationCap className="w-3.5 h-3.5 text-rose-500 shrink-0" />
-                        <div>
-                          <span className="text-slate-400 font-medium">Năm nhận bằng TS: </span>
-                          <span className="font-semibold text-slate-700">
-                            Năm {selectedTeacherProfile.phdObtainYear}
-                          </span>
-                        </div>
-                      </div>
-                    )}
-
-                    <div className="flex items-center gap-2">
-                      <Award className="w-3.5 h-3.5 text-blue-600 shrink-0" />
-                      <div>
-                        <span className="text-slate-400 font-medium">Chức danh: </span>
-                        <span className="font-bold text-slate-700">
-                          {selectedTeacherProfile.academicTitle && selectedTeacherProfile.academicTitle !== 'Không'
-                            ? `${selectedTeacherProfile.academicTitle}${selectedTeacherProfile.academicTitleYear ? ` (Năm ${selectedTeacherProfile.academicTitleYear})` : ''}`
-                            : 'Chưa cập nhật/Không'}
-                        </span>
-                      </div>
-                    </div>
-
-                    <div className="flex items-center gap-2">
-                      <Award className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
-                      <div>
-                        <span className="text-slate-400 font-medium">Ngoại ngữ: </span>
-                        <span className="font-semibold text-slate-700">
-                          {selectedTeacherProfile.languageCert || 'Chưa cập nhật'}
-                        </span>
-                      </div>
-                    </div>
-
-                    <div className="flex items-center gap-2">
-                      <Award className="w-3.5 h-3.5 text-cyan-500 shrink-0" />
-                      <div>
-                        <span className="text-slate-400 font-medium">Tin học: </span>
-                        <span className="font-semibold text-slate-700">
-                          {selectedTeacherProfile.itCert || 'Chưa cập nhật'}
-                        </span>
-                      </div>
-                    </div>
-
-                    <div className="flex items-center gap-2">
-                      <Briefcase className="w-3.5 h-3.5 text-amber-500 shrink-0" />
-                      <div>
-                        <span className="text-slate-400 font-medium">Thực tế đơn vị: </span>
-                        <span className={`font-bold inline-block px-1.5 py-0.5 rounded text-[13px] ${
-                          selectedTeacherProfile.unitExperience && selectedTeacherProfile.unitExperience !== 'Chưa đi thực tế'
-                            ? 'bg-amber-50 text-amber-700 border border-amber-100'
-                            : 'bg-slate-100 text-slate-600'
-                        }`}>
-                          {selectedTeacherProfile.unitExperience 
-                            ? `${selectedTeacherProfile.unitExperience}${selectedTeacherProfile.unitExperienceYear ? ` (Năm đi: ${selectedTeacherProfile.unitExperienceYear})` : ''}` 
-                            : 'Chưa đi thực tế'}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                <div>
-                  <span className="text-slate-400 block mb-1 text-[13px] uppercase font-bold tracking-wider">Tình trạng miễn giảm:</span>
-                  <div className="bg-slate-50 p-3 rounded-lg flex items-center justify-between">
-                    <div>
-                      <span className="text-slate-500 font-medium block">Tỷ lệ giảm:</span>
-                      <span className="text-sm font-bold text-blue-700">{selectedTeacherProfile.reductionRate}%</span>
-                    </div>
-                    <div className="text-right">
-                      <span className="text-slate-500 font-medium block">Trạng thái:</span>
-                      <span className={`inline-flex items-center gap-1 font-bold text-[13px] ${
-                        selectedTeacherProfile.status === 'A' ? 'text-emerald-700' : 'text-slate-500'
-                      }`}>
-                        {selectedTeacherProfile.status === 'A' ? (
-                          <>
-                            <UserCheck className="w-3.5 h-3.5 text-emerald-600" />
-                            Đang hoạt động
-                          </>
-                        ) : (
-                          <>
-                            <UserX className="w-3.5 h-3.5 text-rose-500" />
-                            Nghỉ thai sản/học tập
-                          </>
-                        )}
-                      </span>
-                    </div>
-                  </div>
-                </div>
+              {/* Footer */}
+              <div className="px-5 py-3 border-t border-slate-100 bg-slate-50/55 flex justify-end gap-2.5">
+                {(isAdmin || selectedTeacherProfile.id === currentTeacherId) && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                        const copyingTeacher = { ...selectedTeacherProfile };
+                        setSelectedTeacherProfile(null);
+                        setTimeout(() => {
+                          openEditModal(copyingTeacher);
+                        }, 200);
+                    }}
+                    className="inline-flex items-center justify-center gap-1 bg-blue-50 hover:bg-blue-100 active:bg-blue-200 text-blue-700 font-bold text-[12px] px-3.5 py-1.5 rounded-lg border border-blue-200 cursor-pointer transition-all"
+                  >
+                    <Edit2 className="w-3.5 h-3.5" />
+                    Sửa thông tin
+                  </button>
+                )}
+                <button
+                  type="button"
+                  onClick={() => setSelectedTeacherProfile(null)}
+                  className="bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold text-[12px] px-3.5 py-1.5 rounded-lg cursor-pointer transition-all"
+                >
+                  Đóng
+                </button>
               </div>
             </motion.div>
-          ) : (
-            <div className="bg-slate-50 border border-slate-200 p-8 rounded-xl text-center text-slate-400 text-[13px] font-medium">
-              <Eye className="w-8 h-8 text-slate-300 mx-auto mb-2" />
-              Chọn một giảng viên bên danh sách để xem thông tin chi tiết nhanh.
-            </div>
-          )}
-        </div>
-      </div>
+          </div>
+        )}
+      </AnimatePresence>
 
       {/* Interactive Modal for Add/Edit */}
       <AnimatePresence>
@@ -567,7 +642,7 @@ export default function TeacherList({
               <form onSubmit={handleSave} className="p-5 space-y-4">
                 <div className="grid grid-cols-2 lg:grid-cols-4 gap-3.5">
                   <div className="col-span-2 lg:col-span-2">
-                    <label className="text-[13px] font-bold text-slate-400 uppercase block mb-1">
+                    <label className="text-[13px] font-bold text-slate-500 block mb-1">
                       Họ và Tên giảng viên <span className="text-rose-500">*</span>
                     </label>
                     <input
@@ -581,7 +656,7 @@ export default function TeacherList({
                   </div>
 
                   <div>
-                    <label className="text-[13px] font-bold text-slate-400 uppercase block mb-1">
+                    <label className="text-[13px] font-bold text-slate-500 block mb-1">
                       Số điện thoại
                     </label>
                     <input
@@ -594,7 +669,7 @@ export default function TeacherList({
                   </div>
 
                   <div>
-                    <label className="text-[13px] font-bold text-slate-400 uppercase block mb-1">
+                    <label className="text-[13px] font-bold text-slate-500 block mb-1">
                       Email <span className="text-rose-500">*</span>
                     </label>
                     <input
@@ -608,7 +683,7 @@ export default function TeacherList({
                   </div>
 
                   <div>
-                    <label className="text-[13px] font-bold text-slate-400 uppercase block mb-1">
+                    <label className="text-[13px] font-bold text-slate-500 block mb-1">
                       Bộ môn
                     </label>
                     <select
@@ -626,7 +701,7 @@ export default function TeacherList({
                   </div>
 
                   <div>
-                    <label className="text-[13px] font-bold text-slate-400 uppercase block mb-1">
+                    <label className="text-[13px] font-bold text-slate-500 block mb-1">
                       Học vị
                     </label>
                     <select
@@ -642,7 +717,7 @@ export default function TeacherList({
                   </div>
 
                   <div>
-                    <label className="text-[13px] font-bold text-slate-400 uppercase block mb-1">
+                    <label className="text-[13px] font-bold text-slate-500 block mb-1">
                       Chức vụ
                     </label>
                     <select
@@ -671,7 +746,7 @@ export default function TeacherList({
 
 
                   <div>
-                    <label className="text-[13px] font-bold text-slate-400 uppercase block mb-1">
+                    <label className="text-[13px] font-bold text-slate-500 block mb-1">
                       Chức vụ Đảng
                     </label>
                     <select
@@ -687,7 +762,7 @@ export default function TeacherList({
                   </div>
 
                   <div>
-                    <label className="text-[13px] font-bold text-slate-400 uppercase block mb-1">
+                    <label className="text-[13px] font-bold text-slate-500 block mb-1">
                       Tình trạng nhân sự
                     </label>
                     <select
@@ -702,7 +777,7 @@ export default function TeacherList({
                   </div>
 
                   <div>
-                    <label className="text-[13px] font-bold text-slate-400 uppercase block mb-1">
+                    <label className="text-[13px] font-bold text-slate-500 block mb-1">
                       % Giảm trừ định mức (0-100%)
                     </label>
                     <input
@@ -723,7 +798,7 @@ export default function TeacherList({
                   </div>
 
                   <div>
-                    <label className="text-[13px] font-bold text-slate-400 uppercase block mb-1">
+                    <label className="text-[13px] font-bold text-slate-500 block mb-1">
                       Năm bắt đầu giảng dạy
                     </label>
                     <input
@@ -738,7 +813,7 @@ export default function TeacherList({
                   </div>
 
                   <div>
-                    <label className="text-[13px] font-bold text-slate-400 uppercase block mb-1">
+                    <label className="text-[13px] font-bold text-slate-500 block mb-1">
                       Năm nhận bằng Thạc sĩ
                     </label>
                     <input
@@ -753,7 +828,7 @@ export default function TeacherList({
                   </div>
 
                   <div>
-                    <label className="text-[13px] font-bold text-slate-400 uppercase block mb-1">
+                    <label className="text-[13px] font-bold text-slate-500 block mb-1">
                       Năm nhận bằng Tiến sĩ
                     </label>
                     <input
@@ -768,7 +843,7 @@ export default function TeacherList({
                   </div>
 
                   <div>
-                    <label className="text-[13px] font-bold text-slate-400 uppercase block mb-1">
+                    <label className="text-[13px] font-bold text-slate-500 block mb-1">
                       Năm có CC nghiệp vụ sư phạm
                     </label>
                     <input
@@ -781,7 +856,7 @@ export default function TeacherList({
                   </div>
 
                   <div>
-                    <label className="text-[13px] font-bold text-slate-400 uppercase block mb-1">
+                    <label className="text-[13px] font-bold text-slate-500 block mb-1">
                       Chứng chỉ Ngoại ngữ
                     </label>
                     <input
@@ -794,7 +869,7 @@ export default function TeacherList({
                   </div>
 
                   <div>
-                    <label className="text-[13px] font-bold text-slate-400 uppercase block mb-1">
+                    <label className="text-[13px] font-bold text-slate-500 block mb-1">
                       Chứng chỉ Tin học
                     </label>
                     <input
@@ -807,7 +882,7 @@ export default function TeacherList({
                   </div>
 
                   <div>
-                    <label className="text-[13px] font-bold text-slate-400 uppercase block mb-1">
+                    <label className="text-[13px] font-bold text-slate-500 block mb-1">
                       Chức danh chuyên môn
                     </label>
                     <select
@@ -823,7 +898,7 @@ export default function TeacherList({
                   </div>
 
                   <div>
-                    <label className="text-[13px] font-bold text-slate-400 uppercase block mb-1">
+                    <label className="text-[13px] font-bold text-slate-500 block mb-1">
                       Năm nhận chức danh
                     </label>
                     <input
@@ -837,7 +912,20 @@ export default function TeacherList({
                   </div>
 
                   <div>
-                    <label className="text-[13px] font-bold text-slate-400 uppercase block mb-1">
+                    <label className="text-[13px] font-bold text-slate-500 block mb-1">
+                      Giảng viên giỏi (GVG) - Các năm chuyên môn
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="Ví dụ: 2022, 2024 (nhiều năm cách nhau bởi dấu phẩy)"
+                      value={formGvgYears}
+                      onChange={(e) => setFormGvgYears(e.target.value)}
+                      className="text-[13px] w-full border border-slate-200 rounded-lg px-3 py-2 bg-slate-50 focus:outline-hidden focus:ring-2 focus:ring-blue-500 font-medium"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="text-[13px] font-bold text-slate-500 block mb-1">
                       Thực tế đơn vị (Đơn vị)
                     </label>
                     <select
@@ -854,7 +942,7 @@ export default function TeacherList({
                   </div>
 
                   <div>
-                    <label className="text-[13px] font-bold text-slate-400 uppercase block mb-1">
+                    <label className="text-[13px] font-bold text-slate-500 block mb-1">
                       Năm đi thực tế
                     </label>
                     <input

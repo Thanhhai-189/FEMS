@@ -432,7 +432,7 @@ export default function StandardsTab({ teachers, researchLogs }: StandardsTabPro
         const hasGuideKeyword = log.title.toLowerCase().includes('hướng dẫn') || log.title.toLowerCase().includes('dạy giỏi') || log.title.toLowerCase().includes('giảng viên giỏi');
         return isGuideCode || hasGuideKeyword;
       });
-      const meetsGvcGuidance = gvcGuidances.length >= 1;
+      const meetsGvcGuidance = gvcGuidances.length >= 1 || !!(teacher.gvgYears && teacher.gvgYears.trim());
       if (!meetsGvcGuidance) {
         gvcMissing.push('Yêu cầu Hướng dẫn: Có thành tích trong hướng dẫn học viên NCKH hoặc đạt danh hiệu giảng viên dạy giỏi cấp Học viện');
       }
@@ -1533,6 +1533,15 @@ export default function StandardsTab({ teachers, researchLogs }: StandardsTabPro
                         {selectedTeacher.pedagogyCertYear ? `Năm cấp: ${selectedTeacher.pedagogyCertYear}` : '❌ Chưa bổ sung thông tin chứng chỉ sư phạm'}
                       </span>
                     </div>
+
+                    {selectedTeacher.gvgYears && (
+                      <div className="grid grid-cols-3 gap-2 border-b border-slate-200/60 pb-2">
+                        <span className="font-semibold text-rose-500">2.2. Giảng viên dạy giỏi:</span>
+                        <span className="col-span-2 font-bold text-rose-600 bg-rose-50/50 border border-rose-100/60 rounded px-1.5 py-0.5 text-[12px] w-fit">
+                          Đạt GVG các năm: {selectedTeacher.gvgYears} (Đủ điều kiện thay thế hướng dẫn khoa học)
+                        </span>
+                      </div>
+                    )}
 
                     <div className="grid grid-cols-3 gap-2 border-b border-slate-200/60 pb-2">
                       <span className="font-semibold text-slate-400">3. Thực tế đơn vị:</span>
