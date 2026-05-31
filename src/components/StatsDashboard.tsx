@@ -167,7 +167,7 @@ const PieChart = React.memo(({ data, size = 280, totalHours }: PieChartProps) =>
             <div className="bg-white/95 backdrop-blur-sm shadow-lg border border-slate-200 rounded-lg px-3 py-2 text-center overflow-visible">
               <p className="text-xs font-black text-slate-700 whitespace-nowrap">{arc.label}</p>
               <p className="text-lg font-black mt-0.5" style={{ color: arc.color }}>{arc.hours.toFixed(1)} giờ</p>
-              <p className="text-[10px] font-bold text-slate-400">({arc.percent.toFixed(1)}%)</p>
+              <p className="text-xs font-bold text-slate-400">({arc.percent.toFixed(1)}%)</p>
             </div>
           </div>
         );
@@ -253,8 +253,9 @@ export default function StatsDashboard({ teachers, teachingLogs, researchLogs, r
       const teachingStatus = isStaff ? 'completed' : (teachingSum >= adjustedTeachingNorm ? 'completed' : 'pending');
       const researchStatus = isStaff ? 'completed' : (researchSum >= adjustedResearchNorm ? 'completed' : 'pending');
 
-      const overTimeHours = Math.max(0, Math.round((teachingSum - adjustedTeachingNorm) * 10) / 10);
-      const overTimeResearch = Math.max(0, Math.round((researchSum - adjustedResearchNorm) * 10) / 10);
+      const teachingExcess = Math.max(0, Math.round((teachingSum - adjustedTeachingNorm) * 10) / 10);
+      const researchDeficit = Math.max(0, Math.round((adjustedResearchNorm - researchSum) * 10) / 10);
+      const totalOvertime = Math.max(0, Math.round((teachingExcess - researchDeficit / 3) * 10) / 10);
 
       return {
         teacher,
@@ -271,9 +272,9 @@ export default function StatsDashboard({ teachers, teachingLogs, researchLogs, r
         researchProgress,
         teachingStatus,
         researchStatus,
-        overTimeHours,
-        overTimeResearch,
-        totalOvertime: Math.round((overTimeHours + overTimeResearch) * 10) / 10,
+        overTimeHours: teachingExcess,
+        overTimeResearch: Math.max(0, Math.round((researchSum - adjustedResearchNorm) * 10) / 10),
+        totalOvertime,
         metBoth: teachingSum >= adjustedTeachingNorm && researchSum >= adjustedResearchNorm
       };
     });
@@ -321,20 +322,12 @@ export default function StatsDashboard({ teachers, teachingLogs, researchLogs, r
 
   // Teaching hours by type breakdown
   const teachingHoursByType = useMemo(() => {
-    const types: Record<string, number> = {
-      theoretical: 0,
-      practical: 0,
-      project: 0,
-      master_thesis: 0,
-      phd_instruction: 0
-    };
+    const types: Record<string, number> = {};
 
     teachingLogs
       .filter(log => filteredTeacherIds.has(log.teacherId) && log.academicYear === academicYear)
       .forEach(log => {
-        if (types[log.type] !== undefined) {
-          types[log.type] += log.convertedHours;
-        }
+        types[log.type] = (types[log.type] || 0) + log.convertedHours;
       });
 
     const total = Object.values(types).reduce((a, b) => a + b, 0) || 1;
@@ -446,17 +439,17 @@ export default function StatsDashboard({ teachers, teachingLogs, researchLogs, r
             <BarChart3 className="w-5 h-5 text-blue-600" />
             Tổng quan dữ liệu năm học {academicYear}
           </h2>
-          <p className="text-[13px] text-slate-500 mt-1">
+          <p className="text-xs text-slate-500 mt-1">
             Hiển thị mức độ hoàn thành chỉ tiêu định mức giảng dạy & nghiên cứu khoa học của tập thể giảng viên.
           </p>
         </div>
         <div className="flex items-center gap-2 self-start md:self-center">
           <Filter className="w-4 h-4 text-slate-400" />
-          <span className="text-[13px] font-medium text-slate-600">Bộ môn:</span>
+          <span className="text-xs font-medium text-slate-600">Bộ môn:</span>
           <select
             value={selectedDepartment}
             onChange={(e) => setSelectedDepartment(e.target.value)}
-            className="text-[13px] border border-slate-200 rounded-lg px-3 py-1.5 bg-slate-50 font-medium focus:outline-hidden focus:ring-2 focus:ring-blue-500"
+            className="text-xs border border-slate-200 rounded-lg px-3 py-1.5 bg-slate-50 font-medium focus:outline-hidden focus:ring-2 focus:ring-blue-500"
           >
             <option value="all">Toàn Khoa</option>
             {departments.filter(d => d !== 'all').map(dept => (
@@ -478,11 +471,11 @@ export default function StatsDashboard({ teachers, teachingLogs, researchLogs, r
             <Users className="w-6 h-6" />
           </div>
           <div>
-            <span className="text-[13px] text-slate-500 block font-medium">Quân số</span>
+            <span className="text-xs text-slate-500 block font-medium">Quân số</span>
             <span className="text-2xl font-bold text-slate-800">
               {aggregateMetrics.teachersCount}
             </span>
-            <span className="text-[13px] text-slate-500 block mt-0.5">
+            <span className="text-xs text-slate-500 block mt-0.5">
               {aggregateMetrics.activeCount} Làm việc
             </span>
           </div>
@@ -499,11 +492,11 @@ export default function StatsDashboard({ teachers, teachingLogs, researchLogs, r
             <BookOpen className="w-6 h-6" />
           </div>
           <div>
-            <span className="text-[13px] text-slate-500 block font-medium">Tổng giờ giảng quy đổi</span>
+            <span className="text-xs text-slate-500 block font-medium">Tổng giờ giảng quy đổi</span>
             <span className="text-2xl font-bold text-slate-800">
               {aggregateMetrics.totalTeachingHours}
             </span>
-            <span className="text-[13px] text-slate-500 block mt-0.5">
+            <span className="text-xs text-slate-500 block mt-0.5">
               Đạt tiêu chuẩn {aggregateMetrics.teachingCompleteRate}% GV
             </span>
           </div>
@@ -520,11 +513,11 @@ export default function StatsDashboard({ teachers, teachingLogs, researchLogs, r
             <FileCode2 className="w-6 h-6" />
           </div>
           <div>
-            <span className="text-[13px] text-slate-500 block font-medium">Giờ NCKH phê duyệt</span>
+            <span className="text-xs text-slate-500 block font-medium">Giờ NCKH phê duyệt</span>
             <span className="text-2xl font-bold text-slate-800">
               {aggregateMetrics.totalResearchHours}
             </span>
-            <span className="text-[13px] text-slate-500 block mt-0.5">
+            <span className="text-xs text-slate-500 block mt-0.5">
               Đạt tiêu chuẩn {aggregateMetrics.researchCompleteRate}% GV
             </span>
           </div>
@@ -541,11 +534,11 @@ export default function StatsDashboard({ teachers, teachingLogs, researchLogs, r
             <Award className="w-6 h-6" />
           </div>
           <div>
-            <span className="text-[13px] text-slate-500 block font-medium">Đạt kép giảng & NCKH</span>
+            <span className="text-xs text-slate-500 block font-medium">Đạt kép giảng & NCKH</span>
             <span className="text-2xl font-bold text-slate-800">
               {aggregateMetrics.metBothRate}%
             </span>
-            <span className="text-[13px] text-slate-500 block mt-0.5">
+            <span className="text-xs text-slate-500 block mt-0.5">
               GV hoàn thành 100% hai định mức
             </span>
           </div>
@@ -561,7 +554,7 @@ export default function StatsDashboard({ teachers, teachingLogs, researchLogs, r
               <PieIcon className="w-4 h-4 text-blue-500" />
               Cơ cấu giờ giảng dạy quy đổi
             </h3>
-            <span className="text-[13px] bg-blue-50 text-blue-700 px-2 py-0.5 rounded-full font-semibold">
+            <span className="text-xs bg-blue-50 text-blue-700 px-2 py-0.5 rounded-full font-semibold">
               {aggregateMetrics.totalTeachingHours} giờ chuẩn
             </span>
           </div>
@@ -573,7 +566,7 @@ export default function StatsDashboard({ teachers, teachingLogs, researchLogs, r
                 <div className="w-48 h-48 flex items-center justify-center">
                   <svg viewBox="0 0 200 200" className="w-full h-full">
                     <circle cx="100" cy="100" r="80" className="fill-slate-50 stroke-slate-200" strokeWidth="2" />
-                    <text x="100" y="105" textAnchor="middle" className="fill-slate-400 font-bold text-[13px]">Chưa có dữ liệu</text>
+                    <text x="100" y="105" textAnchor="middle" className="fill-slate-400 font-bold text-xs">Chưa có dữ liệu</text>
                   </svg>
                 </div>
               ) : (
@@ -588,7 +581,7 @@ export default function StatsDashboard({ teachers, teachingLogs, researchLogs, r
             {/* Detailed Legend List - Placed below, only showing categories with values > 0 in a beautiful grid */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 w-full">
               {pieChartData.length === 0 ? (
-                <div className="text-center text-slate-400 text-[13px] py-4 w-full col-span-full">
+                <div className="text-center text-slate-400 text-xs py-4 w-full col-span-full">
                   Chưa ghi nhận giờ giảng quy đổi cho năm học này.
                 </div>
               ) : (
@@ -613,8 +606,8 @@ export default function StatsDashboard({ teachers, teachingLogs, researchLogs, r
                           style={{ backgroundColor: color }} 
                         />
                         <div className="flex-1 min-w-0 flex items-center justify-between gap-2">
-                          <span className="text-[13px] font-bold text-slate-700 truncate">{slice.label}</span>
-                          <span className="text-[13px] text-slate-500 font-mono font-bold whitespace-nowrap">
+                          <span className="text-xs font-bold text-slate-700 truncate">{slice.label}</span>
+                          <span className="text-xs text-slate-500 font-mono font-bold whitespace-nowrap">
                             {slice.hours}h <span className="text-slate-400 font-normal">({percent.toFixed(1)}%)</span>
                           </span>
                         </div>
@@ -634,7 +627,7 @@ export default function StatsDashboard({ teachers, teachingLogs, researchLogs, r
               <TrendingUp className="w-4 h-4 text-emerald-500" />
               Thống kê nghiên cứu khoa học đạt
             </h3>
-            <span className="text-[13px] bg-emerald-50 text-emerald-700 px-2 py-0.5 rounded-full font-semibold">
+            <span className="text-xs bg-emerald-50 text-emerald-700 px-2 py-0.5 rounded-full font-semibold">
               {aggregateMetrics.totalResearchHours} giờ NCKH
             </span>
           </div>
@@ -661,7 +654,7 @@ export default function StatsDashboard({ teachers, teachingLogs, researchLogs, r
               ];
               return (
                 <div key={category.key} className={`border-l-4 ${borderColors[idx % 7]} pl-3 py-1 bg-slate-50 rounded-r-lg`}>
-                  <div className="flex justify-between text-[13px] font-semibold text-slate-700">
+                  <div className="flex justify-between text-xs font-semibold text-slate-700">
                     <span>{category.name}</span>
                     <span className="font-mono">{category.hours} giờ ({category.count} CT)</span>
                   </div>
@@ -685,22 +678,32 @@ export default function StatsDashboard({ teachers, teachingLogs, researchLogs, r
         <div className="px-5 py-4 border-b border-slate-100 flex justify-between items-center">
           <div>
             <h3 className="text-sm font-bold text-slate-800 font-display">Bảng theo dõi định mức theo Giảng viên</h3>
-            <p className="text-[13px] text-slate-500 mt-0.5 font-medium">Giám sát tổng số giờ giảng và hoàn thành công tác nghiên cứu khoa học khoa dạt định mức</p>
+            <p className="text-xs text-slate-500 mt-0.5 font-medium">Giám sát tổng số giờ giảng và hoàn thành công tác nghiên cứu khoa học khoa dạt định mức</p>
           </div>
-          <span className="text-[13px] text-slate-500 font-semibold">Hiện có {filteredTeacherStats.length} giảng viên</span>
+          <span className="text-xs text-slate-500 font-semibold">Hiện có {filteredTeacherStats.length} giảng viên</span>
         </div>
 
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">
             <thead>
-              <tr className="bg-slate-50/75 border-b border-slate-100 text-[13px] font-semibold text-slate-500">
+              <tr className="bg-slate-50/75 border-b border-slate-100 text-xs font-semibold text-slate-500">
                 <th className="py-3 px-4 w-12 text-center">STT</th>
                 <th className="py-3 px-4">Giảng viên</th>
                 <th className="py-3 px-4">Chức danh / Học hàm</th>
                 <th className="py-3 px-4 w-44">Tỷ lệ giờ giảng</th>
                 <th className="py-3 px-4 w-44">Tỷ lệ NCKH</th>
                 <th className="py-3 px-4 text-center">Đạt KPI kép</th>
-                <th className="py-3 px-4 text-right">Giờ vượt mức</th>
+                <th className="py-3 px-4 text-right">
+                  <div className="flex items-center justify-end gap-1 group relative cursor-help">
+                    <span>Giờ vượt mức</span>
+                    <HelpCircle className="w-3.5 h-3.5 text-slate-400 group-hover:text-slate-600 transition-colors" />
+                    <div className="absolute right-0 bottom-full mb-2 w-72 p-3 bg-slate-800 text-white text-[11px] rounded-lg shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 font-normal leading-relaxed text-left">
+                      <p className="font-bold border-b border-slate-700 pb-1 mb-1.5 text-blue-400">Cách tính giờ vượt mức:</p>
+                      <p className="mb-1">Bằng <strong>Giờ giảng còn dư - 1/3 giờ NCKH còn thiếu</strong>.</p>
+                      <p className="text-slate-300">Giờ giảng dư được dùng để bù cho giờ NCKH thiếu (3 giờ giảng dạy = 1 giờ NCKH). Giờ NCKH dư không được dùng bù ngược lại cho giờ giảng thiếu.</p>
+                    </div>
+                  </div>
+                </th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
@@ -708,27 +711,27 @@ export default function StatsDashboard({ teachers, teachingLogs, researchLogs, r
                 const totalWork = stat.teachingSum + stat.researchSum;
                 return (
                   <tr key={stat.teacher.id} className="hover:bg-slate-50/50 transition-colors">
-                    <td className="py-3.5 px-4 text-center text-[13px] font-semibold font-mono text-slate-400">
+                    <td className="py-3.5 px-4 text-center text-xs font-semibold font-mono text-slate-400">
                       {idx + 1}
                     </td>
                     <td className="py-3.5 px-4">
                       <div>
-                        <span className="text-[13px] font-bold text-slate-800 block">{stat.teacher.name}</span>
-                        <span className="text-[13px] text-slate-400 font-mono">{stat.teacher.department}</span>
+                        <span className="text-xs font-bold text-slate-800 block">{stat.teacher.name}</span>
+                        <span className="text-xs text-slate-400 font-mono">{stat.teacher.department}</span>
                       </div>
                     </td>
                     <td className="py-3.5 px-4">
                       <div className="flex flex-col gap-0.5">
-                        <span className="text-[13px] text-slate-600 font-medium">
+                        <span className="text-xs text-slate-600 font-medium">
                           {getRankString(stat.teacher.rank)}
                         </span>
                         {stat.teacher.reductionRate > 0 && (
-                          <span className="text-[13px] text-blue-600 font-bold bg-blue-50 px-1 py-0.2 rounded w-fit">
+                          <span className="text-xs text-blue-600 font-bold bg-blue-50 px-1 py-0.2 rounded w-fit">
                             Giảm {stat.teacher.reductionRate}% {stat.teacher.status === 'I' ? '(Nghỉ học/Công tác)' : `(${stat.teacher.position})`}
                           </span>
                         )}
                         {stat.teacher.status === 'I' && stat.teacher.reductionRate === 0 && (
-                          <span className="text-[13px] text-amber-600 font-bold bg-amber-50 px-1 py-0.2 rounded w-fit">
+                          <span className="text-xs text-amber-600 font-bold bg-amber-50 px-1 py-0.2 rounded w-fit">
                             Tạm dừng hoạt động
                           </span>
                         )}
@@ -736,7 +739,7 @@ export default function StatsDashboard({ teachers, teachingLogs, researchLogs, r
                     </td>
                     <td className="py-3.5 px-4">
                       <div className="space-y-1">
-                        <div className="flex justify-between text-[13px]">
+                        <div className="flex justify-between text-xs">
                           <span className="font-semibold text-slate-700">
                             {stat.teachingSum} <span className="text-slate-400 font-normal">/ {stat.norms.adjustedTeaching}h</span>
                           </span>
@@ -758,7 +761,7 @@ export default function StatsDashboard({ teachers, teachingLogs, researchLogs, r
                     </td>
                     <td className="py-3.5 px-4">
                       <div className="space-y-1">
-                        <div className="flex justify-between text-[13px]">
+                        <div className="flex justify-between text-xs">
                           <span className="font-semibold text-slate-700">
                             {stat.researchSum} <span className="text-slate-400 font-normal">/ {stat.norms.adjustedResearch}h</span>
                           </span>
@@ -781,22 +784,22 @@ export default function StatsDashboard({ teachers, teachingLogs, researchLogs, r
                     <td className="py-3.5 px-4 text-center">
                       <div className="flex justify-center">
                         {stat.metBoth ? (
-                          <span className="inline-flex items-center gap-1 text-[13px] font-bold text-emerald-700 bg-emerald-50 px-2 py-1 rounded-full border border-emerald-100 shadow-3xs">
+                          <span className="inline-flex items-center gap-1 text-xs font-bold text-emerald-700 bg-emerald-50 px-2 py-1 rounded-full border border-emerald-100 shadow-3xs">
                             <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
                             ĐẠT CHUẨN
                           </span>
                         ) : (
-                          <span className="inline-flex items-center gap-1 text-[13px] font-bold text-amber-700 bg-amber-50 px-2 py-1 rounded-full border border-amber-100">
+                          <span className="inline-flex items-center gap-1 text-xs font-bold text-amber-700 bg-amber-50 px-2 py-1 rounded-full border border-amber-100">
                             <AlertTriangle className="w-3.5 h-3.5 text-amber-500" />
                             CHƯA ĐỦ
                           </span>
                         )}
                       </div>
                     </td>
-                    <td className="py-3.5 px-4 text-right font-mono text-[13px] font-bold">
+                    <td className="py-3.5 px-4 text-right font-mono text-xs font-bold">
                       {stat.totalOvertime > 0 ? (
                         <span className="text-blue-600 flex items-center justify-end gap-0.5">
-                          +{stat.totalOvertime} <span className="text-[13px] text-slate-400 font-normal">giờ</span>
+                          +{stat.totalOvertime} <span className="text-xs text-slate-400 font-normal">giờ</span>
                         </span>
                       ) : (
                         <span className="text-slate-300">-</span>
@@ -814,14 +817,14 @@ export default function StatsDashboard({ teachers, teachingLogs, researchLogs, r
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Top 5 teachers leaderboard */}
         <div className="bg-white p-5 rounded-xl border border-slate-100 shadow-xs lg:col-span-2">
-          <h3 className="text-[13px] font-bold text-slate-400 uppercase tracking-wider mb-4 flex items-center gap-2">
+          <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-4 flex items-center gap-2">
             🥇 Gương mặt nghiên cứu & giảng dạy tiêu biểu
           </h3>
-          <div className="divide-y divide-slate-100 text-[13px]">
+          <div className="divide-y divide-slate-100 text-xs">
             {topTeachers.map((stat, idx) => (
               <div key={stat.teacher.id} className="flex items-center justify-between py-3 first:pt-0 last:pb-0">
                 <div className="flex items-center gap-3">
-                  <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-[13px] ${
+                  <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs ${
                     idx === 0 ? 'bg-amber-100 text-amber-700' :
                     idx === 1 ? 'bg-slate-100 text-slate-700' :
                     idx === 2 ? 'bg-orange-100 text-orange-700' : 'bg-slate-50 text-slate-500'
@@ -829,22 +832,22 @@ export default function StatsDashboard({ teachers, teachingLogs, researchLogs, r
                     {idx + 1}
                   </div>
                   <div>
-                    <span className="text-[13px] font-bold text-slate-800 block">{stat.teacher.name}</span>
-                    <span className="text-[13px] text-slate-400">{stat.teacher.position} • {stat.teacher.department}</span>
+                    <span className="text-xs font-bold text-slate-800 block">{stat.teacher.name}</span>
+                    <span className="text-xs text-slate-400">{stat.teacher.position} • {stat.teacher.department}</span>
                   </div>
                 </div>
 
                 <div className="flex items-center gap-6">
                   <div className="text-right">
-                    <span className="text-[13px] text-slate-400 block">Thực tế giảng dạy</span>
-                    <span className="text-[13px] font-bold text-slate-700">{stat.teachingSum} giờ quy đổi</span>
+                    <span className="text-xs text-slate-400 block">Giảng dạy</span>
+                    <span className="text-xs font-bold text-slate-700">{stat.teachingSum} giờ chuẩn</span>
                   </div>
                   <div className="text-right">
-                    <span className="text-[13px] text-slate-400 block">Nghiên cứu khoa học</span>
-                    <span className="text-[13px] font-bold text-slate-700">{stat.researchSum} giờ chuẩn</span>
+                    <span className="text-xs text-slate-400 block">Nghiên cứu khoa học</span>
+                    <span className="text-xs font-bold text-slate-700">{stat.researchSum} giờ hành chính</span>
                   </div>
                   <div className="w-16 text-right">
-                    <span className="text-[13px] font-extrabold text-blue-600 font-mono">+{stat.totalOvertime}h</span>
+                    <span className="text-xs font-extrabold text-blue-600 font-mono">+{stat.totalOvertime}h</span>
                   </div>
                 </div>
               </div>
@@ -852,31 +855,27 @@ export default function StatsDashboard({ teachers, teachingLogs, researchLogs, r
           </div>
         </div>
 
-        {/* Dynamic conversion table guidelines */}
-        <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
-          <h3 className="text-[13px] font-bold text-slate-400 uppercase tracking-wider mb-3 font-display">
-             Hệ số quy đổi giờ giảng chuẩn
-          </h3>
-          <div className="space-y-2.5">
-            <div className="flex justify-between items-center text-[13px] p-2.5 bg-slate-50 rounded-lg">
-              <span className="font-semibold text-slate-700">Lý thuyết tiêu chuẩn</span>
-              <span className="font-mono bg-blue-50 text-blue-700 px-1.5 py-0.5 rounded font-bold text-[13px]">1.0 x số tiết</span>
-            </div>
-            <div className="flex justify-between items-center text-[13px] p-2.5 bg-slate-50 rounded-lg">
-              <span className="font-semibold text-slate-700">Lớp học đông (&gt;80 SV)</span>
-              <span className="font-mono bg-sky-50 text-sky-700 px-1.5 py-0.5 rounded font-bold text-[13px]">1.2 x số tiết</span>
-            </div>
-            <div className="flex justify-between items-center text-[13px] p-2.5 bg-slate-50 rounded-lg">
-              <span className="font-semibold text-slate-700">Lớp siêu đông (&gt;120 SV)</span>
-              <span className="font-mono bg-violet-50 text-violet-700 px-1.5 py-0.5 rounded font-bold text-[13px]">1.5 x số tiết</span>
-            </div>
-            <div className="flex justify-between items-center text-[13px] p-2.5 bg-slate-50 rounded-lg">
-              <span className="font-semibold text-slate-700">Thực hành / Thí nghiệm</span>
-              <span className="font-mono bg-emerald-50 text-emerald-700 px-1.5 py-0.5 rounded font-bold text-[13px]">0.67 x số tiết</span>
-            </div>
-            <div className="flex justify-between items-center text-[13px] p-2.5 bg-slate-50 rounded-lg">
-              <span className="font-semibold text-slate-700">Hướng dẫn Đồ án / KLTN</span>
-              <span className="font-mono bg-amber-50 text-amber-700 px-1.5 py-0.5 rounded font-bold text-[13px]">15.0h / SV hướng dẫn</span>
+        <div className="space-y-6">
+
+
+          {/* Overtime guidelines block */}
+          <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
+            <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3 font-display">
+               Nguyên tắc tính giờ vượt mức
+            </h3>
+            <div className="space-y-3 text-xs text-slate-600 leading-relaxed">
+              <div className="p-2.5 bg-slate-50 rounded-lg border-l-4 border-l-blue-500">
+                <strong className="text-slate-800 block mb-1">Công thức tính:</strong>
+                <code className="font-mono bg-white px-1.5 py-0.5 rounded border border-slate-200 font-bold text-blue-600 block w-fit mt-1">
+                  Giờ vượt mức = Giờ giảng còn dư - (1/3 × Giờ NCKH còn thiếu)
+                </code>
+              </div>
+              <div className="bg-amber-50/60 p-2.5 rounded-lg border border-amber-100/70 text-amber-800">
+                <strong>Bù trừ khi thiếu:</strong> Số giờ giảng dạy còn dư được sử dụng để bù đắp cho số giờ NCKH còn thiếu theo tỷ lệ quy đổi <strong>3 giờ giảng dạy = 1 giờ NCKH</strong> (bằng cách trừ đi 1/3 số giờ NCKH thiếu).
+              </div>
+              <div className="bg-slate-50/65 p-2.5 rounded-lg border border-slate-100 text-slate-500">
+                <strong>Không bù ngược lại:</strong> Số giờ NCKH dư thừa <strong>không được phép sử dụng</strong> để bù đắp cho số giờ giảng dạy thiếu hụt.
+              </div>
             </div>
           </div>
         </div>

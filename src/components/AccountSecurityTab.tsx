@@ -198,13 +198,13 @@ export default function AccountSecurityTab({ teachers, currentUser }: AccountSec
           </div>
           <div>
             <h3 className="font-extrabold text-base text-slate-800 font-display">Hồ sơ & Bảo mật tài khoản</h3>
-            <p className="text-[13px] text-slate-400 font-medium">
+            <p className="text-xs text-slate-400 font-medium">
               Quản lý khóa định danh bảo mật, phân quyền truy cập và thiết lập mật khẩu an toàn theo giao thức Firebase Auth.
             </p>
           </div>
         </div>
 
-        <div className="bg-slate-50 border border-slate-250 rounded-lg px-3 py-1.5 text-right font-mono text-[13px] text-slate-500 font-semibold self-start md:self-auto select-none">
+        <div className="bg-slate-50 border border-slate-250 rounded-lg px-3 py-1.5 text-right font-mono text-xs text-slate-500 font-semibold self-start md:self-auto select-none">
           Vai trò: <span className={`uppercase font-bold ${isUserAdmin ? 'text-blue-600' : 'text-emerald-600'}`}>{isUserAdmin ? 'Admin Hệ thống' : 'Giảng viên khoa'}</span>
         </div>
       </div>
@@ -218,30 +218,30 @@ export default function AccountSecurityTab({ teachers, currentUser }: AccountSec
               <User className="w-4.5 h-4.5 text-slate-500" />
               Thông tin phiên đăng nhập
             </h4>
-            <p className="text-[11px] text-slate-400 mt-0.5 font-medium">
+            <p className="text-xs text-slate-400 mt-0.5 font-medium">
               Thông tin định danh kết nối hiện tại của thầy cô trên hệ thống.
             </p>
           </div>
 
-          <div className="bg-slate-50 border border-slate-200 p-4 rounded-xl space-y-3.5 text-[13px] font-semibold">
+          <div className="bg-slate-50 border border-slate-200 p-4 rounded-xl space-y-3.5 text-xs font-semibold">
             <div className="grid grid-cols-3 gap-1">
-              <span className="text-slate-400 font-bold uppercase text-[13px]">Tài khoản:</span>
+              <span className="text-slate-400 font-bold uppercase text-xs">Tài khoản:</span>
               <span className="col-span-2 text-slate-800 select-all font-mono font-bold leading-none break-all">{currentEmail}</span>
             </div>
             
             {currentTeacher ? (
               <>
                 <div className="grid grid-cols-3 gap-1">
-                  <span className="text-slate-400 font-bold uppercase text-[13px]">Họ tên:</span>
+                  <span className="text-slate-400 font-bold uppercase text-xs">Họ tên:</span>
                   <span className="col-span-2 text-slate-800">{currentTeacher.name}</span>
                 </div>
                 <div className="grid grid-cols-3 gap-1">
-                  <span className="text-slate-400 font-bold uppercase text-[13px]">Bộ môn khoa:</span>
+                  <span className="text-slate-400 font-bold uppercase text-xs">Bộ môn khoa:</span>
                   <span className="col-span-2 text-slate-700">{currentTeacher.department}</span>
                 </div>
               </>
             ) : (
-              <div className="text-[13px] text-slate-500 font-medium">
+              <div className="text-xs text-slate-500 font-medium">
                 Phiên đăng nhập trực tiếp của Trưởng Ban Quản trị khoa.
               </div>
             )}
@@ -250,24 +250,24 @@ export default function AccountSecurityTab({ teachers, currentUser }: AccountSec
           {/* Form for user password changes */}
           <form onSubmit={handleUpdateOwnPassword} className="space-y-4 pt-4 border-t border-slate-100">
             <div>
-              <h5 className="text-[13px] font-bold text-slate-700 flex items-center gap-1.5">
+              <h5 className="text-xs font-bold text-slate-700 flex items-center gap-1.5">
                 <Key className="w-4 h-4 text-emerald-500" />
                 Cập nhật Mật khẩu của Bạn
               </h5>
-              <p className="text-[13px] text-slate-400 font-semibold mt-0.5 leading-relaxed">
+              <p className="text-xs text-slate-400 font-semibold mt-0.5 leading-relaxed">
                 Thầy cô có thể thay đổi trực tiếp mật khẩu của mình ngay trong giao diện bằng cách nhập khóa bảo mật mới dưới đây.
               </p>
             </div>
 
             {userResetError && (
-              <div id="user-reset-error" className="bg-rose-50 border border-rose-250 text-rose-800 p-3 rounded-lg text-[13px] font-semibold flex gap-2 items-center">
+              <div id="user-reset-error" className="bg-rose-50 border border-rose-250 text-rose-800 p-3 rounded-lg text-xs font-semibold flex gap-2 items-center">
                 <AlertCircle className="w-4 h-4 shrink-0 text-rose-500" />
                 <span>{userResetError}</span>
               </div>
             )}
 
             {userResetSuccess && (
-              <div id="user-reset-success" className="bg-emerald-50 border border-emerald-250 text-emerald-800 p-3 rounded-lg text-[13px] font-semibold flex gap-2 items-center">
+              <div id="user-reset-success" className="bg-emerald-50 border border-emerald-250 text-emerald-800 p-3 rounded-lg text-xs font-semibold flex gap-2 items-center">
                 <CheckCircle2 className="w-4 h-4 shrink-0 text-emerald-500" />
                 <span>{userResetSuccess}</span>
               </div>
@@ -275,7 +275,7 @@ export default function AccountSecurityTab({ teachers, currentUser }: AccountSec
 
             <div className="space-y-3">
               <div className="space-y-1">
-                <label className="text-[13px] font-bold text-slate-500 uppercase block">Mật khẩu hiện tại</label>
+                <label className="text-xs font-bold text-slate-500 uppercase block">Mật khẩu hiện tại</label>
                 <div className="relative">
                   <Lock className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
                   <input
@@ -283,7 +283,7 @@ export default function AccountSecurityTab({ teachers, currentUser }: AccountSec
                     placeholder="Nhập phần này để xác minh danh tính gần nhất"
                     value={currentPassword}
                     onChange={(e) => setCurrentPassword(e.target.value)}
-                    className="text-[13px] w-full border border-slate-200 rounded-lg pl-9 pr-10 py-2 bg-slate-50 focus:outline-hidden focus:ring-2 focus:ring-blue-500 font-semibold"
+                    className="text-xs w-full border border-slate-200 rounded-lg pl-9 pr-10 py-2 bg-slate-50 focus:outline-hidden focus:ring-2 focus:ring-blue-500 font-semibold"
                   />
                   <button
                     type="button"
@@ -297,7 +297,7 @@ export default function AccountSecurityTab({ teachers, currentUser }: AccountSec
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div className="space-y-1">
-                  <label className="text-[13px] font-bold text-slate-500 uppercase block">Mật khẩu mới</label>
+                  <label className="text-xs font-bold text-slate-500 uppercase block">Mật khẩu mới</label>
                   <div className="relative">
                     <Lock className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
                     <input
@@ -305,7 +305,7 @@ export default function AccountSecurityTab({ teachers, currentUser }: AccountSec
                       placeholder="Mật khẩu mới >= 6 ký tự"
                       value={newPassword}
                       onChange={(e) => setNewPassword(e.target.value)}
-                      className="text-[13px] w-full border border-slate-200 rounded-lg pl-9 pr-10 py-2 bg-slate-50 focus:outline-hidden focus:ring-2 focus:ring-blue-500 font-semibold"
+                      className="text-xs w-full border border-slate-200 rounded-lg pl-9 pr-10 py-2 bg-slate-50 focus:outline-hidden focus:ring-2 focus:ring-blue-500 font-semibold"
                     />
                     <button
                       type="button"
@@ -318,7 +318,7 @@ export default function AccountSecurityTab({ teachers, currentUser }: AccountSec
                 </div>
 
                 <div className="space-y-1">
-                  <label className="text-[13px] font-bold text-slate-500 uppercase block">Xác nhận mật khẩu</label>
+                  <label className="text-xs font-bold text-slate-500 uppercase block">Xác nhận mật khẩu</label>
                   <div className="relative">
                     <Lock className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
                     <input
@@ -326,7 +326,7 @@ export default function AccountSecurityTab({ teachers, currentUser }: AccountSec
                       placeholder="Nhập lại mật khẩu mới"
                       value={confirmPassword}
                       onChange={(e) => setConfirmPassword(e.target.value)}
-                      className="text-[13px] w-full border border-slate-200 rounded-lg pl-9 pr-3 py-2 bg-slate-50 focus:outline-hidden focus:ring-2 focus:ring-blue-500 font-semibold"
+                      className="text-xs w-full border border-slate-200 rounded-lg pl-9 pr-3 py-2 bg-slate-50 focus:outline-hidden focus:ring-2 focus:ring-blue-500 font-semibold"
                     />
                   </div>
                 </div>
@@ -337,7 +337,7 @@ export default function AccountSecurityTab({ teachers, currentUser }: AccountSec
               <button
                 type="submit"
                 disabled={loading}
-                className="flex-1 inline-flex items-center justify-center gap-1.5 bg-blue-600 hover:bg-blue-700 active:bg-blue-800 disabled:bg-blue-300 text-white font-bold text-[13px] py-2 px-4 rounded-lg cursor-pointer transition-colors shadow-xs"
+                className="flex-1 inline-flex items-center justify-center gap-1.5 bg-blue-600 hover:bg-blue-700 active:bg-blue-800 disabled:bg-blue-300 text-white font-bold text-xs py-2 px-4 rounded-lg cursor-pointer transition-colors shadow-xs"
               >
                 {loading && <RefreshCw className="w-3.5 h-3.5 animate-spin" />}
                 Lưu Thay đổi Mật khẩu
@@ -347,7 +347,7 @@ export default function AccountSecurityTab({ teachers, currentUser }: AccountSec
                 type="button"
                 onClick={handleSendOwnResetEmail}
                 disabled={emailSentLoading}
-                className="inline-flex items-center justify-center gap-1.5 bg-slate-100 hover:bg-slate-200 border border-slate-200 text-slate-700 font-bold text-[13px] py-2 px-4 rounded-lg cursor-pointer transition-colors"
+                className="inline-flex items-center justify-center gap-1.5 bg-slate-100 hover:bg-slate-200 border border-slate-200 text-slate-700 font-bold text-xs py-2 px-4 rounded-lg cursor-pointer transition-colors"
               >
                 {emailSentLoading && <RefreshCw className="w-3.5 h-3.5 animate-spin" />}
                 Nhận Email Reset
@@ -363,21 +363,21 @@ export default function AccountSecurityTab({ teachers, currentUser }: AccountSec
               <Shield className="w-4.5 h-4.5 text-blue-600" />
               Thiết lập & Khôi phục Mật khẩu giáo viên (Quyền Admin)
             </h4>
-            <p className="text-[11px] text-slate-400 mt-0.5 font-medium">
+            <p className="text-xs text-slate-400 mt-0.5 font-medium">
               Chức năng cho phép Quản trị viên Khoa thực hiện cấu hình mật khẩu của các tài khoản giáo viên trực quan.
             </p>
           </div>
 
           {isUserAdmin ? (
             <div className="space-y-4">
-              <div className="bg-blue-50/50 rounded-xl p-4 border border-blue-100 flex gap-3 text-[13px] text-blue-900 leading-normal">
+              <div className="bg-blue-50/50 rounded-xl p-4 border border-blue-100 flex gap-3 text-xs text-blue-900 leading-normal">
                 <HelpCircle className="w-5 h-5 text-blue-600 shrink-0 mt-0.5" />
                 <div className="space-y-1.5">
                   <span className="font-bold">Hướng dẫn Quản trị Bảo mật:</span>
-                  <p className="font-semibold text-[13px]">
+                  <p className="font-semibold text-xs text-blue-700">
                     Firebase thiết lập quy chế bảo mật mã hóa nghiêm ngặt. Để xóa tan nỗi lo quên mật khẩu của giảng viên, bạn có 3 công cụ chính ở bên dưới:
                   </p>
-                  <ol className="list-decimal pl-4 space-y-1 font-semibold text-[13px]">
+                  <ol className="list-decimal pl-4 space-y-1 font-semibold text-xs">
                     <li><strong>Gửi email khôi phục mật khẩu:</strong> Gửi liên kết đặt lại mật khẩu trực tiếp qua hộp thư Firebase cho giảng viên.</li>
                     <li><strong>Lưu mật khẩu hướng dẫn tạm thời:</strong> Lưu mật khẩu mặc định ghi nhớ trong tài liệu hồ sơ của giáo viên để cung cấp cho họ.</li>
                   </ol>
@@ -385,14 +385,14 @@ export default function AccountSecurityTab({ teachers, currentUser }: AccountSec
               </div>
 
               {adminActionError && (
-                <div id="admin-action-error" className="bg-rose-50 border border-rose-250 text-rose-800 p-3 rounded-lg text-[13px] font-semibold flex gap-2 items-center">
+                <div id="admin-action-error" className="bg-rose-50 border border-rose-250 text-rose-800 p-3 rounded-lg text-xs font-semibold flex gap-2 items-center">
                   <ShieldAlert className="w-4 h-4 shrink-0 text-rose-500" />
                   <span>{adminActionError}</span>
                 </div>
               )}
 
               {adminActionSuccess && (
-                <div id="admin-action-success" className="bg-emerald-50 border border-emerald-250 text-emerald-800 p-3 rounded-lg text-[13px] font-semibold flex gap-2 items-center">
+                <div id="admin-action-success" className="bg-emerald-50 border border-emerald-250 text-emerald-800 p-3 rounded-lg text-xs font-semibold flex gap-2 items-center">
                   <CheckCircle2 className="w-4 h-4 shrink-0 text-emerald-500" />
                   <span>{adminActionSuccess}</span>
                 </div>
@@ -400,7 +400,7 @@ export default function AccountSecurityTab({ teachers, currentUser }: AccountSec
 
               {/* Select teacher */}
               <div className="space-y-1.5">
-                <label className="text-[13px] font-bold text-slate-400 uppercase block">
+                <label className="text-xs font-bold text-slate-400 uppercase block">
                   Chọn Tài khoản Giảng viên cần thay đổi
                 </label>
                 <div className="relative">
@@ -412,7 +412,7 @@ export default function AccountSecurityTab({ teachers, currentUser }: AccountSec
                       setAdminActionError('');
                       setAdminActionSuccess('');
                     }}
-                    className="text-[13px] w-full pl-9 pr-3 py-2 border border-slate-200 rounded-lg bg-slate-50 focus:outline-hidden focus:ring-2 focus:ring-blue-500 font-bold text-slate-800"
+                    className="text-xs w-full pl-9 pr-3 py-2 border border-slate-200 rounded-lg bg-slate-50 focus:outline-hidden focus:ring-2 focus:ring-blue-500 font-bold text-slate-800"
                   >
                     <option value="">-- Click chọn giảng viên --</option>
                     {teachers.map(t => (
@@ -433,13 +433,13 @@ export default function AccountSecurityTab({ teachers, currentUser }: AccountSec
                   {/* Tool 1: Reset Email trigger */}
                   <div className="bg-slate-50 hover:bg-slate-100/70 p-4 border border-slate-150 rounded-xl space-y-2.5 transition-all">
                     <div>
-                      <span className="text-[13px] font-extrabold text-blue-700 bg-blue-100/80 px-2 py-0.5 rounded-full inline-block mb-1.5 font-sans">
+                      <span className="text-xs font-extrabold text-blue-700 bg-blue-100/80 px-2 py-0.5 rounded-full inline-block mb-1.5 font-sans">
                         GIAO THỨC FIREBASE AUTH (KHUYÊN DÙNG)
                       </span>
-                      <h5 className="text-[13px] font-extrabold text-slate-800">
+                      <h5 className="text-xs font-extrabold text-slate-800">
                         1-Click Khởi tạo Email Reset mật khẩu
                       </h5>
-                      <p className="text-[13px] text-slate-400 font-medium">
+                      <p className="text-xs text-slate-400 font-medium">
                         Khi kích hoạt, Firebase sẽ tự động chuyển phát thư liên kết thiết lập lại mật khẩu hoàn toàn mới cho địa chỉ hòm thư của giảng viên được chọn.
                       </p>
                     </div>
@@ -447,7 +447,7 @@ export default function AccountSecurityTab({ teachers, currentUser }: AccountSec
                     <button
                       onClick={handleAdminResetTeacherPassword}
                       disabled={adminSendingReset}
-                      className="inline-flex items-center gap-1.5 bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white font-bold text-[13px] py-2 px-4 rounded-lg cursor-pointer shadow-xs transition-colors"
+                      className="inline-flex items-center gap-1.5 bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white font-bold text-xs py-2 px-4 rounded-lg cursor-pointer shadow-xs transition-colors"
                     >
                       {adminSendingReset ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <Mail className="w-3.5 h-3.5" />}
                       Gửi Email khôi phục mật khẩu ngay lập tức
@@ -457,14 +457,14 @@ export default function AccountSecurityTab({ teachers, currentUser }: AccountSec
                   {/* Tool 2: Set Temporary password simulation record */}
                   <div className="bg-slate-50 hover:bg-slate-100/70 p-4 border border-slate-150 rounded-xl space-y-2.5 transition-all">
                     <div>
-                      <span className="text-[13px] font-extrabold text-emerald-700 bg-emerald-100/80 px-2 py-0.5 rounded-full inline-block mb-1.5 font-sans">
+                      <span className="text-xs font-extrabold text-emerald-700 bg-emerald-100/80 px-2 py-0.5 rounded-full inline-block mb-1.5 font-sans">
                         CÀI ĐẶT MẬT KHẨU TẠM THỜI
                       </span>
-                      <h5 className="text-[13px] font-extrabold text-slate-800">
+                      <h5 className="text-xs font-extrabold text-slate-800">
                         Lưu Mật khẩu tạm thời cho hồ sơ giảng viên
                       </h5>
-                      <p className="text-[13px] text-slate-400 font-semibold font-medium">
-                        Ghi nhớ thông tin mật khẩu ban đầu được gán (Ví dụ: <code className="bg-slate-200 px-1 rounded text-red-600 font-mono text-[13px]">Aoto@2026VN</code>) nhằm định hướng cho giảng viên khi đăng nhập lần đầu tiên.
+                      <p className="text-xs text-slate-400 font-semibold font-medium">
+                        Ghi nhớ thông tin mật khẩu ban đầu được gán (Ví dụ: <code className="bg-slate-200 px-1 rounded text-red-600 font-mono text-xs">Aoto@2026VN</code>) nhằm định hướng cho giảng viên khi đăng nhập lần đầu tiên.
                       </p>
                     </div>
 
@@ -474,14 +474,14 @@ export default function AccountSecurityTab({ teachers, currentUser }: AccountSec
                         type="text"
                         placeholder="Nhập mật khẩu tạm định dạng..."
                         defaultValue="Aoto@2026VN"
-                        className="text-[13px] border border-slate-200 rounded-lg px-3 py-2 bg-white font-semibold flex-1 font-mono"
+                        className="text-xs border border-slate-200 rounded-lg px-3 py-2 bg-white font-semibold flex-1 font-mono"
                       />
                       <button
                         onClick={() => {
                           const val = (document.getElementById('temp-pass-input') as HTMLInputElement)?.value;
                           handleUpdateTeacherPasswordNote(val);
                         }}
-                        className="bg-slate-800 hover:bg-slate-900 text-white font-bold text-[13px] px-4 rounded-lg shadow-xs cursor-pointer transition-colors"
+                        className="bg-slate-800 hover:bg-slate-900 text-white font-bold text-xs px-4 rounded-lg shadow-xs cursor-pointer transition-colors"
                       >
                         Lưu hồ sơ mật khẩu
                       </button>
@@ -498,8 +498,8 @@ export default function AccountSecurityTab({ teachers, currentUser }: AccountSec
           ) : (
             <div className="bg-slate-50 border border-dashed border-red-200 rounded-xl p-6 text-center space-y-2 select-none">
               <ShieldAlert className="w-10 h-10 text-red-400 mx-auto" />
-              <p className="text-[13px] font-extrabold text-slate-700">Quyền hạn không phù hợp</p>
-              <p className="text-[13px] text-slate-400 font-medium">
+              <p className="text-xs font-extrabold text-slate-700">Quyền hạn không phù hợp</p>
+              <p className="text-xs text-slate-400 font-medium">
                 Vui lòng liên hệ Trực Ban Quản Trị khoa có email <span className="font-mono bg-slate-100 px-1 py-0.2 rounded font-bold text-slate-650">thanhhaihvkt@gmail.com</span> để nhận trợ giúp thay đổi mật khẩu giáo viên từ xa nếu quên mật khẩu.
               </p>
             </div>

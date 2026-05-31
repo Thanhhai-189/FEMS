@@ -784,8 +784,63 @@ export const RESEARCH_LOGS_SAMPLE: ResearchLog[] = [
   }
 ];
 
+export interface TeachingActivity {
+  id: string;
+  category: string;
+  label: string;
+  helperText: string;
+  unit: string;
+  baseHour: number;
+}
+
+export const TEACHING_ACTIVITIES: TeachingActivity[] = [
+  // 1. Hoạt động giảng dạy và hướng dẫn trực tiếp
+  { id: 'theoretical', category: '1. Giảng dạy & Hướng dẫn trực tiếp', label: 'Giảng dạy ban ngày - Tại giảng đường', helperText: 'Một tiết tại giảng đường tính 1.0 giờ', unit: 'tiết', baseHour: 1.0 },
+  { id: 'practical_day_lab', category: '1. Giảng dạy & Hướng dẫn trực tiếp', label: 'Giảng dạy ban ngày - Tại thao trường, xưởng, nhà máy', helperText: 'Một tiết tại thao trường, xưởng, nhà máy... tính 1.2 giờ', unit: 'tiết', baseHour: 1.2 },
+  { id: 'theoretical_night', category: '1. Giảng dạy & Hướng dẫn trực tiếp', label: 'Giảng dạy ban đêm - Tại giảng đường', helperText: 'Một tiết tại giảng đường tính 1.2 giờ', unit: 'tiết', baseHour: 1.2 },
+  { id: 'practical_night_lab', category: '1. Giảng dạy & Hướng dẫn trực tiếp', label: 'Giảng dạy ban đêm - Tại thao trường, xưởng thực hành', helperText: 'Một tiết tại thao trường, xưởng thực hành... tính 1.5 giờ', unit: 'tiết', baseHour: 1.5 },
+  { id: 'master_teaching', category: '1. Giảng dạy & Hướng dẫn trực tiếp', label: 'Đào tạo sau ĐH - Thạc sĩ', helperText: 'Một tiết giảng trình độ Thạc sĩ tính 1.5 giờ', unit: 'tiết', baseHour: 1.5 },
+  { id: 'phd_teaching', category: '1. Giảng dạy & Hướng dẫn trực tiếp', label: 'Đào tạo sau ĐH - Tiến sĩ', helperText: 'Một tiết giảng trình độ Tiến sĩ tính 2.0 giờ', unit: 'tiết', baseHour: 2.0 },
+  { id: 'foreign_language_teaching', category: '1. Giảng dạy & Hướng dẫn trực tiếp', label: 'Giảng dạy bằng tiếng nước ngoài', helperText: 'Môn không phải ngoại ngữ tính 2.0 giờ/tiết', unit: 'tiết', baseHour: 2.0 },
+  { id: 'military_special_teaching', category: '1. Giảng dạy & Hướng dẫn trực tiếp', label: 'Giảng dạy môi trường quân sự đặc thù (xe tăng, tàu ngầm...)', helperText: 'Được quy đổi không vượt quá 2.0 giờ/tiết', unit: 'tiết', baseHour: 2.0 },
+
+  // 2. Hướng dẫn tốt nghiệp, luận văn, luận án
+  { id: 'project_guide', category: '2. Hướng dẫn Tốt nghiệp & Luận văn', label: 'Hướng dẫn Đồ án, Khóa luận tốt nghiệp', helperText: 'Hướng dẫn 01 đồ án tính tối đa 25 giờ', unit: 'đồ án', baseHour: 25.0 },
+  { id: 'master_thesis_guide1', category: '2. Hướng dẫn Tốt nghiệp & Luận văn', label: 'Hướng dẫn luận văn Thạc sĩ - Người thứ nhất', helperText: 'Người hướng dẫn 1 hưởng tối đa 40 giờ', unit: 'học viên', baseHour: 40.0 },
+  { id: 'master_thesis_guide2', category: '2. Hướng dẫn Tốt nghiệp & Luận văn', label: 'Hướng dẫn luận văn Thạc sĩ - Người thứ hai', helperText: 'Người hướng dẫn 2 hưởng tối đa 30 giờ', unit: 'học viên', baseHour: 30.0 },
+  { id: 'phd_instruction1', category: '2. Hướng dẫn Tốt nghiệp & Luận văn', label: 'Hướng dẫn luận án Tiến sĩ - Người thứ nhất', helperText: 'Người hướng dẫn 1 hưởng tối đa 120 giờ', unit: 'nghiên cứu sinh', baseHour: 120.0 },
+  { id: 'phd_instruction2', category: '2. Hướng dẫn Tốt nghiệp & Luận văn', label: 'Hướng dẫn luận án Tiến sĩ - Người thứ hai', helperText: 'Người hướng dẫn 2 hưởng tối đa 80 giờ', unit: 'nghiên cứu sinh', baseHour: 80.0 },
+
+  // 3. Công tác khảo thí
+  { id: 'exam_writing_choice', category: '3. Công tác Khảo thí', label: 'Biên soạn đề thi trắc nghiệm (kèm đáp án)', helperText: 'Tính 2.0 giờ/đề', unit: 'đề', baseHour: 2.0 },
+  { id: 'exam_writing_essay', category: '3. Công tác Khảo thí', label: 'Biên soạn đề thi tự luận (kèm đáp án)', helperText: 'Tính 1.5 giờ/đề', unit: 'đề', baseHour: 1.5 },
+  { id: 'exam_writing_practical', category: '3. Công tác Khảo thí', label: 'Biên soạn đề thi thực hành (kèm đáp án)', helperText: 'Tính 1.0 giờ/đề', unit: 'đề', baseHour: 1.0 },
+  { id: 'exam_writing_oral', category: '3. Công tác Khảo thí', label: 'Biên soạn đề thi vấn đáp (kèm đáp án)', helperText: 'Tính 0.75 giờ/đề', unit: 'đề', baseHour: 0.75 },
+  { id: 'exam_proctoring', category: '3. Công tác Khảo thí', label: 'Coi thi kết thúc học phần', helperText: 'Tính 0.3 giờ/tiết coi thi', unit: 'tiết', baseHour: 0.3 },
+  { id: 'exam_grading_choice', category: '3. Công tác Khảo thí', label: 'Chấm thi bài trắc nghiệm học phần', helperText: 'Tính 0.1 giờ/bài', unit: 'bài', baseHour: 0.1 },
+  { id: 'exam_grading_essay', category: '3. Công tác Khảo thí', label: 'Chấm thi bài tự luận học phần', helperText: 'Tính 0.2 giờ/bài', unit: 'bài', baseHour: 0.2 },
+  { id: 'exam_grading_oral_lecture', category: '3. Công tác Khảo thí', label: 'Chấm thi vấn đáp/thực hành - Tại giảng đường', helperText: 'Tính 0.5 giờ/tiết', unit: 'tiết', baseHour: 0.5 },
+  { id: 'exam_grading_oral_field', category: '3. Công tác Khảo thí', label: 'Chấm thi vấn đáp/thực hành - Tại thao trường, xưởng', helperText: 'Tính 0.75 giờ/tiết', unit: 'tiết', baseHour: 0.75 },
+
+  // 4. Công tác thi tốt nghiệp và Hội đồng đánh giá
+  { id: 'grad_exam_writing_choice', category: '4. Thi Tốt nghiệp & Hội đồng', label: 'Biên soạn đề thi tốt nghiệp trắc nghiệm', helperText: 'Tính 2.5 giờ/đề', unit: 'đề', baseHour: 2.5 },
+  { id: 'grad_exam_writing_essay', category: '4. Thi Tốt nghiệp & Hội đồng', label: 'Biên soạn đề thi tốt nghiệp tự luận', helperText: 'Tính 2.0 giờ/đề', unit: 'đề', baseHour: 2.0 },
+  { id: 'grad_exam_writing_practical', category: '4. Thi Tốt nghiệp & Hội đồng', label: 'Biên soạn đề thi tốt nghiệp thực hành', helperText: 'Tính 1.5 giờ/đề', unit: 'đề', baseHour: 1.5 },
+  { id: 'grad_exam_writing_oral', category: '4. Thi Tốt nghiệp & Hội đồng', label: 'Biên soạn đề thi tốt nghiệp vấn đáp', helperText: 'Tính 1.25 giờ/đề', unit: 'đề', baseHour: 1.25 },
+  { id: 'grad_exam_proctoring', category: '4. Thi Tốt nghiệp & Hội đồng', label: 'Coi thi tốt nghiệp', helperText: 'Tính 0.5 giờ/tiết', unit: 'tiết', baseHour: 0.5 },
+  { id: 'grad_exam_grading_choice', category: '4. Thi Tốt nghiệp & Hội đồng', label: 'Chấm thi tốt nghiệp bài trắc nghiệm', helperText: 'Tính 0.2 giờ/bài', unit: 'bài', baseHour: 0.2 },
+  { id: 'grad_exam_grading_essay', category: '4. Thi Tốt nghiệp & Hội đồng', label: 'Chấm thi tốt nghiệp bài tự luận', helperText: 'Tính 0.4 giờ/bài', unit: 'bài', baseHour: 0.4 },
+  { id: 'grad_exam_grading_oral_lecture', category: '4. Thi Tốt nghiệp & Hội đồng', label: 'Chấm thi tốt nghiệp vấn đáp/thực hành - Giảng đường', helperText: 'Tính 1.0 giờ/tiết', unit: 'tiết', baseHour: 1.0 },
+  { id: 'grad_exam_grading_oral_field', category: '4. Thi Tốt nghiệp & Hội đồng', label: 'Chấm thi tốt nghiệp vấn đáp/thực hành - Thao trường, xưởng', helperText: 'Tính 1.2 giờ/tiết', unit: 'tiết', baseHour: 1.2 },
+  { id: 'grad_project_grading', category: '4. Thi Tốt nghiệp & Hội đồng', label: 'Chấm đồ án/khóa luận tốt nghiệp', helperText: 'Tính 1.5 giờ/đồ án', unit: 'đồ án', baseHour: 1.5 },
+  { id: 'master_council_member', category: '4. Thi Tốt nghiệp & Hội đồng', label: 'Hội đồng nhận xét luận văn Thạc sĩ (thành viên)', helperText: 'Tính 3.0 giờ/buổi bảo vệ', unit: 'buổi bảo vệ', baseHour: 3.0 },
+  { id: 'phd_council_member', category: '4. Thi Tốt nghiệp & Hội đồng', label: 'Hội đồng nhận xét luận án Tiến sĩ (thành viên)', helperText: 'Tính 6.0 giờ/buổi bảo vệ', unit: 'buổi bảo vệ', baseHour: 6.0 }
+];
+
 // Helper to translate categories
 export const getTeachingTypeName = (type: string): string => {
+  const matched = TEACHING_ACTIVITIES.find(a => a.id === type);
+  if (matched) return matched.label;
   switch (type) {
     case 'theoretical': return 'Lý thuyết';
     case 'practical': return 'Thực hành / Thí nghiệm';

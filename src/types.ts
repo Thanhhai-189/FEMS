@@ -33,7 +33,42 @@ export interface Teacher {
   notes?: string; // Ghi chú thêm/ghi nhớ mật khẩu từ admin
 }
 
-export type TeachingType = 'theoretical' | 'practical' | 'project' | 'master_thesis' | 'phd_instruction';
+export type TeachingType = 
+  | 'theoretical'
+  | 'practical_day_lab'
+  | 'theoretical_night'
+  | 'practical_night_lab'
+  | 'master_teaching'
+  | 'phd_teaching'
+  | 'foreign_language_teaching'
+  | 'military_special_teaching'
+  | 'project_guide'
+  | 'master_thesis_guide1'
+  | 'master_thesis_guide2'
+  | 'phd_instruction1'
+  | 'phd_instruction2'
+  | 'exam_writing_choice'
+  | 'exam_writing_essay'
+  | 'exam_writing_practical'
+  | 'exam_writing_oral'
+  | 'exam_proctoring'
+  | 'exam_grading_choice'
+  | 'exam_grading_essay'
+  | 'exam_grading_oral_lecture'
+  | 'exam_grading_oral_field'
+  | 'grad_exam_writing_choice'
+  | 'grad_exam_writing_essay'
+  | 'grad_exam_writing_practical'
+  | 'grad_exam_writing_oral'
+  | 'grad_exam_proctoring'
+  | 'grad_exam_grading_choice'
+  | 'grad_exam_grading_essay'
+  | 'grad_exam_grading_oral_lecture'
+  | 'grad_exam_grading_oral_field'
+  | 'grad_project_grading'
+  | 'master_council_member'
+  | 'phd_council_member'
+  | string;
 
 export interface TeachingLog {
   id: string;

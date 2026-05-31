@@ -1,6 +1,6 @@
 import { useState, useMemo, useEffect, FormEvent } from 'react';
 import { Teacher, TeachingLog, TeachingType, AcademicYearConfig } from '../types';
-import { getRankString, getTeachingTypeName } from '../data';
+import { getRankString, getTeachingTypeName, TEACHING_ACTIVITIES } from '../data';
 import { 
   Plus, Search, Edit2, Trash2, BookOpen, AlertCircle, 
   HelpCircle, Check, X, Filter, Sparkles, Receipt,
@@ -63,48 +63,29 @@ export default function TeachingHoursTab({
   const [formSemester, setFormSemester] = useState<'HK1' | 'HK2' | 'HK3'>('HK1');
   const [formYear, setFormYear] = useState(selectedYear);
 
-  // Auto-calculate coefficient and hours when key fields change
-  useEffect(() => {
-    let coef = 1.0;
+  // Handle change of type
+  const handleTypeChange = (newType: string) => {
+    setFormType(newType);
+    const activity = TEACHING_ACTIVITIES.find(act => act.id === newType);
+    const coef = activity ? activity.baseHour : 1.0;
     let actual = formCredits * 15;
 
-    switch (formType) {
-      case 'theoretical':
+    if (activity) {
+      if (activity.unit === 'tiết') {
         actual = formCredits * 15;
-        if (formStudentCount > 120) {
-          coef = 1.5;
-        } else if (formStudentCount > 80) {
-          coef = 1.3;
-        } else if (formStudentCount > 50) {
-          coef = 1.1;
-        } else {
-          coef = 1.0;
-        }
-        break;
-      case 'practical':
-        actual = formCredits * 30; // 1 tín chỉ thực hành thường là 30 tiết/giờ trên lớp
-        coef = 0.67;
-        break;
-      case 'project':
-        // Hướng dẫn Đồ án tốt nghiệp / Đồ án môn học
-        // Quy đổi: tính 15 giờ chuẩn cho mỗi sinh viên hoàn thành
-        actual = formStudentCount * 30;
-        coef = 0.5; // 30 tiết * 0.5 = 15 giờ chuẩn/SV
-        break;
-      case 'master_thesis':
-        actual = formStudentCount * 30;
-        coef = 1.5; // Hướng dẫn cao học: 1.5 x số giờ, quy đổi 45 giờ/học viên
-        break;
-      case 'phd_instruction':
-        actual = formStudentCount * 40;
-        coef = 2.0; // Hướng dẫn NCS: quy đổi 80 giờ chuẩn
-        break;
+      } else if (activity.unit === 'bài') {
+        actual = formStudentCount || 40;
+      } else if (activity.unit === 'đồ án') {
+        actual = formStudentCount > 0 ? formStudentCount : 1;
+      } else {
+        actual = 1;
+      }
     }
 
     setFormActualHours(actual);
     setFormCoefficient(coef);
     setFormConvertedHours(Math.round(actual * coef * 100) / 100);
-  }, [formType, formCredits, formStudentCount]);
+  };
 
   const openAddModal = () => {
     setEditingLog(null);
@@ -117,6 +98,12 @@ export default function TeachingHoursTab({
     setFormType('theoretical');
     setFormSemester('HK1');
     setFormYear(selectedYear);
+    
+    // Explicitly set default calculation states
+    setFormActualHours(45);
+    setFormCoefficient(1.0);
+    setFormConvertedHours(45);
+    
     setIsModalOpen(true);
   };
 
@@ -131,13 +118,9 @@ export default function TeachingHoursTab({
     setFormType(log.type);
     setFormSemester(log.semester);
     setFormYear(log.academicYear);
-    
-    // Set overridden values if they differ
-    setTimeout(() => {
-      setFormCoefficient(log.coefficient);
-      setFormActualHours(log.actualHours);
-      setFormConvertedHours(log.convertedHours);
-    }, 50);
+    setFormCoefficient(log.coefficient);
+    setFormActualHours(log.actualHours);
+    setFormConvertedHours(log.convertedHours);
 
     setIsModalOpen(true);
   };
@@ -227,7 +210,7 @@ export default function TeachingHoursTab({
               placeholder="Môn học, mã lớp, tên giảng viên..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="text-[13px] w-full border border-slate-200 rounded-lg pl-9 pr-3 py-2 focus:outline-hidden focus:ring-2 focus:ring-blue-500 bg-slate-50 font-medium placeholder:text-slate-400"
+              className="text-xs w-full border border-slate-200 rounded-lg pl-9 pr-3 py-2 focus:outline-hidden focus:ring-2 focus:ring-blue-500 bg-slate-50 font-medium placeholder:text-slate-400"
             />
           </div>
 
@@ -236,7 +219,7 @@ export default function TeachingHoursTab({
             value={selectedTeacherId}
             disabled={!isAdmin}
             onChange={(e) => setSelectedTeacherId(e.target.value)}
-            className={`text-[13px] border border-slate-200 rounded-lg px-3 py-2 focus:outline-hidden focus:ring-2 focus:ring-blue-500 bg-slate-50 font-medium ${!isAdmin ? 'opacity-70 cursor-not-allowed' : ''}`}
+            className={`text-xs border border-slate-200 rounded-lg px-3 py-2 focus:outline-hidden focus:ring-2 focus:ring-blue-500 bg-slate-50 font-medium ${!isAdmin ? 'opacity-70 cursor-not-allowed' : ''}`}
           >
             {isAdmin && <option value="all">Tất cả giảng viên</option>}
             {teachers.map(t => (
@@ -248,7 +231,7 @@ export default function TeachingHoursTab({
           <select
             value={selectedSemester}
             onChange={(e) => setSelectedSemester(e.target.value)}
-            className="text-[13px] border border-slate-200 rounded-lg px-3 py-2 focus:outline-hidden focus:ring-2 focus:ring-blue-500 bg-slate-50 font-medium"
+            className="text-xs border border-slate-200 rounded-lg px-3 py-2 focus:outline-hidden focus:ring-2 focus:ring-blue-500 bg-slate-50 font-medium"
           >
             <option value="all">Tất cả Học kỳ</option>
             <option value="HK1">Học kỳ 1</option>
@@ -259,7 +242,7 @@ export default function TeachingHoursTab({
 
         <button
           onClick={openAddModal}
-          className="inline-flex items-center justify-center gap-1.5 bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white font-bold text-[13px] px-4 py-2 rounded-lg shadow-sm cursor-pointer transition-all self-start lg:self-auto"
+          className="inline-flex items-center justify-center gap-1.5 bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white font-bold text-xs px-4 py-2 rounded-lg shadow-sm cursor-pointer transition-all self-start lg:self-auto"
         >
           <Plus className="w-4 h-4" />
           Khai báo giờ giảng dạy
@@ -269,15 +252,15 @@ export default function TeachingHoursTab({
       {/* Aggregate indicators */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
-          <span className="text-slate-400 font-medium text-[10px] block uppercase font-bold tracking-wider">Tổng hợp hồ sơ hiển thị</span>
+          <span className="text-slate-400 font-medium text-xs block uppercase font-bold tracking-wider">Tổng hợp hồ sơ hiển thị</span>
           <span className="text-xl font-bold text-slate-800 font-mono mt-0.5 block">{filteredLogs.length} lớp học</span>
         </div>
         <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
-          <span className="text-slate-400 font-medium text-[10px] block uppercase font-bold tracking-wider">Số tiết thực tế trên lớp</span>
+          <span className="text-slate-400 font-medium text-xs block uppercase font-bold tracking-wider">Số tiết thực tế trên lớp</span>
           <span className="text-xl font-bold text-slate-800 font-mono mt-0.5 block">{totalFilteredHours.actual} tiết</span>
         </div>
         <div className="bg-white p-4 rounded-xl border border-blue-100 bg-blue-50/15 shadow-sm">
-          <span className="text-blue-600 font-bold text-[10px] block uppercase font-bold tracking-wider">Giờ quy đổi tiêu chuẩn</span>
+          <span className="text-blue-600 font-bold text-xs block uppercase font-bold tracking-wider">Giờ quy đổi tiêu chuẩn</span>
           <span className="text-xl font-extrabold text-blue-700 font-mono mt-0.5 block">{totalFilteredHours.converted} giờ</span>
         </div>
       </div>
@@ -287,14 +270,14 @@ export default function TeachingHoursTab({
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">
             <thead>
-              <tr className="bg-slate-50/75 border-b border-slate-100 text-[13px] font-semibold text-slate-500">
+              <tr className="bg-slate-50/75 border-b border-slate-100 text-xs font-semibold text-slate-500">
                 <th className="py-3.5 px-4">Giảng viên</th>
                 <th className="py-3.5 px-4">Môn giảng dạy</th>
                 <th className="py-3.5 px-4">Lớp & Sĩ số</th>
                 <th className="py-3.5 px-4">Học kỳ</th>
                 <th className="py-3.5 px-4">Hình thức</th>
-                <th className="py-3.5 px-4 text-center">Số tiết</th>
-                <th className="py-3.5 px-4 text-center">Hệ số</th>
+                <th className="py-3.5 px-4 text-center">Số lượng</th>
+                <th className="py-3.5 px-4 text-center">Hệ số định mức</th>
                 <th className="py-3.5 px-4 text-right">Giờ quy chuẩn</th>
                 <th className="py-3.5 px-4 text-center">Thao tác</th>
               </tr>
@@ -302,7 +285,7 @@ export default function TeachingHoursTab({
             <tbody className="divide-y divide-slate-100">
               {filteredLogs.length === 0 ? (
                 <tr>
-                  <td colSpan={9} className="py-10 text-center text-[13px] text-slate-400">
+                  <td colSpan={9} className="py-10 text-center text-xs text-slate-400">
                     <BookOpen className="w-8 h-8 text-slate-200 mx-auto mb-2" />
                     Không có bản ghi giờ giảng nào phù hợp bộ lọc hiện tại.
                   </td>
@@ -319,26 +302,26 @@ export default function TeachingHoursTab({
                       <td className="py-3 px-4">
                         <div>
                           <span className="font-bold text-slate-800 block">{teacher ? teacher.name : 'N/A'}</span>
-                          <span className="text-[11px] text-slate-400">{teacher ? teacher.department : 'N/A'}</span>
+                          <span className="text-xs text-slate-400">{teacher ? teacher.department : 'N/A'}</span>
                         </div>
                       </td>
                       <td className="py-3 px-4">
                         <div>
                           <span className="font-bold text-slate-800 block hover:text-blue-600">{log.subjectName}</span>
-                          <span className="text-[11px] text-slate-400 font-mono">{log.subjectCode} • {log.credits} tín chỉ</span>
+                          <span className="text-xs text-slate-400 font-mono">{log.subjectCode} • {log.credits} tín chỉ</span>
                         </div>
                       </td>
                       <td className="py-3 px-4">
                         <div>
                           <span className="font-semibold text-slate-700 font-mono block">{log.className}</span>
-                          <span className="text-[11px] font-semibold text-slate-400">{log.studentCount} sinh viên</span>
+                          <span className="text-xs font-semibold text-slate-400">{log.studentCount} sinh viên</span>
                         </div>
                       </td>
                       <td className="py-3 px-4 font-semibold text-slate-600 text-xs">
                         {log.semester === 'HK1' ? 'Học kỳ 1' : log.semester === 'HK2' ? 'Học kỳ 2' : 'Học kỳ phụ (HK3)'}
                       </td>
                       <td className="py-3 px-4">
-                        <span className={`inline-block text-[10px] font-bold px-2 py-0.5 rounded ${
+                        <span className={`inline-block text-xs font-bold px-2 py-0.5 rounded ${
                           log.type === 'theoretical' ? 'bg-blue-50 text-blue-700 border border-blue-100' :
                           log.type === 'practical' ? 'bg-emerald-50 text-emerald-700 border border-emerald-100' :
                           'bg-amber-50 text-amber-700 border border-amber-100'
@@ -347,10 +330,10 @@ export default function TeachingHoursTab({
                         </span>
                       </td>
                       <td className="py-3 px-4 text-center font-mono font-bold text-slate-650">
-                        {log.actualHours}
+                        {log.actualHours} <span className="text-slate-400 font-normal text-[10px]">{TEACHING_ACTIVITIES.find(a => a.id === log.type)?.unit || 'tiết'}</span>
                       </td>
                       <td className="py-3 px-4 text-center">
-                        <span className="font-mono bg-slate-100 text-slate-700 px-1.5 py-0.2 rounded font-bold text-[10px]">
+                        <span className="font-mono bg-slate-100 text-slate-700 px-1.5 py-0.2 rounded font-bold text-xs" title={`Hệ số định chuẩn: x${log.coefficient}`}>
                           x{log.coefficient}
                         </span>
                       </td>
@@ -383,7 +366,7 @@ export default function TeachingHoursTab({
                               </button>
                             </>
                           ) : (
-                            <span className="text-[11px] text-slate-400 font-medium select-none">Bảo mật</span>
+                            <span className="text-xs text-slate-400 font-medium select-none">Bảo mật</span>
                           )}
                         </div>
                       </td>
@@ -421,14 +404,14 @@ export default function TeachingHoursTab({
               <form onSubmit={handleSave} className="p-5 space-y-4">
                 <div className="grid grid-cols-2 lg:grid-cols-4 gap-3.5">
                   <div className="col-span-2 lg:col-span-4">
-                    <label className="text-[13px] font-bold text-slate-500 block mb-1">
+                    <label className="text-xs font-bold text-slate-500 block mb-1">
                       Giảng viên trực tiếp phụ trách <span className="text-rose-500">*</span>
                     </label>
                     <select
                       value={formTeacherId}
                       disabled={!isAdmin}
                       onChange={(e) => setFormTeacherId(e.target.value)}
-                      className={`text-[13px] w-full border border-slate-200 rounded-lg px-3 py-2 bg-slate-50 focus:outline-hidden focus:ring-2 focus:ring-blue-500 font-semibold ${!isAdmin ? 'opacity-70 cursor-not-allowed font-bold' : ''}`}
+                      className="text-xs w-full border border-slate-200 rounded-lg px-3 py-2 bg-slate-50 focus:outline-hidden focus:ring-2 focus:ring-blue-500 font-semibold"
                     >
                       <option value="">-- Chọn giảng viên --</option>
                       {teachers.map(t => (
@@ -438,7 +421,7 @@ export default function TeachingHoursTab({
                   </div>
 
                   <div>
-                    <label className="text-[13px] font-bold text-slate-500 block mb-1">
+                    <label className="text-xs font-bold text-slate-500 block mb-1">
                       Tên môn học <span className="text-rose-500">*</span>
                     </label>
                     <input
@@ -447,12 +430,12 @@ export default function TeachingHoursTab({
                       placeholder="Ví dụ: Cơ sở dữ liệu phân tán"
                       value={formSubjectName}
                       onChange={(e) => setFormSubjectName(e.target.value)}
-                      className="text-[13px] w-full border border-slate-200 rounded-lg px-3 py-2 bg-slate-50 focus:outline-hidden focus:ring-2 focus:ring-blue-500 font-medium"
+                      className="text-xs w-full border border-slate-200 rounded-lg px-3 py-2 bg-slate-50 focus:outline-hidden focus:ring-2 focus:ring-blue-500 font-medium"
                     />
                   </div>
 
                   <div>
-                    <label className="text-[13px] font-bold text-slate-500 block mb-1">
+                    <label className="text-xs font-bold text-slate-500 block mb-1">
                       Mã môn học
                     </label>
                     <input
@@ -460,12 +443,12 @@ export default function TeachingHoursTab({
                       placeholder="Mã học phần MH101"
                       value={formSubjectCode}
                       onChange={(e) => setFormSubjectCode(e.target.value)}
-                      className="text-[13px] w-full border border-slate-200 rounded-lg px-3 py-2 bg-slate-50 focus:outline-hidden focus:ring-2 focus:ring-blue-500 font-mono"
+                      className="text-xs w-full border border-slate-200 rounded-lg px-3 py-2 bg-slate-50 focus:outline-hidden focus:ring-2 focus:ring-blue-500 font-mono"
                     />
                   </div>
 
                   <div>
-                    <label className="text-[13px] font-bold text-slate-500 block mb-1">
+                    <label className="text-xs font-bold text-slate-500 block mb-1">
                       Tên lớp chính thức <span className="text-rose-500">*</span>
                     </label>
                     <input
@@ -474,12 +457,12 @@ export default function TeachingHoursTab({
                       placeholder="K68OT1"
                       value={formClassName}
                       onChange={(e) => setFormClassName(e.target.value)}
-                      className="text-[13px] w-full border border-slate-200 rounded-lg px-3 py-2 bg-slate-50 focus:outline-hidden focus:ring-2 focus:ring-blue-500 font-mono font-bold"
+                      className="text-xs w-full border border-slate-200 rounded-lg px-3 py-2 bg-slate-50 focus:outline-hidden focus:ring-2 focus:ring-blue-500 font-mono font-bold"
                     />
                   </div>
 
                   <div>
-                    <label className="text-[13px] font-bold text-slate-500 block mb-1">
+                    <label className="text-xs font-bold text-slate-500 block mb-1">
                       Số tín chỉ môn học
                     </label>
                     <input
@@ -487,50 +470,88 @@ export default function TeachingHoursTab({
                       min="1"
                       max="15"
                       value={formCredits}
-                      onChange={(e) => setFormCredits(Number(e.target.value))}
-                      className="text-[13px] w-full border border-slate-200 rounded-lg px-3 py-2 bg-slate-50 focus:outline-hidden focus:ring-2 focus:ring-blue-500 font-mono font-bold"
+                      onChange={(e) => {
+                        const val = Number(e.target.value);
+                        setFormCredits(val);
+                        // Auto-update hours if unit is 'tiết'
+                        const activity = TEACHING_ACTIVITIES.find(act => act.id === formType);
+                        if (activity && activity.unit === 'tiết') {
+                          const newActual = val * 15;
+                          setFormActualHours(newActual);
+                          setFormConvertedHours(Math.round(newActual * formCoefficient * 100) / 100);
+                        }
+                      }}
+                      className="text-xs w-full border border-slate-200 rounded-lg px-3 py-2 bg-slate-50 focus:outline-hidden focus:ring-2 focus:ring-blue-500 font-mono font-bold"
                     />
                   </div>
 
                   <div>
-                    <label className="text-[13px] font-bold text-slate-500 block mb-1">
-                      Hình thức giảng dạy
+                    <label className="text-xs font-bold text-slate-500 block mb-1">
+                      Hình thức giảng dạy / Hoạt động
                     </label>
                     <select
                       value={formType}
-                      onChange={(e) => setFormType(e.target.value as TeachingType)}
-                      className="text-[13px] w-full border border-slate-200 rounded-lg px-3 py-2 bg-slate-50 focus:outline-hidden focus:ring-2 focus:ring-blue-500 font-medium"
+                      onChange={(e) => handleTypeChange(e.target.value)}
+                      className="text-xs w-full border border-slate-200 rounded-lg px-3 py-2 bg-slate-50 focus:outline-hidden focus:ring-2 focus:ring-blue-500 font-medium"
                     >
-                      <option value="theoretical">Lý thuyết tiêu chuẩn</option>
-                      <option value="practical">Thực hành / Thí nghiệm</option>
-                      <option value="project">Hướng dẫn Đồ án tốt nghiệp / KLTN</option>
-                      <option value="master_thesis">Hướng dẫn Học viên Thạc sĩ</option>
-                      <option value="phd_instruction">Hướng dẫn Nghiên cứu sinh</option>
+                      {Array.from(new Set(TEACHING_ACTIVITIES.map(a => a.category))).map(catName => (
+                        <optgroup key={catName} label={catName} className="font-bold text-slate-500 text-[11px]">
+                          {TEACHING_ACTIVITIES.filter(a => a.category === catName).map(activity => (
+                            <option key={activity.id} value={activity.id} className="font-normal text-slate-800 text-xs">
+                              {activity.label} ({activity.baseHour}h/{activity.unit})
+                            </option>
+                          ))}
+                        </optgroup>
+                      ))}
                     </select>
                   </div>
 
+                  {TEACHING_ACTIVITIES.find(a => a.id === formType) && (
+                    <div className="col-span-2 lg:col-span-4 p-2.5 bg-blue-50/20 border border-blue-100 rounded-lg text-[11px] text-slate-650 flex gap-2">
+                      <HelpCircle className="w-4.5 h-4.5 text-blue-500 mt-0.5 shrink-0" />
+                      <div>
+                        <span className="font-bold text-slate-800">Quy định hiện hành: </span>
+                        {TEACHING_ACTIVITIES.find(a => a.id === formType)?.helperText}
+                      </div>
+                    </div>
+                  )}
+
                   <div>
-                    <label className="text-[13px] font-bold text-slate-500 block mb-1">
-                      Sĩ số lớp (quy định hệ số đông)
+                    <label className="text-xs font-bold text-slate-500 block mb-1">
+                      Sĩ số lớp (quy định hệ số)
                     </label>
                     <input
                       type="number"
                       min="1"
                       max="300"
                       value={formStudentCount}
-                      onChange={(e) => setFormStudentCount(Number(e.target.value))}
-                      className="text-[13px] w-full border border-slate-200 rounded-lg px-3 py-2 bg-slate-50 focus:outline-hidden focus:ring-2 focus:ring-blue-500 font-mono font-bold"
+                      onChange={(e) => {
+                        const val = Number(e.target.value);
+                        setFormStudentCount(val);
+                        // Auto-update hours if unit is 'bài' or 'đồ án' or 'học viên' or 'nghiên cứu sinh'
+                        const activity = TEACHING_ACTIVITIES.find(act => act.id === formType);
+                        if (activity) {
+                          if (activity.unit === 'bài') {
+                            setFormActualHours(val);
+                            setFormConvertedHours(Math.round(val * formCoefficient * 100) / 100);
+                          } else if (activity.unit === 'đồ án' || activity.unit === 'học viên' || activity.unit === 'nghiên cứu sinh') {
+                            setFormActualHours(val);
+                            setFormConvertedHours(Math.round(val * formCoefficient * 100) / 100);
+                          }
+                        }
+                      }}
+                      className="text-xs w-full border border-slate-200 rounded-lg px-3 py-2 bg-slate-50 focus:outline-hidden focus:ring-2 focus:ring-blue-500 font-mono font-bold"
                     />
                   </div>
 
                   <div>
-                    <label className="text-[13px] font-bold text-slate-500 block mb-1">
+                    <label className="text-xs font-bold text-slate-500 block mb-1">
                       Học kỳ
                     </label>
                     <select
                       value={formSemester}
                       onChange={(e) => setFormSemester(e.target.value as 'HK1' | 'HK2' | 'HK3')}
-                      className="text-[13px] w-full border border-slate-200 rounded-lg px-3 py-2 bg-slate-50 focus:outline-hidden focus:ring-2 focus:ring-blue-500 font-medium"
+                      className="text-xs w-full border border-slate-200 rounded-lg px-3 py-2 bg-slate-50 focus:outline-hidden focus:ring-2 focus:ring-blue-500 font-medium"
                     >
                       <option value="HK1">Học kỳ 1</option>
                       <option value="HK2">Học kỳ 2</option>
@@ -539,13 +560,13 @@ export default function TeachingHoursTab({
                   </div>
 
                   <div>
-                    <label className="text-[13px] font-bold text-slate-500 block mb-1">
+                    <label className="text-xs font-bold text-slate-500 block mb-1">
                       Năm học giảng dạy
                     </label>
                     <select
                       value={formYear}
                       onChange={(e) => setFormYear(e.target.value)}
-                      className="text-[13px] w-full border border-slate-200 rounded-lg px-3 py-2 bg-slate-50 focus:outline-hidden focus:ring-2 focus:ring-blue-500 font-medium"
+                      className="text-xs w-full border border-slate-200 rounded-lg px-3 py-2 bg-slate-50 focus:outline-hidden focus:ring-2 focus:ring-blue-500 font-medium"
                     >
                       {academicYears.map(y => (
                         <option key={y.id} value={y.year}>{y.year}</option>
@@ -555,34 +576,38 @@ export default function TeachingHoursTab({
                 </div>
 
                 {/* Automation highlight card */}
-                <div className="bg-blue-50/50 rounded-xl p-3.5 border border-blue-100 flex gap-3 text-[13px] shadow-2xs">
+                <div className="bg-blue-50/50 rounded-xl p-3.5 border border-blue-100 flex gap-3 text-xs shadow-2xs">
                   <Sparkles className="w-5 h-5 text-blue-600 shrink-0 mt-0.5" />
                   <div className="space-y-1.5 flex-1">
                     <span className="font-bold text-blue-950 block select-none">Hệ thống tính toán tự động:</span>
-                    <div className="grid grid-cols-2 md:grid-cols-3 gap-y-1 gap-x-2 text-[11px] text-slate-600">
+                    <div className="grid grid-cols-2 md:grid-cols-3 gap-y-1 gap-x-2 text-xs text-slate-600">
                       <div>
-                        <span className="select-none font-medium">Tiết nguyên bản:</span>
+                        <span className="select-none font-medium">
+                          Số lượng ({TEACHING_ACTIVITIES.find(a => a.id === formType)?.unit || 'tiết'}):
+                        </span>
                         <input 
                           type="number" 
                           value={formActualHours} 
                           onChange={(e) => {
-                            setFormActualHours(Number(e.target.value));
-                            setFormConvertedHours(Math.round(Number(e.target.value) * formCoefficient * 100) / 100);
+                            const val = Number(e.target.value);
+                            setFormActualHours(val);
+                            setFormConvertedHours(Math.round(val * formCoefficient * 100) / 100);
                           }}
-                          className="font-semibold block bg-white border border-slate-200 rounded text-center py-0.5 w-16 text-slate-800 focus:outline-hidden"
+                          className="font-semibold block bg-white border border-slate-200 rounded text-center py-0.5 w-16 text-slate-800 focus:outline-hidden focus:ring-2 focus:ring-blue-550"
                         />
                       </div>
                       <div>
-                        <span className="select-none font-medium">Hệ số quy đổi:</span>
+                        <span className="select-none font-medium">Hệ số định mức:</span>
                         <input 
                           type="number" 
                           step="0.01"
                           value={formCoefficient} 
                           onChange={(e) => {
-                            setFormCoefficient(Number(e.target.value));
-                            setFormConvertedHours(Math.round(formActualHours * Number(e.target.value) * 100) / 100);
+                            const val = Number(e.target.value);
+                            setFormCoefficient(val);
+                            setFormConvertedHours(Math.round(formActualHours * val * 100) / 100);
                           }}
-                          className="font-semibold block bg-white border border-slate-200 rounded text-center py-0.5 w-16 text-slate-800 focus:outline-hidden"
+                          className="font-semibold block bg-white border border-slate-200 rounded text-center py-0.5 w-16 text-slate-800 focus:outline-hidden focus:ring-2 focus:ring-blue-550"
                         />
                       </div>
                       <div className="col-span-2 md:col-span-1">
@@ -599,13 +624,13 @@ export default function TeachingHoursTab({
                   <button
                     type="button"
                     onClick={() => setIsModalOpen(false)}
-                    className="border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 font-semibold text-[13px] px-4 py-2 rounded-lg cursor-pointer transition-colors"
+                    className="border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 font-semibold text-xs px-4 py-2 rounded-lg cursor-pointer transition-colors"
                   >
                     Hủy bỏ
                   </button>
                   <button
                     type="submit"
-                    className="bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white font-bold text-[13px] px-4 py-2 rounded-lg shadow-xs cursor-pointer transition-colors"
+                    className="bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white font-bold text-xs px-4 py-2 rounded-lg shadow-xs cursor-pointer transition-colors"
                   >
                     Lưu giờ giảng
                   </button>
@@ -629,10 +654,10 @@ export default function TeachingHoursTab({
                 </div>
                 <div className="space-y-1.5 flex-1">
                   <h3 className="text-sm font-extrabold text-slate-800">Xác nhận xóa giờ giảng</h3>
-                  <p className="text-[13px] text-slate-500 leading-relaxed">
+                  <p className="text-xs text-slate-500 leading-relaxed">
                     Bạn có chắc chắn muốn xóa hồ sơ giảng dạy môn <strong className="text-slate-800">"{logToDelete.subject}"</strong> của lớp <strong className="text-slate-800">"{logToDelete.className}"</strong>?
                   </p>
-                  <p className="text-[11px] text-slate-400 font-medium">
+                  <p className="text-xs text-slate-400 font-medium">
                     Hành động này không thể hoàn tác. Số giờ quy đổi liên quan sẽ được khấu trừ khỏi tổng số giờ của giảng viên.
                   </p>
                 </div>
@@ -640,13 +665,13 @@ export default function TeachingHoursTab({
               <div className="mt-5 pt-3.5 border-t border-slate-100 flex justify-end gap-2.5">
                 <button
                   onClick={() => setLogToDelete(null)}
-                  className="px-3 py-1.5 border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 font-bold text-[13px] rounded-lg cursor-pointer transition-colors"
+                  className="px-3 py-1.5 border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 font-bold text-xs rounded-lg cursor-pointer transition-colors"
                 >
                   Hủy bỏ
                 </button>
                 <button
                   onClick={executeDelete}
-                  className="px-3.5 py-1.5 bg-rose-600 hover:bg-rose-700 text-white font-bold text-[13px] rounded-lg cursor-pointer shadow-xs transition-colors"
+                  className="px-3.5 py-1.5 bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs rounded-lg cursor-pointer shadow-xs transition-colors"
                 >
                   Xác nhận Xóa
                 </button>
@@ -679,7 +704,7 @@ export default function TeachingHoursTab({
               {/* Scrollable Content */}
               <div className="px-5 py-4 overflow-y-auto space-y-4 text-slate-700">
                 <div className="pb-3 border-b border-slate-100 flex flex-col gap-1">
-                  <span className={`inline-block text-[11px] font-bold px-2.5 py-0.5 rounded border self-start ${
+                  <span className={`inline-block text-xs font-bold px-2.5 py-0.5 rounded border self-start ${
                     detailPreview.type === 'theoretical' ? 'bg-blue-50 text-blue-700 border-blue-100' :
                     detailPreview.type === 'practical' ? 'bg-emerald-50 text-emerald-700 border-emerald-100' :
                     'bg-amber-50 text-amber-700 border-amber-100'
@@ -696,7 +721,7 @@ export default function TeachingHoursTab({
 
                 <div className="space-y-3.5 text-sm">
                   <div>
-                    <span className="text-slate-450 block mb-0.5 text-[11px] uppercase font-bold tracking-wider">Giảng viên đảm nhiệm:</span>
+                    <span className="text-slate-450 block mb-0.5 text-xs uppercase font-bold tracking-wider">Giảng viên đảm nhiệm:</span>
                     <div className="font-semibold text-slate-800 flex items-center gap-1.5">
                       <GraduationCap className="w-4 h-4 text-slate-400 shrink-0" />
                       <div>
@@ -712,14 +737,14 @@ export default function TeachingHoursTab({
 
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <span className="text-slate-450 block mb-0.5 text-[11px] uppercase font-bold tracking-wider">Lớp học:</span>
+                      <span className="text-slate-450 block mb-0.5 text-xs uppercase font-bold tracking-wider">Lớp học:</span>
                       <div className="font-bold text-slate-800 text-xs bg-slate-50 px-2.5 py-1 rounded border border-slate-100 inline-block font-mono">
                         {detailPreview.className}
                       </div>
                     </div>
 
                     <div>
-                      <span className="text-slate-450 block mb-0.5 text-[11px] uppercase font-bold tracking-wider">Sĩ số sinh viên:</span>
+                      <span className="text-slate-450 block mb-0.5 text-xs uppercase font-bold tracking-wider">Sĩ số sinh viên:</span>
                       <div className="font-semibold text-slate-700 text-xs bg-slate-50 px-2.5 py-1 rounded border border-slate-100 inline-block font-mono">
                         {detailPreview.studentCount} sinh viên
                       </div>
@@ -728,14 +753,14 @@ export default function TeachingHoursTab({
 
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <span className="text-slate-450 block mb-0.5 text-[11px] uppercase font-bold tracking-wider">Học kỳ:</span>
+                      <span className="text-slate-450 block mb-0.5 text-xs uppercase font-bold tracking-wider">Học kỳ:</span>
                       <div className="font-bold text-slate-800 text-xs">
                         {detailPreview.semester === 'HK1' ? 'Học kỳ 1' : detailPreview.semester === 'HK2' ? 'Học kỳ 2' : 'Học kỳ phụ (HK3)'}
                       </div>
                     </div>
 
                     <div>
-                      <span className="text-slate-450 block mb-0.5 text-[11px] uppercase font-bold tracking-wider">Năm học:</span>
+                      <span className="text-slate-450 block mb-0.5 text-xs uppercase font-bold tracking-wider">Năm học:</span>
                       <div className="font-semibold text-slate-700 font-mono text-xs">
                         {detailPreview.academicYear}
                       </div>
@@ -744,24 +769,24 @@ export default function TeachingHoursTab({
 
                   <div className="bg-slate-50/60 p-3.5 rounded-xl border border-slate-100 grid grid-cols-2 gap-3 text-center text-xs font-semibold text-slate-600">
                     <div>
-                      <span className="text-[10px] text-slate-400 block uppercase font-bold tracking-wider mb-0.5">Số tiết thực tế</span>
-                      <span className="font-mono text-slate-800 bg-white px-2.5 py-1 rounded border border-slate-200/50 text-[13px] font-bold">
-                        {detailPreview.actualHours} tiết
+                      <span className="text-xs text-slate-400 block uppercase font-bold tracking-wider mb-0.5">Số lượng / Quy mô</span>
+                      <span className="font-mono text-slate-800 bg-white px-2.5 py-1 rounded border border-slate-200/50 text-xs font-bold">
+                        {detailPreview.actualHours} {TEACHING_ACTIVITIES.find(a => a.id === detailPreview.type)?.unit || 'tiết'}
                       </span>
                     </div>
                     <div>
-                      <span className="text-[10px] text-slate-400 block uppercase font-bold tracking-wider mb-0.5">Hệ số quy đổi</span>
-                      <span className="font-mono text-slate-800 bg-white px-2.5 py-1 rounded border border-slate-200/50 text-[13px] font-bold text-amber-700">
+                      <span className="text-xs text-slate-400 block uppercase font-bold tracking-wider mb-0.5">Hệ số quy đổi</span>
+                      <span className="font-mono text-slate-800 bg-white px-2.5 py-1 rounded border border-slate-200/50 text-xs font-bold text-amber-700">
                         x{detailPreview.coefficient}
                       </span>
                     </div>
                   </div>
 
                   <div className="pt-3 border-t border-slate-100">
-                    <span className="text-slate-450 block mb-1.5 text-[11px] uppercase font-bold tracking-wider font-semibold">Thành quả quy chuẩn:</span>
+                    <span className="text-slate-450 block mb-1.5 text-xs uppercase font-bold tracking-wider font-semibold">Thành quả quy chuẩn:</span>
                     <div className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-xl p-3 flex justify-between items-center shadow-sm">
                       <div className="space-y-0.5">
-                        <span className="text-[10px] text-blue-100 block font-semibold uppercase tracking-wider">Giờ chuẩn quy đổi</span>
+                        <span className="text-xs text-blue-100 block font-semibold uppercase tracking-wider">Giờ chuẩn quy đổi</span>
                         <span className="text-base font-extrabold font-mono text-white block">+{detailPreview.convertedHours} giờ chuẩn</span>
                       </div>
                       <div className="bg-white/10 rounded-full p-1 text-emerald-300">

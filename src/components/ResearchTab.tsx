@@ -297,7 +297,7 @@ export default function ResearchTab({
               placeholder="Tìm kiếm công trình, bài báo, tác giả..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="text-[13px] w-full border border-slate-200 rounded-lg pl-9 pr-3 py-2 focus:outline-hidden focus:ring-2 focus:ring-blue-500 bg-slate-50 font-medium placeholder:text-slate-400"
+              className="text-xs w-full border border-slate-200 rounded-lg pl-9 pr-3 py-2 focus:outline-hidden focus:ring-2 focus:ring-blue-500 bg-slate-50 font-medium placeholder:text-slate-400"
             />
           </div>
 
@@ -306,7 +306,7 @@ export default function ResearchTab({
             value={selectedTeacherId}
             disabled={!isAdmin}
             onChange={(e) => setSelectedTeacherId(e.target.value)}
-            className={`text-[13px] border border-slate-200 rounded-lg px-3 py-2 bg-slate-50 focus:outline-hidden focus:ring-2 focus:ring-blue-500 font-medium ${!isAdmin ? 'opacity-70 cursor-not-allowed' : ''}`}
+            className={`text-xs border border-slate-200 rounded-lg px-3 py-2 bg-slate-50 focus:outline-hidden focus:ring-2 focus:ring-blue-500 font-medium ${!isAdmin ? 'opacity-70 cursor-not-allowed' : ''}`}
           >
             {isAdmin && <option value="all">Mọi tác giả</option>}
             {teachers.map(t => (
@@ -318,7 +318,7 @@ export default function ResearchTab({
           <select
             value={selectedStatus}
             onChange={(e) => setSelectedStatus(e.target.value)}
-            className="text-[13px] border border-slate-200 rounded-lg px-3 py-2 bg-slate-50 focus:outline-hidden focus:ring-2 focus:ring-blue-500 font-medium"
+            className="text-xs border border-slate-200 rounded-lg px-3 py-2 bg-slate-50 focus:outline-hidden focus:ring-2 focus:ring-blue-500 font-medium"
           >
             <option value="all">Mọi trạng thái xét duyệt</option>
             <option value="approved font-semibold text-emerald-600"> Đã phê duyệt minh chứng</option>
@@ -329,7 +329,7 @@ export default function ResearchTab({
 
         <button
           onClick={openAddModal}
-          className="inline-flex items-center justify-center gap-1.5 bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white font-bold text-[13px] px-4 py-2 rounded-lg shadow-sm cursor-pointer transition-all self-start xl:self-auto"
+          className="inline-flex items-center justify-center gap-1.5 bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white font-bold text-xs px-4 py-2 rounded-lg shadow-sm cursor-pointer transition-all self-start xl:self-auto"
         >
           <Plus className="w-4 h-4" />
           Khai báo minh chứng NCKH
@@ -357,7 +357,7 @@ export default function ResearchTab({
         {filteredResearchLogs.length === 0 ? (
           <div className="bg-white p-12 text-center rounded-xl border border-dashed border-slate-200">
             <FileCode2 className="w-10 h-10 text-slate-200 mx-auto mb-2" />
-            <p className="text-[13px] text-slate-400 font-medium">Không tìm thấy minh chứng nghiên cứu khoa học nào phù hợp bộ lọc.</p>
+            <p className="text-xs text-slate-400 font-medium">Không tìm thấy minh chứng nghiên cứu khoa học nào phù hợp bộ lọc.</p>
           </div>
         ) : (
           <>
@@ -394,7 +394,7 @@ export default function ResearchTab({
                                 {getResearchTypeName(log.type)}
                               </span>
                             </div>
-                            <h4 className="text-[13px] font-bold text-slate-800 leading-snug hover:text-blue-600 block mt-1 line-clamp-2">
+                            <h4 className="text-xs font-bold text-slate-800 leading-snug hover:text-blue-600 block mt-1 line-clamp-2">
                               {log.title}
                             </h4>
                           </div>
@@ -488,7 +488,7 @@ export default function ResearchTab({
                     <div className="flex justify-between items-start gap-2">
                       <div className="space-y-1 flex-1 min-w-0">
                         <div className="flex items-center gap-1.5 flex-wrap">
-                          <span className={`inline-block text-[9px] font-bold px-1.5 py-0.2 rounded ${
+                          <span className={`inline-block text-xs font-bold px-1.5 py-0.2 rounded ${
                             log.status === 'approved' ? 'bg-emerald-50 text-emerald-700 border border-emerald-100' :
                             log.status === 'pending' ? 'bg-amber-50 text-amber-700 border border-amber-100' :
                             'bg-rose-50 text-rose-700 border border-rose-100'
@@ -496,27 +496,27 @@ export default function ResearchTab({
                             {log.status === 'approved' ? 'Đã duyệt' : log.status === 'pending' ? 'Chờ thẩm định' : 'Từ chối'}
                           </span>
                           
-                          <span className="text-[10px] font-mono font-bold text-slate-400 bg-slate-50 px-1.5 py-0.2 rounded border border-slate-100">
+                          <span className="text-xs font-mono font-bold text-slate-400 bg-slate-50 px-1.5 py-0.2 rounded border border-slate-100">
                             {log.publicationYear}
                           </span>
 
-                          <span className="text-[10px] font-semibold text-slate-500">
+                          <span className="text-xs font-semibold text-slate-500">
                             {getResearchTypeName(log.type)}
                           </span>
                         </div>
                         
-                        <h4 className="text-[13px] font-bold text-slate-800 leading-relaxed block hover:text-blue-600">
+                        <h4 className="text-sm font-bold text-slate-800 leading-relaxed block hover:text-blue-600">
                           {log.title}
                         </h4>
                       </div>
 
                       <div className="text-right shrink-0">
-                        <span className="text-[10px] text-slate-400 font-medium block">Quy đổi</span>
-                        <span className="text-[13px] font-extrabold text-blue-600 font-mono">{log.convertedHours} h</span>
+                        <span className="text-xs text-slate-400 font-medium block">Quy đổi</span>
+                        <span className="text-sm font-extrabold text-blue-600 font-mono">{log.convertedHours} h</span>
                       </div>
                     </div>
 
-                    <div className="flex flex-col gap-2 pt-2 border-t border-slate-100 text-[11px] text-slate-500">
+                    <div className="flex flex-col gap-2 pt-2 border-t border-slate-100 text-xs text-slate-500">
                       <div className="flex items-center gap-3">
                         <div>
                           <span className="text-slate-400">Tác giả:</span> <b className="text-slate-700">{teacher ? teacher.name : 'N/A'}</b>
@@ -531,7 +531,7 @@ export default function ResearchTab({
                         {isAdmin && onApproveLog && (
                           <button 
                             onClick={() => toggleApproval(log.id, log.status)}
-                            className={`inline-flex items-center gap-0.5 px-2 py-0.5 rounded-sm border font-extrabold text-[10px] cursor-pointer transition-colors ${
+                            className={`inline-flex items-center gap-0.5 px-2 py-0.5 rounded-sm border font-extrabold text-xs cursor-pointer transition-colors ${
                               log.status === 'approved' 
                                 ? 'bg-amber-50 text-amber-700 border-amber-100 hover:bg-amber-100' 
                                 : 'bg-emerald-50 text-emerald-700 border-emerald-100 hover:bg-emerald-100'
@@ -564,7 +564,7 @@ export default function ResearchTab({
                             </button>
                           </>
                         ) : (
-                          <span className="text-[10px] text-slate-400 font-medium select-none bg-slate-100 px-1.5 py-0.5 rounded ml-auto">Bảo mật</span>
+                          <span className="text-xs text-slate-400 font-medium select-none bg-slate-100 px-1.5 py-0.5 rounded ml-auto">Bảo mật</span>
                         )}
                       </div>
                     </div>
@@ -612,7 +612,7 @@ export default function ResearchTab({
 
                 <div className="space-y-3.5 text-sm">
                   <div>
-                    <span className="text-slate-440 block mb-0.5 text-[11px] uppercase font-bold tracking-wider">Đơn vị xuất bản / Quỹ tài trợ:</span>
+                    <span className="text-slate-440 block mb-0.5 text-xs uppercase font-bold tracking-wider">Đơn vị xuất bản / Quỹ tài trợ:</span>
                     <div className="font-semibold text-slate-800 flex items-center gap-1.5">
                       <BookOpen className="w-4 h-4 text-slate-400 shrink-0" />
                       {detailPreview.journalOrOrganization}
@@ -621,14 +621,14 @@ export default function ResearchTab({
 
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <span className="text-slate-440 block mb-0.5 text-[11px] uppercase font-bold tracking-wider">Năm xuất bản:</span>
+                      <span className="text-slate-440 block mb-0.5 text-xs uppercase font-bold tracking-wider">Năm xuất bản:</span>
                       <div className="font-semibold text-slate-700 font-mono text-xs bg-slate-50 px-2 py-0.5 rounded border border-slate-100 inline-block">
                         {detailPreview.publicationYear}
                       </div>
                     </div>
 
                     <div>
-                      <span className="text-slate-440 block mb-0.5 text-[11px] uppercase font-bold tracking-wider">Tác giả:</span>
+                      <span className="text-slate-440 block mb-0.5 text-xs uppercase font-bold tracking-wider">Tác giả:</span>
                       <div className="font-bold text-slate-800 text-xs">
                         {teachers.find(t => t.id === detailPreview.teacherId)?.name || 'N/A'}
                       </div>
@@ -637,14 +637,14 @@ export default function ResearchTab({
 
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <span className="text-slate-440 block mb-0.5 text-[11px] uppercase font-bold tracking-wider">Vai trò nghiên cứu:</span>
+                      <span className="text-slate-440 block mb-0.5 text-xs uppercase font-bold tracking-wider">Vai trò nghiên cứu:</span>
                       <div className="font-bold text-blue-700 bg-blue-50 px-2 py-0.5 rounded border border-blue-100 inline-block text-xs">
                         {getRoleName(detailPreview.role)}
                       </div>
                     </div>
 
                     <div>
-                      <span className="text-slate-440 block mb-0.5 text-[11px] uppercase font-bold tracking-wider">Năm học:</span>
+                      <span className="text-slate-440 block mb-0.5 text-xs uppercase font-bold tracking-wider">Năm học:</span>
                       <div className="font-semibold text-slate-700 font-mono text-xs">
                         {detailPreview.period}
                       </div>
@@ -653,22 +653,22 @@ export default function ResearchTab({
 
                   <div className="bg-slate-50/60 p-3 rounded-xl border border-slate-100 grid grid-cols-3 gap-2 text-center text-xs font-semibold text-slate-600">
                     <div>
-                      <span className="text-[9px] text-slate-400 block uppercase font-bold tracking-wider mb-0.5">Số lượng</span>
+                      <span className="text-xs text-slate-400 block uppercase font-bold tracking-wider mb-0.5">Số lượng</span>
                       <span className="font-mono text-slate-800 bg-white px-2 py-0.5 rounded border border-slate-200/50">{detailPreview.quantity || 1}</span>
                     </div>
                     <div>
-                      <span className="text-[9px] text-slate-400 block uppercase font-bold tracking-wider mb-0.5">Số năm</span>
+                      <span className="text-xs text-slate-400 block uppercase font-bold tracking-wider mb-0.5">Số năm</span>
                       <span className="font-mono text-slate-800 bg-white px-2 py-0.5 rounded border border-slate-200/50">{detailPreview.years || 1}</span>
                     </div>
                     <div>
-                      <span className="text-[9px] text-slate-400 block uppercase font-bold tracking-wider mb-0.5">Số thành viên</span>
+                      <span className="text-xs text-slate-400 block uppercase font-bold tracking-wider mb-0.5">Số thành viên</span>
                       <span className="font-mono text-slate-800 bg-white px-2 py-0.5 rounded border border-slate-200/50">{detailPreview.members || 1}</span>
                     </div>
                   </div>
 
                   {detailPreview.notes && (
                     <div>
-                      <span className="text-slate-440 block mb-1 text-[11px] uppercase font-bold tracking-wider">Tài liệu đính kèm / Ghi chú:</span>
+                      <span className="text-slate-440 block mb-1 text-xs uppercase font-bold tracking-wider">Tài liệu đính kèm / Ghi chú:</span>
                       <p className="text-slate-600 leading-relaxed bg-slate-50/40 p-3 rounded-xl border border-dashed border-slate-200 text-xs break-all">
                         {detailPreview.notes}
                       </p>
@@ -676,10 +676,10 @@ export default function ResearchTab({
                   )}
 
                   <div className="pt-3 border-t border-slate-100">
-                    <span className="text-slate-440 block mb-1.5 text-[11px] uppercase font-bold tracking-wider">Thành quả quy đổi:</span>
+                    <span className="text-slate-440 block mb-1.5 text-xs uppercase font-bold tracking-wider">Thành quả quy đổi:</span>
                     <div className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-xl p-3 flex justify-between items-center shadow-sm">
                       <div className="space-y-0.5">
-                        <span className="text-[10px] text-blue-100 block font-semibold uppercase tracking-wider">Giờ chuẩn đóng góp</span>
+                        <span className="text-xs text-blue-100 block font-semibold uppercase tracking-wider">Giờ chuẩn đóng góp</span>
                         <span className="text-sm font-extrabold font-mono text-white block">+{detailPreview.convertedHours} giờ</span>
                       </div>
                       <div className="flex items-center gap-1.5">
@@ -713,7 +713,7 @@ export default function ResearchTab({
                         openEditModal(copyingLog);
                       }, 200);
                     }}
-                    className="inline-flex items-center justify-center gap-1 bg-blue-50 hover:bg-blue-100 active:bg-blue-200 text-blue-700 font-bold text-[12px] px-3 py-1.5 rounded-lg border border-blue-200 cursor-pointer transition-all"
+                    className="inline-flex items-center justify-center gap-1 bg-blue-50 hover:bg-blue-100 active:bg-blue-200 text-blue-700 font-bold text-xs px-3 py-1.5 rounded-lg border border-blue-200 cursor-pointer transition-all"
                   >
                     <Edit2 className="w-3.5 h-3.5" />
                     Sửa thông tin
@@ -722,7 +722,7 @@ export default function ResearchTab({
                 <button
                   type="button"
                   onClick={() => setDetailPreview(null)}
-                  className="bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold text-[12px] px-3 py-1.5 rounded-lg cursor-pointer transition-all"
+                  className="bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold text-xs px-3 py-1.5 rounded-lg cursor-pointer transition-all"
                 >
                   Đóng
                 </button>
@@ -757,14 +757,14 @@ export default function ResearchTab({
               <form onSubmit={handleSave} className="p-5 space-y-4">
                 <div className="grid grid-cols-2 lg:grid-cols-4 gap-3.5">
                   <div className="col-span-2 lg:col-span-4">
-                    <label className="text-[13px] font-bold text-slate-500 block mb-1">
+                    <label className="text-xs font-bold text-slate-500 block mb-1">
                       Giảng viên thực hiện <span className="text-rose-500">*</span>
                     </label>
                     <select
                       value={formTeacherId}
                       disabled={!isAdmin}
                       onChange={(e) => setFormTeacherId(e.target.value)}
-                      className={`text-[13px] w-full border border-slate-200 rounded-lg px-3 py-2 bg-slate-50 focus:outline-hidden focus:ring-2 focus:ring-blue-500 font-semibold ${!isAdmin ? 'opacity-70 cursor-not-allowed font-bold' : ''}`}
+                      className="text-xs w-full border border-slate-200 rounded-lg px-3 py-2 bg-slate-50 focus:outline-hidden focus:ring-2 focus:ring-blue-500 font-semibold"
                     >
                       <option value="">-- Chọn giảng viên nghiên cứu --</option>
                       {teachers.map(t => (
@@ -775,14 +775,14 @@ export default function ResearchTab({
 
                   <div className="col-span-2 lg:col-span-4 relative">
                     <div className="flex justify-between items-center mb-1">
-                      <label className="text-[13px] font-bold text-slate-500 block mb-1">
+                      <label className="text-xs font-bold text-slate-500 block mb-1">
                         Tên công trình / Đề tài / Tên bài báo quốc tế <span className="text-rose-500">*</span>
                       </label>
                       {uniqueExistingWorks.length > 0 && (
                         <button
                           type="button"
                           onClick={() => setShowSuggestions(!showSuggestions)}
-                          className="text-[9px] font-bold text-blue-600 hover:text-blue-700 bg-blue-50 px-2 py-0.5 rounded-sm flex items-center gap-1 cursor-pointer transition-colors"
+                          className="text-xs font-bold text-blue-600 hover:text-blue-700 bg-blue-50 px-2 py-0.5 rounded-sm flex items-center gap-1 cursor-pointer transition-colors"
                         >
                           <Sparkles className="w-2.5 h-2.5" />
                           Chọn từ công trình có sẵn ({uniqueExistingWorks.length})
@@ -807,15 +807,15 @@ export default function ResearchTab({
                         // Delay blurring so click options can register
                         setTimeout(() => setShowSuggestions(false), 200);
                       }}
-                      className="text-[13px] w-full border border-slate-200 rounded-lg px-3 py-2 bg-slate-50 focus:outline-hidden focus:ring-2 focus:ring-blue-500 font-medium"
+                      className="text-xs w-full border border-slate-200 rounded-lg px-3 py-2 bg-slate-50 focus:outline-hidden focus:ring-2 focus:ring-blue-500 font-medium"
                     />
 
                     {/* Suggestions list dropdown */}
                     {showSuggestions && filteredSuggestions.length > 0 && (
                       <div className="absolute z-50 left-0 right-0 mt-1 bg-white border border-slate-200 rounded-lg shadow-lg max-h-56 overflow-y-auto divide-y divide-slate-100">
-                        <div className="bg-slate-50 px-3 py-1 text-[9px] font-semibold text-slate-400 uppercase tracking-wider flex justify-between items-center sticky top-0 border-b border-slate-100">
+                        <div className="bg-slate-50 px-3 py-1 text-xs font-semibold text-slate-400 uppercase tracking-wider flex justify-between items-center sticky top-0 border-b border-slate-100">
                           <span>Chọn công trình đã khai báo (Tự điền nhanh)</span>
-                          <span className="text-[8px] font-normal font-mono">Tìm thấy {filteredSuggestions.length}</span>
+                          <span className="text-xs font-normal font-mono">Tìm thấy {filteredSuggestions.length}</span>
                         </div>
                         {filteredSuggestions.map((work, idx) => (
                           <button
@@ -833,7 +833,7 @@ export default function ResearchTab({
                             <span className="text-xs font-bold text-slate-700 group-hover:text-blue-600 line-clamp-2 leading-snug">
                               {work.title}
                             </span>
-                            <div className="flex items-center gap-2 text-[9px] text-slate-400 font-medium truncate">
+                            <div className="flex items-center gap-2 text-xs text-slate-400 font-medium truncate">
                               <span className="bg-slate-100 text-slate-600 px-1.5 py-0.2 rounded shrink-0 font-bold">
                                 {getResearchTypeName(work.type)}
                               </span>
@@ -851,13 +851,13 @@ export default function ResearchTab({
                   </div>
 
                   <div className="col-span-2 lg:col-span-2">
-                    <label className="text-[13px] font-bold text-slate-500 block mb-1">
+                    <label className="text-xs font-bold text-slate-500 block mb-1">
                       Chọn loại thành tựu / Đề tài NCKH <span className="text-rose-500">*</span>
                     </label>
                     <select
                       value={formType}
                       onChange={(e) => setFormType(e.target.value as ResearchType)}
-                      className="text-[13px] w-full border border-slate-200 rounded-lg px-3 py-2 bg-slate-50 focus:outline-hidden focus:ring-2 focus:ring-blue-500 font-medium"
+                      className="text-xs w-full border border-slate-200 rounded-lg px-3 py-2 bg-slate-50 focus:outline-hidden focus:ring-2 focus:ring-blue-500 font-medium"
                     >
                       {ACTIVITY_DATA.map((cat) => (
                         <optgroup key={cat.category} label={cat.category}>
@@ -872,13 +872,13 @@ export default function ResearchTab({
                   </div>
 
                   <div className="col-span-2 lg:col-span-2">
-                    <label className="text-[13px] font-bold text-slate-500 block mb-1">
+                    <label className="text-xs font-bold text-slate-500 block mb-1">
                       Vai trò thực hiện <span className="text-rose-500">*</span>
                     </label>
                     <select
                       value={formRole}
                       onChange={(e) => setFormRole(e.target.value as any)}
-                      className="text-[13px] w-full border border-slate-150 rounded-lg px-3 py-2 bg-slate-50 focus:outline-hidden focus:ring-2 focus:ring-blue-500 font-medium"
+                      className="text-xs w-full border border-slate-150 rounded-lg px-3 py-2 bg-slate-50 focus:outline-hidden focus:ring-2 focus:ring-blue-500 font-medium"
                     >
                       {availableRoles.map(r => (
                         <option key={r.value} value={r.value}>{r.label}</option>
@@ -889,7 +889,7 @@ export default function ResearchTab({
                   {/* Group for Quantity, Years, and Members */}
                   <div className="col-span-2 lg:col-span-4 grid grid-cols-3 gap-3 bg-slate-50/50 p-3 rounded-lg border border-slate-100">
                     <div>
-                      <label className="text-[10px] font-bold text-slate-500 uppercase block mb-1">
+                      <label className="text-xs font-bold text-slate-500 uppercase block mb-1">
                         Số lượng <span className="text-rose-500">*</span>
                       </label>
                       <input
@@ -898,11 +898,11 @@ export default function ResearchTab({
                         required
                         value={formQuantity}
                         onChange={(e) => setFormQuantity(Math.max(1, Number(e.target.value)))}
-                        className="text-[13px] w-full border border-slate-200 rounded-lg px-3 py-1.5 focus:outline-hidden focus:ring-2 focus:ring-blue-500 font-semibold font-mono bg-white"
+                        className="text-xs w-full border border-slate-200 rounded-lg px-3 py-1.5 focus:outline-hidden focus:ring-2 focus:ring-blue-500 font-semibold font-mono bg-white"
                       />
                     </div>
                     <div>
-                      <label className="text-[10px] font-bold text-slate-500 uppercase block mb-1">
+                      <label className="text-xs font-bold text-slate-500 uppercase block mb-1">
                         Số năm thực hiện <span className="text-rose-500">*</span>
                       </label>
                       <input
@@ -911,11 +911,11 @@ export default function ResearchTab({
                         required
                         value={formYears}
                         onChange={(e) => setFormYears(Math.max(1, Number(e.target.value)))}
-                        className="text-[13px] w-full border border-slate-200 rounded-lg px-3 py-1.5 focus:outline-hidden focus:ring-2 focus:ring-blue-500 font-semibold font-mono bg-white"
+                        className="text-xs w-full border border-slate-200 rounded-lg px-3 py-1.5 focus:outline-hidden focus:ring-2 focus:ring-blue-500 font-semibold font-mono bg-white"
                       />
                     </div>
                     <div>
-                      <label className="text-[10px] font-bold text-slate-500 uppercase block mb-1">
+                      <label className="text-xs font-bold text-slate-500 uppercase block mb-1">
                         Số thành viên <span className="text-rose-500">*</span>
                       </label>
                       <input
@@ -924,13 +924,13 @@ export default function ResearchTab({
                         required
                         value={formMembers}
                         onChange={(e) => setFormMembers(Math.max(1, Number(e.target.value)))}
-                        className="text-[13px] w-full border border-slate-200 rounded-lg px-3 py-1.5 focus:outline-hidden focus:ring-2 focus:ring-blue-500 font-semibold font-mono bg-white"
+                        className="text-xs w-full border border-slate-200 rounded-lg px-3 py-1.5 focus:outline-hidden focus:ring-2 focus:ring-blue-500 font-semibold font-mono bg-white"
                       />
                     </div>
                   </div>
 
                   <div className="col-span-2 lg:col-span-2">
-                    <label className="text-[13px] font-bold text-slate-500 block mb-1">
+                    <label className="text-xs font-bold text-slate-500 block mb-1">
                       Tạp chí / Đơn vị nghiệm thu cấp phép <span className="text-rose-500">*</span>
                     </label>
                     <input
@@ -939,12 +939,12 @@ export default function ResearchTab({
                       placeholder="Ví dụ: Elsevier / Springer / Cục SHTT / ĐH Quốc Gia"
                       value={formJournal}
                       onChange={(e) => setFormJournal(e.target.value)}
-                      className="text-[13px] w-full border border-slate-200 rounded-lg px-3 py-2 bg-slate-50 focus:outline-hidden focus:ring-2 focus:ring-blue-500 font-medium"
+                      className="text-xs w-full border border-slate-200 rounded-lg px-3 py-2 bg-slate-50 focus:outline-hidden focus:ring-2 focus:ring-blue-500 font-medium"
                     />
                   </div>
 
                   <div className="col-span-2 lg:col-span-1">
-                    <label className="text-[13px] font-bold text-slate-500 block mb-1">
+                    <label className="text-xs font-bold text-slate-500 block mb-1">
                       Năm xuất bản / nghiệm thu
                     </label>
                     <input
@@ -952,18 +952,18 @@ export default function ResearchTab({
                       placeholder="2024"
                       value={formPublicationYear}
                       onChange={(e) => setFormPublicationYear(e.target.value)}
-                      className="text-[13px] w-full border border-slate-200 rounded-lg px-3 py-2 bg-slate-50 focus:outline-hidden focus:ring-2 focus:ring-blue-500 font-mono"
+                      className="text-xs w-full border border-slate-200 rounded-lg px-3 py-2 bg-slate-50 focus:outline-hidden focus:ring-2 focus:ring-blue-500 font-mono"
                     />
                   </div>
 
                   <div className="col-span-2 lg:col-span-1">
-                    <label className="text-[13px] font-bold text-slate-500 block mb-1">
+                    <label className="text-xs font-bold text-slate-500 block mb-1">
                       Chọn Năm học <span className="text-rose-500">*</span>
                     </label>
                     <select
                       value={formPeriod}
                       onChange={(e) => setFormPeriod(e.target.value)}
-                      className="text-[13px] w-full border border-slate-200 rounded-lg px-3 py-2 bg-slate-50 focus:outline-hidden focus:ring-2 focus:ring-blue-500 font-medium"
+                      className="text-xs w-full border border-slate-200 rounded-lg px-3 py-2 bg-slate-50 focus:outline-hidden focus:ring-2 focus:ring-blue-500 font-medium"
                     >
                       {academicYears && academicYears.length > 0 ? (
                         academicYears.map((yr) => (
@@ -978,14 +978,14 @@ export default function ResearchTab({
                   </div>
 
                   <div className="col-span-2 lg:col-span-2">
-                    <label className="text-[13px] font-bold text-slate-500 block mb-1">
+                    <label className="text-xs font-bold text-slate-500 block mb-1">
                       Tình trạng kiểm tra
                     </label>
                     <select
                       value={formStatus}
                       disabled={!isAdmin}
                       onChange={(e) => setFormStatus(e.target.value as any)}
-                      className={`text-[13px] w-full border border-slate-200 rounded-lg px-3 py-2 bg-slate-50 focus:outline-hidden focus:ring-2 focus:ring-blue-500 font-medium ${!isAdmin ? 'opacity-70 cursor-not-allowed' : ''}`}
+                      className="text-xs w-full border border-slate-200 rounded-lg px-3 py-2 bg-slate-50 focus:outline-hidden focus:ring-2 focus:ring-blue-500 font-medium"
                     >
                       <option value="approved">Đã kiểm tra chứng minh & duyệt</option>
                       <option value="pending">Đang chờ bộ môn xét duyệt</option>
@@ -994,7 +994,7 @@ export default function ResearchTab({
                   </div>
 
                   <div className="col-span-2 lg:col-span-2">
-                    <label className="text-[13px] font-bold text-slate-500 block mb-1">
+                    <label className="text-xs font-bold text-slate-500 block mb-1">
                       Tài liệu đính kèm hoặc Mô tả link minh chứng
                     </label>
                     <textarea
@@ -1002,17 +1002,17 @@ export default function ResearchTab({
                       value={formNotes}
                       onChange={(e) => setFormNotes(e.target.value)}
                       rows={2}
-                      className="text-[13px] w-full border border-slate-200 rounded-lg px-3 py-2 bg-slate-50 focus:outline-hidden focus:ring-2 focus:ring-blue-500 font-medium"
+                      className="text-xs w-full border border-slate-200 rounded-lg px-3 py-2 bg-slate-50 focus:outline-hidden focus:ring-2 focus:ring-blue-500 font-medium"
                     />
                   </div>
                 </div>
 
                 {/* Automation highlight card */}
-                <div className="bg-emerald-50/50 rounded-xl p-3.5 border border-emerald-100 flex gap-3 text-[13px]">
+                <div className="bg-emerald-50/50 rounded-xl p-3.5 border border-emerald-100 flex gap-3 text-xs">
                   <Sparkles className="w-5 h-5 text-emerald-600 shrink-0 mt-0.5" />
                   <div className="space-y-1.5 flex-1">
                     <span className="font-bold text-emerald-950 block">Quy đổi Giờ chuẩn khoa học:</span>
-                    <div className="grid grid-cols-2 gap-y-1 gap-x-2 text-[11px] text-slate-600">
+                    <div className="grid grid-cols-2 gap-y-1 gap-x-2 text-xs text-slate-600">
                       <div>
                         <span>Giờ quy chuẩn:</span>
                         <input 
@@ -1036,13 +1036,13 @@ export default function ResearchTab({
                   <button
                     type="button"
                     onClick={() => setIsModalOpen(false)}
-                    className="border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 font-semibold text-[13px] px-4 py-2 rounded-lg cursor-pointer transition-colors"
+                    className="border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 font-semibold text-xs px-4 py-2 rounded-lg cursor-pointer transition-colors"
                   >
                     Hủy bỏ
                   </button>
                   <button
                     type="submit"
-                    className="bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white font-bold text-[13px] px-4 py-2 rounded-lg shadow-xs cursor-pointer transition-colors"
+                    className="bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white font-bold text-xs px-4 py-2 rounded-lg shadow-xs cursor-pointer transition-colors"
                   >
                     Khai báo công trình
                   </button>
@@ -1066,10 +1066,10 @@ export default function ResearchTab({
                 </div>
                 <div className="space-y-1.5 flex-1">
                   <h3 className="text-sm font-extrabold text-slate-800">Xác nhận xóa công trình NCKH</h3>
-                  <p className="text-[13px] text-slate-500 leading-relaxed">
+                  <p className="text-xs text-slate-500 leading-relaxed">
                     Bạn có chắc chắn muốn xóa minh chứng nghiên cứu khoa học: <strong className="text-slate-800">"{researchToDelete.title}"</strong>?
                   </p>
-                  <p className="text-[11px] text-slate-400 font-medium">
+                  <p className="text-xs text-slate-400 font-medium">
                     Hành động này không thể hoàn tác. Số giờ quy đổi nghiên cứu khoa học liên quan sẽ được khấu trừ khỏi tổng số giờ của giảng viên.
                   </p>
                 </div>
@@ -1077,13 +1077,13 @@ export default function ResearchTab({
               <div className="mt-5 pt-3.5 border-t border-slate-100 flex justify-end gap-2.5">
                 <button
                   onClick={() => setResearchToDelete(null)}
-                  className="px-3 py-1.5 border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 font-bold text-[13px] rounded-lg cursor-pointer transition-colors"
+                  className="px-3 py-1.5 border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 font-bold text-xs rounded-lg cursor-pointer transition-colors"
                 >
                   Hủy bỏ
                 </button>
                 <button
                   onClick={executeDelete}
-                  className="px-3.5 py-1.5 bg-rose-600 hover:bg-rose-700 text-white font-bold text-[13px] rounded-lg cursor-pointer shadow-xs transition-colors"
+                  className="px-3.5 py-1.5 bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs rounded-lg cursor-pointer shadow-xs transition-colors"
                 >
                   Xác nhận Xóa
                 </button>

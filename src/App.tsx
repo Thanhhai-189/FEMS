@@ -446,7 +446,7 @@ export default function App() {
     return (
       <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center p-4">
         <div className="w-10 h-10 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
-        <p className="mt-4 text-[13px] font-bold text-slate-500">Đang đồng bộ cơ sở dữ liệu Firebase...</p>
+        <p className="mt-4 text-xs font-bold text-slate-500">Đang đồng bộ cơ sở dữ liệu Firebase...</p>
       </div>
     );
   }
@@ -472,8 +472,8 @@ export default function App() {
             referrerPolicy="no-referrer"
           />
           <div className="leading-tight">
-            <p className="text-[13px] font-extrabold text-sky-300 header-khoa">KHOA Ô TÔ </p>
-            <h1 className="font-bold text-[13px] tracking-wider text-white uppercase font-display">TRƯỜNG SQKTQS</h1>
+            <p className="text-xs font-extrabold text-sky-300 header-khoa">KHOA Ô TÔ </p>
+            <h1 className="font-bold text-xs tracking-wider text-white uppercase font-display">TRƯỜNG SQKTQS</h1>
             <div className="h-[2px] w-full bg-yellow-400 mt-1.5" />
 
           </div>
@@ -482,7 +482,7 @@ export default function App() {
         <nav className="flex-1 py-6 space-y-1 overflow-y-auto">
           <button
             onClick={() => setActiveTab('stats')}
-            className={`w-full flex items-center gap-3 px-6 py-3 border-l-4 text-[13px] font-semibold uppercase tracking-wider transition-all text-left cursor-pointer ${
+            className={`w-full flex items-center gap-3 px-6 py-3 border-l-4 text-xs font-semibold uppercase tracking-wider transition-all text-left cursor-pointer ${
               activeTab === 'stats' 
                 ? 'bg-[#094870]/50 border-sky-400 text-sky-200 font-extrabold' 
                 : 'border-transparent text-slate-300/85 hover:text-white hover:bg-white/5'
@@ -494,7 +494,7 @@ export default function App() {
 
           <button
             onClick={() => setActiveTab('teachers')}
-            className={`w-full flex items-center gap-3 px-6 py-3 border-l-4 text-[13px] font-semibold uppercase tracking-wider transition-all text-left cursor-pointer ${
+            className={`w-full flex items-center gap-3 px-6 py-3 border-l-4 text-xs font-semibold uppercase tracking-wider transition-all text-left cursor-pointer ${
               activeTab === 'teachers' 
                 ? 'bg-[#094870]/50 border-sky-400 text-sky-200 font-extrabold' 
                 : 'border-transparent text-slate-300/85 hover:text-white hover:bg-white/5'
@@ -506,7 +506,7 @@ export default function App() {
 
           <button
             onClick={() => setActiveTab('teaching')}
-            className={`w-full flex items-center gap-3 px-6 py-3 border-l-4 text-[13px] font-semibold uppercase tracking-wider transition-all text-left cursor-pointer ${
+            className={`w-full flex items-center gap-3 px-6 py-3 border-l-4 text-xs font-semibold uppercase tracking-wider transition-all text-left cursor-pointer ${
               activeTab === 'teaching' 
                 ? 'bg-[#094870]/50 border-sky-400 text-sky-200 font-extrabold' 
                 : 'border-transparent text-slate-300/85 hover:text-white hover:bg-white/5'
@@ -518,7 +518,7 @@ export default function App() {
 
           <button
             onClick={() => setActiveTab('research')}
-            className={`w-full flex items-center gap-3 px-6 py-3 border-l-4 text-[13px] font-semibold uppercase tracking-wider transition-all text-left cursor-pointer ${
+            className={`w-full flex items-center gap-3 px-6 py-3 border-l-4 text-xs font-semibold uppercase tracking-wider transition-all text-left cursor-pointer ${
               activeTab === 'research' 
                 ? 'bg-[#094870]/50 border-sky-400 text-sky-200 font-extrabold' 
                 : 'border-transparent text-slate-300/85 hover:text-white hover:bg-white/5'
@@ -530,7 +530,7 @@ export default function App() {
 
           <button
             onClick={() => setActiveTab('standards')}
-            className={`w-full flex items-center gap-3 px-6 py-3 border-l-4 text-[13px] font-semibold uppercase tracking-wider transition-all text-left cursor-pointer ${
+            className={`w-full flex items-center gap-3 px-6 py-3 border-l-4 text-xs font-semibold uppercase tracking-wider transition-all text-left cursor-pointer ${
               activeTab === 'standards' 
                 ? 'bg-[#094870]/50 border-sky-400 text-sky-200 font-extrabold' 
                 : 'border-transparent text-slate-300/85 hover:text-white hover:bg-white/5'
@@ -542,7 +542,7 @@ export default function App() {
 
           <button
             onClick={() => setActiveTab('account')}
-            className={`w-full flex items-center gap-3 px-6 py-3 border-l-4 text-[13px] font-semibold uppercase tracking-wider transition-all text-left cursor-pointer ${
+            className={`w-full flex items-center gap-3 px-6 py-3 border-l-4 text-xs font-semibold uppercase tracking-wider transition-all text-left cursor-pointer ${
               activeTab === 'account' 
                 ? 'bg-[#094870]/50 border-sky-400 text-sky-200 font-extrabold' 
                 : 'border-transparent text-slate-300/85 hover:text-white hover:bg-white/5'
@@ -558,7 +558,7 @@ export default function App() {
 
               <button
                 onClick={() => setActiveTab('settings')}
-                className={`w-full flex items-center gap-3 px-6 py-3 border-l-4 text-[13px] font-semibold uppercase tracking-wider transition-all text-left cursor-pointer ${
+                className={`w-full flex items-center gap-3 px-6 py-3 border-l-4 text-xs font-semibold uppercase tracking-wider transition-all text-left cursor-pointer ${
                   activeTab === 'settings' 
                     ? 'bg-[#094870]/50 border-sky-400 text-sky-200 font-extrabold' 
                     : 'border-transparent text-slate-300/85 hover:text-white hover:bg-white/5'
@@ -591,11 +591,11 @@ export default function App() {
                         referrerPolicy="no-referrer"
                       />
                     ) : (
-                      <div className="w-7 h-7 rounded-lg bg-blue-600 flex items-center justify-center font-extrabold text-[13px] text-white font-mono">AD</div>
+                      <div className="w-7 h-7 rounded-lg bg-blue-600 flex items-center justify-center font-extrabold text-xs text-white font-mono">AD</div>
                     )}
-                    <div className="text-[13px] min-w-0 flex-1">
+                    <div className="text-xs min-w-0 flex-1">
                       <p className="font-bold text-slate-200 truncate">{displayName}</p>
-                      <p className="text-[13px] text-sky-200/70">Admin</p>
+                      <p className="text-xs text-sky-200/70">Admin</p>
                     </div>
                   </>
                 );
@@ -610,11 +610,11 @@ export default function App() {
                         referrerPolicy="no-referrer"
                       />
                     ) : (
-                      <div className="w-7 h-7 rounded-lg bg-emerald-600 flex items-center justify-center font-extrabold text-[13px] text-white font-mono">GV</div>
+                      <div className="w-7 h-7 rounded-lg bg-emerald-600 flex items-center justify-center font-extrabold text-xs text-white font-mono">GV</div>
                     )}
-                    <div className="text-[13px] min-w-0 flex-1">
+                    <div className="text-xs min-w-0 flex-1">
                       <p className="font-bold text-slate-200 truncate">{displayName}</p>
-                      <p className="text-[13px] text-sky-200/70 truncate">Giảng viên Khoa</p>
+                      <p className="text-xs text-sky-200/70 truncate">Giảng viên Khoa</p>
                     </div>
                   </>
                 );
@@ -623,7 +623,7 @@ export default function App() {
           </div>
           <button
             onClick={handleLogout}
-            className="w-full flex items-center justify-center gap-2 bg-[#094870]/40 hover:bg-rose-950/40 hover:text-rose-300 text-blue-200 hover:border-rose-500/30 font-bold text-[13px] py-1.5 px-3 rounded-lg border border-white/10 cursor-pointer transition-colors"
+            className="w-full flex items-center justify-center gap-2 bg-[#094870]/40 hover:bg-rose-950/40 hover:text-rose-300 text-blue-200 hover:border-rose-500/30 font-bold text-xs py-1.5 px-3 rounded-lg border border-white/10 cursor-pointer transition-colors"
           >
             <LogOut className="w-3.5 h-3.5" />
             Đăng xuất
@@ -650,7 +650,7 @@ export default function App() {
           </div>
 
           <div className="flex items-center gap-3">
-            <div className="flex items-center gap-1.5 text-[13px] text-slate-500 font-semibold bg-slate-50 border border-slate-200 rounded-lg py-1 px-2.5 shadow-2xs">
+            <div className="flex items-center gap-1.5 text-xs text-slate-500 font-semibold bg-slate-50 border border-slate-200 rounded-lg py-1 px-2.5 shadow-2xs">
               <Calendar className="w-3.5 h-3.5 text-blue-500 shrink-0" />
               <span className="hidden xs:inline shrink-0">Năm học: </span>
               <select
@@ -682,7 +682,7 @@ export default function App() {
             <div className="flex gap-1.5">
               <button
                 onClick={() => setActiveTab('stats')}
-                className={`text-[13px] font-bold px-3 py-1.5 rounded-lg transition-all shrink-0 cursor-pointer ${
+                className={`text-xs font-bold px-3 py-1.5 rounded-lg transition-all shrink-0 cursor-pointer ${
                   activeTab === 'stats' 
                     ? 'bg-[#094870] text-white font-extrabold shadow-sm border border-white/10' 
                     : 'text-blue-200/80 hover:text-white'
@@ -692,7 +692,7 @@ export default function App() {
               </button>
               <button
                 onClick={() => setActiveTab('teachers')}
-                className={`text-[13px] font-bold px-3 py-1.5 rounded-lg transition-all shrink-0 cursor-pointer ${
+                className={`text-xs font-bold px-3 py-1.5 rounded-lg transition-all shrink-0 cursor-pointer ${
                   activeTab === 'teachers' 
                     ? 'bg-[#094870] text-white font-extrabold shadow-sm border border-white/10' 
                     : 'text-blue-200/80 hover:text-white'
@@ -702,7 +702,7 @@ export default function App() {
               </button>
               <button
                 onClick={() => setActiveTab('teaching')}
-                className={`text-[13px] font-bold px-3 py-1.5 rounded-lg transition-all shrink-0 cursor-pointer ${
+                className={`text-xs font-bold px-3 py-1.5 rounded-lg transition-all shrink-0 cursor-pointer ${
                   activeTab === 'teaching' 
                     ? 'bg-[#094870] text-white font-extrabold shadow-sm border border-white/10' 
                     : 'text-blue-200/80 hover:text-white'
@@ -712,7 +712,7 @@ export default function App() {
               </button>
               <button
                 onClick={() => setActiveTab('research')}
-                className={`text-[13px] font-bold px-3 py-1.5 rounded-lg transition-all shrink-0 cursor-pointer ${
+                className={`text-xs font-bold px-3 py-1.5 rounded-lg transition-all shrink-0 cursor-pointer ${
                   activeTab === 'research' 
                     ? 'bg-[#094870] text-white font-extrabold shadow-sm border border-white/10' 
                     : 'text-blue-200/80 hover:text-white'
@@ -722,7 +722,7 @@ export default function App() {
               </button>
               <button
                 onClick={() => setActiveTab('standards')}
-                className={`text-[13px] font-bold px-3 py-1.5 rounded-lg transition-all shrink-0 cursor-pointer ${
+                className={`text-xs font-bold px-3 py-1.5 rounded-lg transition-all shrink-0 cursor-pointer ${
                   activeTab === 'standards' 
                     ? 'bg-[#094870] text-white font-extrabold shadow-sm border border-white/10' 
                     : 'text-blue-200/80 hover:text-white'
@@ -732,7 +732,7 @@ export default function App() {
               </button>
               <button
                 onClick={() => setActiveTab('account')}
-                className={`text-[13px] font-bold px-3 py-1.5 rounded-lg transition-all shrink-0 cursor-pointer ${
+                className={`text-xs font-bold px-3 py-1.5 rounded-lg transition-all shrink-0 cursor-pointer ${
                   activeTab === 'account' 
                     ? 'bg-[#094870] text-white font-extrabold shadow-sm border border-white/10' 
                     : 'text-blue-200/80 hover:text-white'
@@ -743,7 +743,7 @@ export default function App() {
               {currentUser?.role === 'admin' && (
                 <button
                   onClick={() => setActiveTab('settings')}
-                  className={`text-[13px] font-bold px-3 py-1.5 rounded-lg transition-all shrink-0 cursor-pointer ${
+                  className={`text-xs font-bold px-3 py-1.5 rounded-lg transition-all shrink-0 cursor-pointer ${
                     activeTab === 'settings' 
                       ? 'bg-[#094870] text-white font-extrabold shadow-sm border border-white/10' 
                       : 'text-blue-200/80 hover:text-white'
@@ -849,7 +849,7 @@ export default function App() {
 
         {/* Humble, clean professional footer */}
         <footer className="bg-white border-t border-slate-200 py-5 px-4 sm:px-8">
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-4 text-[13px] text-slate-400">
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-400">
             <div className="flex items-center gap-1">
               <span>© {new Date().getFullYear()} FEMS-Portal. Hệ thống thông tin phân bộ giảng dạy chuẩn khoa.</span>
             </div>

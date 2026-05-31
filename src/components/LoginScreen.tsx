@@ -175,17 +175,17 @@ export default function LoginScreen({ teachers, onLogin }: LoginScreenProps) {
 
           <div className="space-y-2">
             <h2 className="text-lg font-bold text-white">Xác thực địa chỉ Email</h2>
-            <p className="text-[13px] text-slate-300 leading-relaxed">
+            <p className="text-xs text-slate-300 leading-relaxed">
               Hệ thống yêu cầu xác nhận email để bảo mật thông tin hồ sơ của giảng viên.
             </p>
           </div>
 
-          <div className="bg-slate-900/40 border border-white/5 rounded-xl p-4 text-[13px] text-sky-200 leading-relaxed text-left">
+          <div className="bg-slate-900/40 border border-white/5 rounded-xl p-4 text-xs text-sky-200 leading-relaxed text-left">
             {verifyMessage}
           </div>
 
           {error && (
-            <div className="bg-rose-950/50 border border-rose-500/20 text-rose-300 p-3 rounded-lg text-[13px] font-medium flex gap-2 items-center text-left">
+            <div className="bg-rose-950/50 border border-rose-500/20 text-rose-300 p-3 rounded-lg text-xs font-medium flex gap-2 items-center text-left">
               <AlertCircle className="w-4 h-4 shrink-0 text-rose-400" />
               <span>{error}</span>
             </div>
@@ -196,7 +196,7 @@ export default function LoginScreen({ teachers, onLogin }: LoginScreenProps) {
               id="btn_confirm_verified"
               onClick={handleCheckReloadVerification}
               disabled={loading}
-              className="w-full inline-flex items-center justify-center gap-1.5 bg-sky-500 hover:bg-sky-600 active:bg-sky-700 disabled:bg-sky-800 text-white font-bold text-[13px] py-2.5 px-4 rounded-xl cursor-pointer shadow-md shadow-sky-500/10 transition-colors"
+              className="w-full inline-flex items-center justify-center gap-1.5 bg-sky-500 hover:bg-sky-600 active:bg-sky-700 disabled:bg-sky-800 text-white font-bold text-xs py-2.5 px-4 rounded-xl cursor-pointer shadow-md shadow-sky-500/10 transition-colors"
             >
               Tôi đã xác nhận
             </button>
@@ -204,7 +204,7 @@ export default function LoginScreen({ teachers, onLogin }: LoginScreenProps) {
               id="btn_back_to_login"
               onClick={() => { setNeedsVerification(false); setError(''); }}
               disabled={loading}
-              className="w-full inline-flex items-center justify-center gap-1.5 bg-white/10 hover:bg-white/25 disabled:bg-white/5 text-slate-100 font-bold text-[13px] py-2.5 px-4 rounded-xl cursor-pointer border border-white/10 transition-colors"
+              className="w-full inline-flex items-center justify-center gap-1.5 bg-white/10 hover:bg-white/25 disabled:bg-white/5 text-slate-100 font-bold text-xs py-2.5 px-4 rounded-xl cursor-pointer border border-white/10 transition-colors"
             >
               Quay lại đăng nhập
             </button>
@@ -230,10 +230,10 @@ export default function LoginScreen({ teachers, onLogin }: LoginScreenProps) {
           <div className="flex flex-row items-center gap-3.5 md:gap-6 text-left">
             <VietnamMilitaryEmblem />
             <div className="space-y-1 md:space-y-1.5 self-center">
-              <h1 className="font-extrabold text-sm md:text-[17px] tracking-wider uppercase text-sky-200 leading-tight">
+              <h1 className="font-extrabold text-sm md:text-sm tracking-wider uppercase text-sky-200 leading-tight">
                 Khoa Ô Tô
               </h1>
-              <h2 className="font-semibold text-slate-300 text-[11px] md:text-[13px] uppercase tracking-wide leading-tight">
+              <h2 className="font-semibold text-slate-300 text-xs md:text-xs uppercase tracking-wide leading-tight">
                 Trường Sĩ quan Kỹ thuật Quân sự
               </h2>
               <div className="h-[2px] w-full bg-yellow-400 mt-1.5" />
@@ -253,7 +253,7 @@ export default function LoginScreen({ teachers, onLogin }: LoginScreenProps) {
               <div className="w-5 h-5 rounded-full bg-yellow-400/10 flex items-center justify-center text-yellow-400 shrink-0 mt-0.5">
                 <ShieldCheck className="w-3.5 h-3.5" />
               </div>
-              <div className="text-[13px]">
+              <div className="text-xs">
                 <p className="font-bold text-slate-200">Thống kê số liệu giờ giảng & NCKH</p>
                 <p className="text-slate-400 text-xs mt-0.5">Tổng hợp định mức tối thiểu, miễn giảm, và số giờ vượt cấp theo từng năm học.</p>
               </div>
@@ -264,7 +264,7 @@ export default function LoginScreen({ teachers, onLogin }: LoginScreenProps) {
               <div className="w-5 h-5 rounded-full bg-sky-400/10 flex items-center justify-center text-sky-400 shrink-0 mt-0.5">
                 <Phone className="w-3.5 h-3.5" />
               </div>
-              <div className="text-[13px]">
+              <div className="text-xs">
                 <p className="font-bold text-slate-200">Hỗ trợ kỹ thuật</p>
                 <p className="text-slate-400 text-xs mt-0.5">
                   Email liên hệ: <span className="text-sky-300 font-semibold font-mono">thanhhaihvkt@gmail.com</span> <br />
@@ -277,7 +277,7 @@ export default function LoginScreen({ teachers, onLogin }: LoginScreenProps) {
               <div className="w-5 h-5 rounded-full bg-emerald-400/10 flex items-center justify-center text-emerald-400 shrink-0 mt-0.5">
                 <FileText className="w-3.5 h-3.5" />
               </div>
-              <div className="text-[13px] space-y-1">
+              <div className="text-xs space-y-1">
                 <p className="font-bold text-slate-200">Tài liệu & Hướng dẫn sử dụng</p>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-1 text-sky-350 text-xs">
                   <a href="#" className="hover:text-yellow-400 inline-flex items-center gap-1 transition-colors font-medium">
@@ -292,7 +292,7 @@ export default function LoginScreen({ teachers, onLogin }: LoginScreenProps) {
           </div>
 
           {/* Footer Copyright */}
-          <p className="text-[11px] text-slate-400 font-medium tracking-wide pt-2 hidden md:block">
+          <p className="text-xs text-slate-400 font-medium tracking-wide pt-2 hidden md:block">
             2026 © Khoa Ô tô - Trường Sĩ quan Kỹ thuật Quân sự
           </p>
         </div>
@@ -310,7 +310,7 @@ export default function LoginScreen({ teachers, onLogin }: LoginScreenProps) {
             <div className="absolute inset-1.5 border border-dashed border-white/20 rounded-xl pointer-events-none" />
 
             {error && (
-              <div className="bg-rose-950/55 border border-rose-500/30 text-rose-300 p-3 md:p-3.5 rounded-xl text-[12px] md:text-[13px] font-semibold flex gap-2 md:gap-2.5 items-center relative z-10">
+              <div className="bg-rose-950/55 border border-rose-500/30 text-rose-300 p-3 md:p-3.5 rounded-xl text-xs md:text-xs font-semibold flex gap-2 md:gap-2.5 items-center relative z-10">
                 <AlertCircle className="w-4 h-4 shrink-0 text-rose-400" />
                 <span>{error}</span>
               </div>
@@ -318,7 +318,7 @@ export default function LoginScreen({ teachers, onLogin }: LoginScreenProps) {
 
             <form onSubmit={handleSignIn} className="space-y-3 md:space-y-4 relative z-10">
               <div className="space-y-1">
-                <label className="text-[10px] md:text-[11px] font-extrabold text-blue-200 uppercase tracking-wider block">
+                <label className="text-xs md:text-xs font-extrabold text-blue-200 uppercase tracking-wider block">
                   Tên đăng nhập / Email
                 </label>
                 <div className="relative">
@@ -330,13 +330,13 @@ export default function LoginScreen({ teachers, onLogin }: LoginScreenProps) {
                     placeholder="email@example.com"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    className="text-[13px] w-full border border-white/10 rounded-lg pl-10 pr-3.5 py-2.5 md:py-3.5 bg-slate-900/40 focus:outline-hidden focus:ring-2 focus:ring-sky-500 font-medium text-white placeholder:text-slate-400 transition-all shadow-inner"
+                    className="text-xs w-full border border-white/10 rounded-lg pl-10 pr-3.5 py-2.5 md:py-3.5 bg-slate-900/40 focus:outline-hidden focus:ring-2 focus:ring-sky-500 font-medium text-white placeholder:text-slate-400 transition-all shadow-inner"
                   />
                 </div>
               </div>
 
               <div className="space-y-1">
-                <label className="text-[10px] md:text-[11px] font-extrabold text-blue-200 uppercase tracking-wider block">
+                <label className="text-xs md:text-xs font-extrabold text-blue-200 uppercase tracking-wider block">
                   Mật khẩu
                 </label>
                 <div className="relative">
@@ -348,7 +348,7 @@ export default function LoginScreen({ teachers, onLogin }: LoginScreenProps) {
                     placeholder="••••••••"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    className="text-[13px] w-full border border-white/10 rounded-lg pl-10 pr-11 py-2.5 md:py-3.5 bg-slate-900/40 focus:outline-hidden focus:ring-2 focus:ring-sky-500 font-medium text-white placeholder:text-slate-400 transition-all shadow-inner"
+                    className="text-xs w-full border border-white/10 rounded-lg pl-10 pr-11 py-2.5 md:py-3.5 bg-slate-900/40 focus:outline-hidden focus:ring-2 focus:ring-sky-500 font-medium text-white placeholder:text-slate-400 transition-all shadow-inner"
                   />
                   <button
                     type="button"
@@ -364,7 +364,7 @@ export default function LoginScreen({ teachers, onLogin }: LoginScreenProps) {
                 id="btn_login_submit"
                 type="submit"
                 disabled={loading}
-                className="w-full inline-flex items-center justify-center gap-2 bg-[#2d9bf0] hover:bg-[#3caafd] active:bg-[#1a8be0] disabled:bg-blue-300/40 disabled:text-blue-200/50 text-white font-extrabold text-[13px] md:text-[13.5px] uppercase tracking-wider py-2.5 md:py-3.5 px-4 rounded-lg cursor-pointer transition-all duration-150 select-none shadow-md mt-1 md:mt-2"
+                className="w-full inline-flex items-center justify-center gap-2 bg-[#2d9bf0] hover:bg-[#3caafd] active:bg-[#1a8be0] disabled:bg-blue-300/40 disabled:text-blue-200/50 text-white font-extrabold text-xs md:text-xs uppercase tracking-wider py-2.5 md:py-3.5 px-4 rounded-lg cursor-pointer transition-all duration-150 select-none shadow-md mt-1 md:mt-2"
               >
                 {loading ? 'Đang xác thực...' : 'Đăng nhập'}
               </button>
@@ -374,7 +374,7 @@ export default function LoginScreen({ teachers, onLogin }: LoginScreenProps) {
               <div className="absolute inset-0 flex items-center">
                 <div className="w-full border-t border-white/10" />
               </div>
-              <div className="relative flex justify-center text-[9px] md:text-[10px]">
+              <div className="relative flex justify-center text-xs md:text-xs">
                 <span className="bg-[#094870] px-3 font-extrabold text-slate-300 uppercase tracking-wider">
                   Hoặc
                 </span>
@@ -385,7 +385,7 @@ export default function LoginScreen({ teachers, onLogin }: LoginScreenProps) {
               id="btn_google_signin"
               onClick={handleGoogleSignIn}
               disabled={loading}
-              className="w-full inline-flex items-center justify-center gap-2.5 bg-[#0b2f4a] border border-white/5 text-white hover:bg-[#061e31] font-bold text-[13px] py-2.5 md:py-3 px-4 rounded-lg cursor-pointer transition-all select-none duration-150 relative z-10"
+              className="w-full inline-flex items-center justify-center gap-2.5 bg-[#0b2f4a] border border-white/5 text-white hover:bg-[#061e31] font-bold text-xs py-2.5 md:py-3 px-4 rounded-lg cursor-pointer transition-all select-none duration-150 relative z-10"
             >
               <svg className="w-4 h-4 shrink-0" viewBox="0 0 24 24">
                 <path
