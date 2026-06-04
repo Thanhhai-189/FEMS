@@ -1,12 +1,13 @@
 import { useState, useMemo, FormEvent } from 'react';
-import { Teacher, AcademicRank, DepartmentConfig } from '../types';
+import { Teacher, AcademicRank, DepartmentConfig, WorkHistory } from '../types';
 import { getRankString } from '../data';
 import { 
   UserPlus, Search, Edit2, Trash2, Shield, Mail, Building, 
   MapPin, UserCheck, UserX, X, AlertTriangle, ChevronRight, Eye,
-  Calendar, Award, Briefcase, GraduationCap, Sparkles
+  Calendar, Award, Briefcase, GraduationCap, Sparkles, Clock
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
+import WorkHistoryManager from './WorkHistoryManager';
 
 interface TeacherListProps {
   teachers: Teacher[];
@@ -16,6 +17,11 @@ interface TeacherListProps {
   onDeleteTeacher: (id: string) => void;
   userRole?: 'admin' | 'teacher';
   currentTeacherId?: string;
+  workHistories?: WorkHistory[];
+  academicYears?: { id: string; year: string; isActive: boolean }[];
+  onAddWorkHistory?: (wh: WorkHistory) => void;
+  onEditWorkHistory?: (wh: WorkHistory) => void;
+  onDeleteWorkHistory?: (id: string) => void;
 }
 
 export default function TeacherList({ 
@@ -25,7 +31,12 @@ export default function TeacherList({
   onEditTeacher, 
   onDeleteTeacher,
   userRole = 'admin',
-  currentTeacherId 
+  currentTeacherId,
+  workHistories = [],
+  academicYears = [],
+  onAddWorkHistory,
+  onEditWorkHistory,
+  onDeleteWorkHistory
 }: TeacherListProps) {
   const isAdmin = userRole === 'admin';
 
@@ -65,7 +76,7 @@ export default function TeacherList({
   // Sate for custom delete confirmation modal
   const [teacherToDelete, setTeacherToDelete] = useState<{ id: string; name: string } | null>(null);
 
-  // Profile Drawer/View - pre-select themselves on startup if they are a teacher
+  // Profile View
   const [selectedTeacherProfile, setSelectedTeacherProfile] = useState<Teacher | null>(() => {
     if (userRole === 'teacher' && currentTeacherId) {
       return teachers.find(t => t.id === currentTeacherId) || null;
@@ -84,7 +95,6 @@ export default function TeacherList({
     setFormParty('Không kiêm nhiệm');
     setFormStatus('A');
     setFormReduction(0);
-    // Initialize new fields
     setFormStartYear('');
     setFormMasterObtainYear('');
     setFormPhdObtainYear('');
@@ -111,7 +121,6 @@ export default function TeacherList({
     setFormParty(teacher.party || 'Không kiêm nhiệm');
     setFormStatus(teacher.status);
     setFormReduction(teacher.reductionRate);
-    // Initialize new fields with teacher data
     setFormStartYear(teacher.startYear !== undefined ? teacher.startYear : '');
     setFormMasterObtainYear(teacher.masterObtainYear !== undefined ? teacher.masterObtainYear : '');
     setFormPhdObtainYear(teacher.phdObtainYear !== undefined ? teacher.phdObtainYear : '');
@@ -164,7 +173,6 @@ export default function TeacherList({
     } else {
       onAddTeacher(teacherData);
     }
-    // Update active profile view state if currently displaying the updated teacher
     if (selectedTeacherProfile && selectedTeacherProfile.id === teacherData.id) {
       setSelectedTeacherProfile(teacherData);
     }
@@ -201,7 +209,6 @@ export default function TeacherList({
       {/* Search and control bar */}
       <div className="bg-white p-4 rounded-xl border border-slate-100 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div className="flex-1 grid grid-cols-1 sm:grid-cols-3 gap-3">
-          {/* Search */}
           <div className="relative">
             <Search className="absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
             <input
@@ -213,7 +220,6 @@ export default function TeacherList({
             />
           </div>
 
-          {/* Dept filter */}
           <select
             value={selectedDept}
             onChange={(e) => setSelectedDept(e.target.value)}
@@ -228,7 +234,6 @@ export default function TeacherList({
             )}
           </select>
 
-          {/* Rank filter */}
           <select
             value={selectedRank}
             onChange={(e) => setSelectedRank(e.target.value)}
@@ -252,8 +257,8 @@ export default function TeacherList({
         )}
       </div>
 
+      {/* Teacher List */}
       <div className="w-full">
-        {/* Main Teacher List Grid - 1 Column Layout as before */}
         <div className="space-y-3">
           {filteredTeachers.length === 0 ? (
             <div className="bg-white p-12 text-center rounded-xl border border-dashed border-slate-200">
@@ -283,7 +288,6 @@ export default function TeacherList({
                       {getRankString(teacher.rank)}
                     </span>
                     
-                    {/* Added: Chức danh badge */}
                     {teacher.academicTitle && teacher.academicTitle !== 'Không' && (
                       <span className="text-xs font-bold px-1.5 py-0.2 rounded-md bg-indigo-50 text-indigo-700 border border-indigo-100/60 inline-flex items-center gap-0.5">
                         <Award className="w-3 h-3 text-indigo-500" />
@@ -291,7 +295,6 @@ export default function TeacherList({
                       </span>
                     )}
 
-                    {/* Added: GVG badge */}
                     {teacher.gvgYears && (
                       <span className="text-xs font-bold px-1.5 py-0.2 rounded-md bg-rose-50 text-rose-700 border border-rose-100 inline-flex items-center gap-0.5">
                         <Sparkles className="w-2.5 h-2.5 text-rose-500" />
@@ -299,7 +302,6 @@ export default function TeacherList({
                       </span>
                     )}
 
-                    {/* Added: Thực tế đơn vị badge */}
                     {teacher.unitExperience && teacher.unitExperience !== 'Chưa đi thực tế' && (
                       <span className="text-xs font-bold px-1.5 py-0.2 rounded-md bg-amber-50 text-amber-700 border border-amber-100/80 inline-flex items-center gap-0.5">
                         <Briefcase className="w-2.5 h-2.5 text-amber-500" />
@@ -309,7 +311,7 @@ export default function TeacherList({
 
                     {teacher.status === 'I' && (
                       <span className="text-xs font-bold bg-rose-50 text-rose-600 px-1.5 py-0.2 rounded-full">
-                        Nghỉ/Phóng đi học
+                        Nghỉ/Đi học/Chuyển
                       </span>
                     )}
                   </div>
@@ -374,7 +376,7 @@ export default function TeacherList({
         </div>
       </div>
 
-      {/* Interactive Modal for Teacher Profile Details */}
+      {/* Profile Detail Modal */}
       <AnimatePresence>
         {selectedTeacherProfile && (
           <div className="fixed inset-0 z-50 overflow-y-auto bg-slate-900/40 backdrop-blur-xs p-4 flex items-center justify-center">
@@ -384,7 +386,6 @@ export default function TeacherList({
               exit={{ opacity: 0, scale: 0.95 }}
               className="bg-white rounded-2xl shadow-xl border border-slate-200 max-w-md w-full overflow-hidden flex flex-col max-h-[90vh]"
             >
-              {/* Header */}
               <div className="px-5 py-3.5 border-b border-slate-100 flex justify-between items-center bg-slate-50/55">
                 <h4 className="text-xs font-extrabold text-slate-400 uppercase tracking-widest">
                   Chi tiết hồ sơ giảng viên
@@ -398,9 +399,7 @@ export default function TeacherList({
                 </button>
               </div>
 
-              {/* Scrollable Content - Compact, elegant text-sm structure */}
               <div className="px-5 py-4 overflow-y-auto space-y-4 text-slate-700">
-                
                 <div className="pb-3 border-b border-slate-100 flex flex-col gap-0.5">
                   <span className="text-base font-extrabold text-slate-900 tracking-tight block">{selectedTeacherProfile.name}</span>
                   <span className="text-xs text-slate-500 font-bold block">{selectedTeacherProfile.department}</span>
@@ -414,7 +413,6 @@ export default function TeacherList({
                         {getRankString(selectedTeacherProfile.rank)} ({selectedTeacherProfile.rank})
                       </div>
                     </div>
-
                     <div>
                       <span className="text-slate-440 block mb-0.5 text-xs uppercase font-bold tracking-wider">Chức vụ:</span>
                       <div className="text-sm font-bold text-slate-800">
@@ -442,151 +440,125 @@ export default function TeacherList({
                   </div>
                 </div>
 
-                  {/* Professional Qualifications & Credentials Box - exact style & perfect text-sm matching */}
-                  <div className="pt-3 border-t border-slate-100 space-y-2">
-                    <span className="text-slate-440 block mb-1 text-xs uppercase font-bold tracking-wider">Hồ sơ chuyên môn & Chứng chỉ:</span>
-                    
-                    <div className="grid grid-cols-1 gap-2 bg-slate-50/70 p-3.5 rounded-xl border border-slate-100 text-xs">
-                      <div className="flex items-center gap-2">
-                        <Calendar className="w-4 h-4 text-blue-500 shrink-0" />
-                        <div>
-                          <span className="text-slate-500 font-bold">Thâm niên giảng dạy: </span>
-                          <span className="font-bold text-slate-800">
-                            {selectedTeacherProfile.startYear 
-                              ? `${new Date().getFullYear() - selectedTeacherProfile.startYear} năm (Bắt đầu từ ${selectedTeacherProfile.startYear})` 
-                              : 'Chưa cập nhật'}
-                          </span>
-                        </div>
-                      </div>
-
-                      <div className="flex items-center gap-2">
-                        <GraduationCap className="w-4 h-4 text-indigo-505 shrink-0" />
-                        <div>
-                          <span className="text-slate-505 font-bold">Bồi dưỡng NV sư phạm: </span>
-                          <span className="font-bold text-slate-800">
-                            {selectedTeacherProfile.pedagogyCertYear 
-                              ? `Năm ${selectedTeacherProfile.pedagogyCertYear}` 
-                              : 'Chưa cập nhật'}
-                          </span>
-                        </div>
-                      </div>
-
-                      {selectedTeacherProfile.masterObtainYear && (
-                        <div className="flex items-center gap-2">
-                          <GraduationCap className="w-4 h-4 text-teal-500 shrink-0" />
-                          <div>
-                            <span className="text-slate-505 font-bold">Năm nhận bằng ThS: </span>
-                            <span className="font-bold text-slate-800">
-                              Năm {selectedTeacherProfile.masterObtainYear}
-                            </span>
-                          </div>
-                        </div>
-                      )}
-
-                      {selectedTeacherProfile.phdObtainYear && (
-                        <div className="flex items-center gap-2">
-                          <GraduationCap className="w-4 h-4 text-rose-500 shrink-0" />
-                          <div>
-                            <span className="text-slate-505 font-bold">Năm nhận bằng TS: </span>
-                            <span className="font-bold text-slate-800">
-                              Năm {selectedTeacherProfile.phdObtainYear}
-                            </span>
-                          </div>
-                        </div>
-                      )}
-
-                      <div className="flex items-center gap-2">
-                        <Award className="w-4 h-4 text-blue-600 shrink-0" />
-                        <div>
-                          <span className="text-slate-505 font-bold">Chức danh: </span>
-                          <span className="font-bold text-slate-800">
-                            {selectedTeacherProfile.academicTitle && selectedTeacherProfile.academicTitle !== 'Không'
-                              ? `${selectedTeacherProfile.academicTitle}${selectedTeacherProfile.academicTitleYear ? ` (Năm ${selectedTeacherProfile.academicTitleYear})` : ''}`
-                              : 'Chưa cập nhật/Không'}
-                          </span>
-                        </div>
-                      </div>
-
-                      {selectedTeacherProfile.gvgYears && (
-                        <div className="flex items-center gap-2">
-                          <Sparkles className="w-4 h-4 text-rose-500 shrink-0" />
-                          <div>
-                            <span className="text-slate-505 font-bold">Giảng viên giỏi (GVG): </span>
-                            <span className="font-bold text-rose-700 bg-rose-50/50 border border-rose-100 rounded px-1.5 py-0.2 text-xs">
-                              Năm {selectedTeacherProfile.gvgYears}
-                            </span>
-                          </div>
-                        </div>
-                      )}
-
-                      <div className="flex items-center gap-2">
-                        <Award className="w-4 h-4 text-emerald-505 shrink-0" />
-                        <div>
-                          <span className="text-slate-505 font-bold">Ngoại ngữ: </span>
-                          <span className="font-bold text-slate-800">
-                            {selectedTeacherProfile.languageCert || 'Chưa cập nhật'}
-                          </span>
-                        </div>
-                      </div>
-
-                      <div className="flex items-center gap-2">
-                        <Award className="w-4 h-4 text-cyan-505 shrink-0" />
-                        <div>
-                          <span className="text-slate-505 font-bold">Tin học: </span>
-                          <span className="font-bold text-slate-800">
-                            {selectedTeacherProfile.itCert || 'Chưa cập nhật'}
-                          </span>
-                        </div>
-                      </div>
-
-                      <div className="flex items-center gap-2">
-                        <Briefcase className="w-4 h-4 text-amber-500 shrink-0" />
-                        <div>
-                          <span className="text-slate-505 font-bold">Thực tế đơn vị: </span>
-                          <span className={`font-bold inline-block px-1.5 py-0.2 rounded text-xs ${
-                            selectedTeacherProfile.unitExperience && selectedTeacherProfile.unitExperience !== 'Chưa đi thực tế'
-                              ? 'bg-amber-50 text-amber-700 border border-amber-150'
-                              : 'bg-slate-100 text-slate-600'
-                          }`}>
-                            {selectedTeacherProfile.unitExperience 
-                              ? `${selectedTeacherProfile.unitExperience}${selectedTeacherProfile.unitExperienceYear ? ` (Năm đi: ${selectedTeacherProfile.unitExperienceYear})` : ''}` 
-                              : 'Chưa đi thực tế'}
-                          </span>
-                        </div>
+                <div className="pt-3 border-t border-slate-100 space-y-2">
+                  <span className="text-slate-440 block mb-1 text-xs uppercase font-bold tracking-wider">Hồ sơ chuyên môn & Chứng chỉ:</span>
+                  <div className="grid grid-cols-1 gap-2 bg-slate-50/70 p-3.5 rounded-xl border border-slate-100 text-xs">
+                    <div className="flex items-center gap-2">
+                      <Calendar className="w-4 h-4 text-blue-500 shrink-0" />
+                      <div>
+                        <span className="text-slate-500 font-bold">Thâm niên giảng dạy: </span>
+                        <span className="font-bold text-slate-800">
+                          {selectedTeacherProfile.startYear 
+                            ? `${new Date().getFullYear() - selectedTeacherProfile.startYear} năm (Bắt đầu từ ${selectedTeacherProfile.startYear})` 
+                            : 'Chưa cập nhật'}
+                        </span>
                       </div>
                     </div>
-                  </div>
-
-                  <div>
-                    <span className="text-slate-440 block mb-1 text-xs uppercase font-bold tracking-wider">Tình trạng miễn giảm:</span>
-                    <div className="bg-slate-50 p-3 rounded-xl flex items-center justify-between border border-slate-100">
+                    <div className="flex items-center gap-2">
+                      <GraduationCap className="w-4 h-4 text-indigo-505 shrink-0" />
                       <div>
-                        <span className="text-slate-500 font-bold block text-xs">Tỷ lệ giảm:</span>
-                        <span className="text-sm font-black text-rose-600">{selectedTeacherProfile.reductionRate}%</span>
+                        <span className="text-slate-505 font-bold">Bồi dưỡng NV sư phạm: </span>
+                        <span className="font-bold text-slate-800">
+                          {selectedTeacherProfile.pedagogyCertYear 
+                            ? `Năm ${selectedTeacherProfile.pedagogyCertYear}` 
+                            : 'Chưa cập nhật'}
+                        </span>
                       </div>
-                      <div className="text-right">
-                        <span className="text-slate-500 font-bold block text-xs">Trạng thái:</span>
-                        <span className={`inline-flex items-center gap-1 font-bold text-xs ${
-                          selectedTeacherProfile.status === 'A' ? 'text-emerald-700' : 'text-slate-500'
+                    </div>
+                    {selectedTeacherProfile.masterObtainYear && (
+                      <div className="flex items-center gap-2">
+                        <GraduationCap className="w-4 h-4 text-teal-500 shrink-0" />
+                        <div>
+                          <span className="text-slate-505 font-bold">Năm nhận bằng ThS: </span>
+                          <span className="font-bold text-slate-800">Năm {selectedTeacherProfile.masterObtainYear}</span>
+                        </div>
+                      </div>
+                    )}
+                    {selectedTeacherProfile.phdObtainYear && (
+                      <div className="flex items-center gap-2">
+                        <GraduationCap className="w-4 h-4 text-rose-500 shrink-0" />
+                        <div>
+                          <span className="text-slate-505 font-bold">Năm nhận bằng TS: </span>
+                          <span className="font-bold text-slate-800">Năm {selectedTeacherProfile.phdObtainYear}</span>
+                        </div>
+                      </div>
+                    )}
+                    <div className="flex items-center gap-2">
+                      <Award className="w-4 h-4 text-blue-600 shrink-0" />
+                      <div>
+                        <span className="text-slate-505 font-bold">Chức danh: </span>
+                        <span className="font-bold text-slate-800">
+                          {selectedTeacherProfile.academicTitle && selectedTeacherProfile.academicTitle !== 'Không'
+                            ? `${selectedTeacherProfile.academicTitle}${selectedTeacherProfile.academicTitleYear ? ` (Năm ${selectedTeacherProfile.academicTitleYear})` : ''}`
+                            : 'Chưa cập nhật/Không'}
+                        </span>
+                      </div>
+                    </div>
+                    {selectedTeacherProfile.gvgYears && (
+                      <div className="flex items-center gap-2">
+                        <Sparkles className="w-4 h-4 text-rose-500 shrink-0" />
+                        <div>
+                          <span className="text-slate-505 font-bold">Giảng viên giỏi (GVG): </span>
+                          <span className="font-bold text-rose-700 bg-rose-50/50 border border-rose-100 rounded px-1.5 py-0.2 text-xs">Năm {selectedTeacherProfile.gvgYears}</span>
+                        </div>
+                      </div>
+                    )}
+                    <div className="flex items-center gap-2">
+                      <Award className="w-4 h-4 text-emerald-505 shrink-0" />
+                      <div>
+                        <span className="text-slate-505 font-bold">Ngoại ngữ: </span>
+                        <span className="font-bold text-slate-800">{selectedTeacherProfile.languageCert || 'Chưa cập nhật'}</span>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Award className="w-4 h-4 text-cyan-505 shrink-0" />
+                      <div>
+                        <span className="text-slate-505 font-bold">Tin học: </span>
+                        <span className="font-bold text-slate-800">{selectedTeacherProfile.itCert || 'Chưa cập nhật'}</span>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Briefcase className="w-4 h-4 text-amber-500 shrink-0" />
+                      <div>
+                        <span className="text-slate-505 font-bold">Thực tế đơn vị: </span>
+                        <span className={`font-bold inline-block px-1.5 py-0.2 rounded text-xs ${
+                          selectedTeacherProfile.unitExperience && selectedTeacherProfile.unitExperience !== 'Chưa đi thực tế'
+                            ? 'bg-amber-50 text-amber-700 border border-amber-150'
+                            : 'bg-slate-100 text-slate-600'
                         }`}>
-                          {selectedTeacherProfile.status === 'A' ? (
-                            <>
-                              <UserCheck className="w-4 h-4 text-emerald-600" />
-                              Đang hoạt động
-                            </>
-                          ) : (
-                            <>
-                              <UserX className="w-4 h-4 text-rose-500" />
-                              Nghỉ thai sản/học tập
-                            </>
-                          )}
+                          {selectedTeacherProfile.unitExperience 
+                            ? `${selectedTeacherProfile.unitExperience}${selectedTeacherProfile.unitExperienceYear ? ` (Năm đi: ${selectedTeacherProfile.unitExperienceYear})` : ''}` 
+                            : 'Chưa đi thực tế'}
                         </span>
                       </div>
                     </div>
                   </div>
                 </div>
 
-              {/* Footer */}
+                <div>
+                  <span className="text-slate-440 block mb-1 text-xs uppercase font-bold tracking-wider">Tình trạng miễn giảm:</span>
+                  <div className="bg-slate-50 p-3 rounded-xl flex items-center justify-between border border-slate-100">
+                    <div>
+                      <span className="text-slate-500 font-bold block text-xs">Tỷ lệ giảm:</span>
+                      <span className="text-sm font-black text-rose-600">{selectedTeacherProfile.reductionRate}%</span>
+                    </div>
+                    <div className="text-right">
+                      <span className="text-slate-500 font-bold block text-xs">Trạng thái:</span>
+                      <span className={`inline-flex items-center gap-1 font-bold text-xs ${
+                        selectedTeacherProfile.status === 'A' ? 'text-emerald-700' : 'text-slate-500'
+                      }`}>
+                        {selectedTeacherProfile.status === 'A' ? (
+                          <><UserCheck className="w-4 h-4 text-emerald-600" /> Đang hoạt động</>
+                        ) : (
+                          <><UserX className="w-4 h-4 text-rose-500" /> Nghỉ/Đi học/Chuyển</>
+                        )}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+              </div>
+
               <div className="px-5 py-3 border-t border-slate-100 bg-slate-50/55 flex justify-end gap-2.5">
                 {(isAdmin || selectedTeacherProfile.id === currentTeacherId) && (
                   <button
@@ -594,9 +566,7 @@ export default function TeacherList({
                     onClick={() => {
                         const copyingTeacher = { ...selectedTeacherProfile };
                         setSelectedTeacherProfile(null);
-                        setTimeout(() => {
-                          openEditModal(copyingTeacher);
-                        }, 200);
+                        setTimeout(() => openEditModal(copyingTeacher), 200);
                     }}
                     className="inline-flex items-center justify-center gap-1 bg-blue-50 hover:bg-blue-100 active:bg-blue-200 text-blue-700 font-bold text-xs px-3.5 py-1.5 rounded-lg border border-blue-200 cursor-pointer transition-all"
                   >
@@ -617,7 +587,7 @@ export default function TeacherList({
         )}
       </AnimatePresence>
 
-      {/* Interactive Modal for Add/Edit */}
+      {/* Add/Edit Teacher Modal */}
       <AnimatePresence>
         {isModalOpen && (
           <div className="fixed inset-0 z-50 overflow-y-auto bg-slate-900/40 backdrop-blur-xs p-4 flex items-start justify-center">
@@ -631,7 +601,8 @@ export default function TeacherList({
                 <h3 className="text-sm font-bold text-slate-800">
                   {editingTeacher ? 'Cập nhật thông tin Giảng viên' : 'Thêm mới Giảng viên'}
                 </h3>
-                <button 
+                <button
+                  type="button"
                   onClick={() => setIsModalOpen(false)}
                   className="text-slate-400 hover:text-slate-600 p-1 hover:bg-slate-100 rounded-md"
                 >
@@ -639,58 +610,32 @@ export default function TeacherList({
                 </button>
               </div>
 
-              <form onSubmit={handleSave} className="p-5 space-y-4">
+              <div className="p-5 space-y-4 max-h-[80vh] overflow-y-auto">
                 <div className="grid grid-cols-2 lg:grid-cols-4 gap-3.5">
                   <div className="col-span-2 lg:col-span-2">
                     <label className="text-xs font-bold text-slate-500 block mb-1">
                       Họ và Tên giảng viên <span className="text-rose-500">*</span>
                     </label>
-                    <input
-                      type="text"
-                      required
-                      placeholder="Ví dụ: Nguyễn Văn A"
-                      value={formName}
+                    <input type="text" required placeholder="Ví dụ: Nguyễn Văn A" value={formName}
                       onChange={(e) => setFormName(e.target.value)}
-                      className="text-xs w-full border border-slate-200 rounded-lg px-3 py-2 bg-slate-50 focus:outline-hidden focus:ring-2 focus:ring-blue-500 font-medium"
-                    />
+                      className="text-xs w-full border border-slate-200 rounded-lg px-3 py-2 bg-slate-50 focus:outline-hidden focus:ring-2 focus:ring-blue-500 font-medium" />
                   </div>
-
                   <div>
-                    <label className="text-xs font-bold text-slate-500 block mb-1">
-                      Số điện thoại
-                    </label>
-                    <input
-                      type="tel"
-                      placeholder="Ví dụ: 0912345678"
-                      value={formPhone}
+                    <label className="text-xs font-bold text-slate-500 block mb-1">Số điện thoại</label>
+                    <input type="tel" placeholder="Ví dụ: 0912345678" value={formPhone}
                       onChange={(e) => setFormPhone(e.target.value)}
-                      className="text-xs w-full border border-slate-200 rounded-lg px-3 py-2 bg-slate-50 focus:outline-hidden focus:ring-2 focus:ring-blue-500 font-mono font-medium"
-                    />
+                      className="text-xs w-full border border-slate-200 rounded-lg px-3 py-2 bg-slate-50 focus:outline-hidden focus:ring-2 focus:ring-blue-500 font-mono font-medium" />
                   </div>
-
                   <div>
-                    <label className="text-xs font-bold text-slate-500 block mb-1">
-                      Email <span className="text-rose-500">*</span>
-                    </label>
-                    <input
-                      type="email"
-                      required
-                      placeholder="username@tdnu.edu.vn"
-                      value={formEmail}
+                    <label className="text-xs font-bold text-slate-500 block mb-1">Email <span className="text-rose-500">*</span></label>
+                    <input type="email" required placeholder="username@tdnu.edu.vn" value={formEmail}
                       onChange={(e) => setFormEmail(e.target.value)}
-                      className="text-xs w-full border border-slate-200 rounded-lg px-3 py-2 bg-slate-50 focus:outline-hidden focus:ring-2 focus:ring-blue-500 font-mono"
-                    />
+                      className="text-xs w-full border border-slate-200 rounded-lg px-3 py-2 bg-slate-50 focus:outline-hidden focus:ring-2 focus:ring-blue-500 font-mono" />
                   </div>
-
                   <div>
-                    <label className="text-xs font-bold text-slate-500 block mb-1">
-                      Bộ môn
-                    </label>
-                    <select
-                      value={formDept}
-                      onChange={(e) => setFormDept(e.target.value)}
-                      className="text-xs w-full border border-slate-200 rounded-lg px-3 py-2 bg-slate-50 focus:outline-hidden focus:ring-2 focus:ring-blue-500 font-medium"
-                    >
+                    <label className="text-xs font-bold text-slate-500 block mb-1">Bộ môn</label>
+                    <select value={formDept} onChange={(e) => setFormDept(e.target.value)}
+                      className="text-xs w-full border border-slate-200 rounded-lg px-3 py-2 bg-slate-50 focus:outline-hidden focus:ring-2 focus:ring-blue-500 font-medium">
                       {(formPosition?.toLowerCase().includes('chủ nhiệm') || formPosition?.toLowerCase().includes('phó chủ nhiệm')) && (
                         <option value="Ban chủ nhiệm">Ban chủ nhiệm</option>
                       )}
@@ -699,238 +644,127 @@ export default function TeacherList({
                       ))}
                     </select>
                   </div>
-
                   <div>
-                    <label className="text-xs font-bold text-slate-500 block mb-1">
-                      Học vị
-                    </label>
-                    <select
-                      value={formRank}
-                      onChange={(e) => setFormRank(e.target.value as AcademicRank)}
-                      className="text-xs w-full border border-slate-200 rounded-lg px-3 py-2 bg-slate-50 focus:outline-hidden focus:ring-2 focus:ring-blue-500 font-medium"
-                    >
+                    <label className="text-xs font-bold text-slate-500 block mb-1">Học vị</label>
+                    <select value={formRank} onChange={(e) => setFormRank(e.target.value as AcademicRank)}
+                      className="text-xs w-full border border-slate-200 rounded-lg px-3 py-2 bg-slate-50 focus:outline-hidden focus:ring-2 focus:ring-blue-500 font-medium">
                       <option value="TS">Tiến sĩ</option>
                       <option value="ThS">Thạc sĩ</option>
                       <option value="KS">Kỹ sư</option>
                       <option value="CN">Cử nhân</option>
                     </select>
                   </div>
-
                   <div>
-                    <label className="text-xs font-bold text-slate-500 block mb-1">
-                      Chức vụ
-                    </label>
-                    <select
-                      value={formPosition}
-                      onChange={(e) => {
+                    <label className="text-xs font-bold text-slate-500 block mb-1">Chức vụ</label>
+                    <select value={formPosition} onChange={(e) => {
                         const val = e.target.value;
                         setFormPosition(val);
                         if (val.toLowerCase().includes('chủ nhiệm') || val.toLowerCase().includes('phó chủ nhiệm')) {
                           setFormDept('Ban chủ nhiệm');
-                        } else {
-                          if (formDept === 'Ban chủ nhiệm') {
-                            setFormDept(departments[0]?.name || 'Nguyên lý Động cơ - Điện');
-                          }
+                        } else if (formDept === 'Ban chủ nhiệm') {
+                          setFormDept(departments[0]?.name || 'Nguyên lý Động cơ - Điện');
                         }
                       }}
-                      className="text-xs w-full border border-slate-200 rounded-lg px-3 py-2 bg-slate-50 focus:outline-hidden focus:ring-2 focus:ring-blue-500 font-medium"
-                    >
+                      className="text-xs w-full border border-slate-200 rounded-lg px-3 py-2 bg-slate-50 focus:outline-hidden focus:ring-2 focus:ring-blue-500 font-medium">
                       <option value="Giảng viên">Giảng viên / Trợ giảng</option>
                       <option value="Trưởng bộ môn">Trưởng bộ môn</option>
                       <option value="Chủ nhiệm khoa">Chủ nhiệm khoa</option>
                       <option value="Phó Chủ nhiệm khoa">Phó Chủ nhiệm khoa</option>
-                      <option value="Nhân viên">Nhân viên (Không tính định mức)</option>
+                      <option value="Nhân viên">Nhân viên</option>
                     </select>
                   </div>
-
                   <div>
-                    <label className="text-xs font-bold text-slate-500 block mb-1">
-                      Chức vụ Đảng
-                    </label>
-                    <select
-                      value={formParty}
-                      onChange={(e) => setFormParty(e.target.value)}
-                      className="text-xs w-full border border-slate-200 rounded-lg px-3 py-2 bg-slate-50 focus:outline-hidden focus:ring-2 focus:ring-blue-500 font-medium"
+                    <label className="text-xs font-bold text-slate-500 block mb-1">Chức vụ Đảng</label>
+                    <select value={formParty} onChange={(e) => setFormParty(e.target.value)}
                       disabled={formPosition !== 'Chủ nhiệm khoa' && formPosition !== 'Phó Chủ nhiệm khoa'}
-                    >
+                      className="text-xs w-full border border-slate-200 rounded-lg px-3 py-2 bg-slate-50 focus:outline-hidden focus:ring-2 focus:ring-blue-500 font-medium">
                       <option value="Không kiêm nhiệm">Không</option>
                       <option value="Bí thư chi bộ">Bí thư chi bộ</option>
                       <option value="Phó Bí thư chi bộ">Phó Bí thư chi bộ</option>
                     </select>
                   </div>
-
                   <div>
-                    <label className="text-xs font-bold text-slate-500 block mb-1">
-                      Tình trạng nhân sự
-                    </label>
-                    <select
-                      value={formStatus}
-                      disabled={!isAdmin}
-                      onChange={(e) => setFormStatus(e.target.value as 'A' | 'I')}
-                      className="text-xs w-full border border-slate-200 rounded-lg px-3 py-2 bg-slate-50 focus:outline-hidden focus:ring-2 focus:ring-blue-500 font-medium"
-                    >
+                    <label className="text-xs font-bold text-slate-500 block mb-1">Tình trạng</label>
+                    <select value={formStatus} disabled={!isAdmin} onChange={(e) => setFormStatus(e.target.value as 'A' | 'I')}
+                      className="text-xs w-full border border-slate-200 rounded-lg px-3 py-2 bg-slate-50 focus:outline-hidden focus:ring-2 focus:ring-blue-500 font-medium">
                       <option value="A">Đang Hoạt động</option>
-                      <option value="I">Tạm dừng giảng (Thai sản/Đi học...)</option>
+                      <option value="I">Tạm dừng</option>
                     </select>
                   </div>
-
                   <div>
-                    <label className="text-xs font-bold text-slate-500 block mb-1">
-                      % Giảm trừ định mức (0-100%)
-                    </label>
-                    <input
-                      type="number"
-                      min="0"
-                      max="100"
-                      disabled={!isAdmin}
-                      value={formReduction}
+                    <label className="text-xs font-bold text-slate-500 block mb-1">% Giảm trừ</label>
+                    <input type="number" min="0" max="100" disabled={!isAdmin} value={formReduction}
                       onChange={(e) => setFormReduction(Number(e.target.value))}
-                      className="text-xs w-full border border-slate-200 rounded-lg px-3 py-2 bg-slate-50 focus:outline-hidden focus:ring-2 focus:ring-blue-500 font-mono font-bold"
-                    />
+                      className="text-xs w-full border border-slate-200 rounded-lg px-3 py-2 bg-slate-50 focus:outline-hidden focus:ring-2 focus:ring-blue-500 font-mono font-bold" />
                   </div>
 
                   <div className="col-span-2 lg:col-span-4 border-t border-slate-150 pt-3 my-1">
-                    <span className="text-xs font-extrabold text-blue-600 uppercase tracking-wider block">
-                      Hồ sơ chuyên môn & Chứng chỉ bổ sung
-                    </span>
+                    <span className="text-xs font-extrabold text-blue-600 uppercase tracking-wider block">Hồ sơ chuyên môn & Chứng chỉ bổ sung</span>
                   </div>
 
                   <div>
-                    <label className="text-xs font-bold text-slate-500 block mb-1">
-                      Năm bắt đầu giảng dạy
-                    </label>
-                    <input
-                      type="number"
-                      min="1970"
-                      max={new Date().getFullYear()}
-                      placeholder="Ví dụ: 2015"
-                      value={formStartYear}
+                    <label className="text-xs font-bold text-slate-500 block mb-1">Năm bắt đầu giảng dạy</label>
+                    <input type="number" min="1970" max={new Date().getFullYear()} placeholder="Ví dụ: 2015" value={formStartYear}
                       onChange={(e) => setFormStartYear(e.target.value !== '' ? Number(e.target.value) : '')}
-                      className="text-xs w-full border border-slate-200 rounded-lg px-3 py-2 bg-slate-50 focus:outline-hidden focus:ring-2 focus:ring-blue-500 font-mono font-semibold"
-                    />
+                      className="text-xs w-full border border-slate-200 rounded-lg px-3 py-2 bg-slate-50 focus:outline-hidden focus:ring-2 focus:ring-blue-500 font-mono font-semibold" />
                   </div>
-
                   <div>
-                    <label className="text-xs font-bold text-slate-500 block mb-1">
-                      Năm nhận bằng Thạc sĩ
-                    </label>
-                    <input
-                      type="number"
-                      min="1970"
-                      max={new Date().getFullYear()}
-                      placeholder="Ví dụ: 2018"
-                      value={formMasterObtainYear}
+                    <label className="text-xs font-bold text-slate-500 block mb-1">Thạc sĩ</label>
+                    <input type="number" min="1970" max={new Date().getFullYear()} placeholder="Ví dụ: 2018" value={formMasterObtainYear}
                       onChange={(e) => setFormMasterObtainYear(e.target.value !== '' ? Number(e.target.value) : '')}
-                      className="text-xs w-full border border-slate-200 rounded-lg px-3 py-2 bg-slate-50 focus:outline-hidden focus:ring-2 focus:ring-blue-500 font-mono font-semibold"
-                    />
+                      className="text-xs w-full border border-slate-200 rounded-lg px-3 py-2 bg-slate-50 focus:outline-hidden focus:ring-2 focus:ring-blue-500 font-mono font-semibold" />
                   </div>
-
                   <div>
-                    <label className="text-xs font-bold text-slate-500 block mb-1">
-                      Năm nhận bằng Tiến sĩ
-                    </label>
-                    <input
-                      type="number"
-                      min="1970"
-                      max={new Date().getFullYear()}
-                      placeholder="Ví dụ: 2022"
-                      value={formPhdObtainYear}
+                    <label className="text-xs font-bold text-slate-500 block mb-1">Tiến sĩ</label>
+                    <input type="number" min="1970" max={new Date().getFullYear()} placeholder="Ví dụ: 2022" value={formPhdObtainYear}
                       onChange={(e) => setFormPhdObtainYear(e.target.value !== '' ? Number(e.target.value) : '')}
-                      className="text-xs w-full border border-slate-200 rounded-lg px-3 py-2 bg-slate-50 focus:outline-hidden focus:ring-2 focus:ring-blue-500 font-mono font-semibold"
-                    />
+                      className="text-xs w-full border border-slate-200 rounded-lg px-3 py-2 bg-slate-50 focus:outline-hidden focus:ring-2 focus:ring-blue-500 font-mono font-semibold" />
                   </div>
-
                   <div>
-                    <label className="text-xs font-bold text-slate-500 block mb-1">
-                      Năm có CC nghiệp vụ sư phạm
-                    </label>
-                    <input
-                      type="text"
-                      placeholder="Ví dụ: 2018"
-                      value={formPedagogyCertYear}
+                    <label className="text-xs font-bold text-slate-500 block mb-1">Chứng chỉ NV sư phạm</label>
+                    <input type="text" placeholder="Ví dụ: 2018" value={formPedagogyCertYear}
                       onChange={(e) => setFormPedagogyCertYear(e.target.value)}
-                      className="text-xs w-full border border-slate-200 rounded-lg px-3 py-2 bg-slate-50 focus:outline-hidden focus:ring-2 focus:ring-blue-500 font-medium"
-                    />
+                      className="text-xs w-full border border-slate-200 rounded-lg px-3 py-2 bg-slate-50 focus:outline-hidden focus:ring-2 focus:ring-blue-500 font-medium" />
                   </div>
-
                   <div>
-                    <label className="text-xs font-bold text-slate-500 block mb-1">
-                      Chứng chỉ Ngoại ngữ
-                    </label>
-                    <input
-                      type="text"
-                      placeholder="Ví dụ: IELTS 6.5, B2"
-                      value={formLanguageCert}
+                    <label className="text-xs font-bold text-slate-500 block mb-1">Chứng chỉ Ngoại ngữ</label>
+                    <input type="text" placeholder="Ví dụ: IELTS 6.5, B2" value={formLanguageCert}
                       onChange={(e) => setFormLanguageCert(e.target.value)}
-                      className="text-xs w-full border border-slate-200 rounded-lg px-3 py-2 bg-slate-50 focus:outline-hidden focus:ring-2 focus:ring-blue-500 font-medium"
-                    />
+                      className="text-xs w-full border border-slate-200 rounded-lg px-3 py-2 bg-slate-50 focus:outline-hidden focus:ring-2 focus:ring-blue-500 font-medium" />
                   </div>
-
                   <div>
-                    <label className="text-xs font-bold text-slate-500 block mb-1">
-                      Chứng chỉ Tin học
-                    </label>
-                    <input
-                      type="text"
-                      placeholder="Ví dụ: MOS, IC3, Đại học"
-                      value={formItCert}
+                    <label className="text-xs font-bold text-slate-500 block mb-1">Chứng chỉ Tin học</label>
+                    <input type="text" placeholder="Ví dụ: MOS, IC3, Đại học" value={formItCert}
                       onChange={(e) => setFormItCert(e.target.value)}
-                      className="text-xs w-full border border-slate-200 rounded-lg px-3 py-2 bg-slate-50 focus:outline-hidden focus:ring-2 focus:ring-blue-500 font-medium"
-                    />
+                      className="text-xs w-full border border-slate-200 rounded-lg px-3 py-2 bg-slate-50 focus:outline-hidden focus:ring-2 focus:ring-blue-500 font-medium" />
                   </div>
-
                   <div>
-                    <label className="text-xs font-bold text-slate-500 block mb-1">
-                      Chức danh chuyên môn
-                    </label>
-                    <select
-                      value={formAcademicTitle}
-                      onChange={(e) => setFormAcademicTitle(e.target.value)}
-                      className="text-xs w-full border border-slate-200 rounded-lg px-3 py-2 bg-slate-50 focus:outline-hidden focus:ring-2 focus:ring-blue-500 font-medium"
-                    >
+                    <label className="text-xs font-bold text-slate-500 block mb-1">Chức danh chuyên môn</label>
+                    <select value={formAcademicTitle} onChange={(e) => setFormAcademicTitle(e.target.value)}
+                      className="text-xs w-full border border-slate-200 rounded-lg px-3 py-2 bg-slate-50 focus:outline-hidden focus:ring-2 focus:ring-blue-500 font-medium">
                       <option value="Không">Không</option>
                       <option value="Giảng viên">Giảng viên</option>
                       <option value="Giảng viên chính">Giảng viên chính</option>
                       <option value="Giảng viên cao cấp">Giảng viên cao cấp</option>
                     </select>
                   </div>
-
                   <div>
-                    <label className="text-xs font-bold text-slate-500 block mb-1">
-                      Năm nhận chức danh
-                    </label>
-                    <input
-                      type="text"
-                      placeholder="Ví dụ: 2020"
-                      value={formAcademicTitleYear}
+                    <label className="text-xs font-bold text-slate-500 block mb-1">Năm nhận</label>
+                    <input type="text" placeholder="Ví dụ: 2020" value={formAcademicTitleYear}
                       disabled={formAcademicTitle === 'Không'}
                       onChange={(e) => setFormAcademicTitleYear(e.target.value)}
-                      className={`text-xs w-full border border-slate-200 rounded-lg px-3 py-2 bg-slate-50 focus:outline-hidden focus:ring-2 focus:ring-blue-500 font-medium ${formAcademicTitle === 'Không' ? 'opacity-50 cursor-not-allowed' : ''}`}
-                    />
+                      className={`text-xs w-full border border-slate-200 rounded-lg px-3 py-2 bg-slate-50 focus:outline-hidden focus:ring-2 focus:ring-blue-500 font-medium ${formAcademicTitle === 'Không' ? 'opacity-50 cursor-not-allowed' : ''}`} />
                   </div>
-
                   <div>
-                    <label className="text-xs font-bold text-slate-500 block mb-1">
-                      Giảng viên giỏi (GVG) - Các năm chuyên môn
-                    </label>
-                    <input
-                      type="text"
-                      placeholder="Ví dụ: 2022, 2024 (nhiều năm cách nhau bởi dấu phẩy)"
-                      value={formGvgYears}
+                    <label className="text-xs font-bold text-slate-500 block mb-1">GVG - Các năm</label>
+                    <input type="text" placeholder="Ví dụ: 2022, 2024" value={formGvgYears}
                       onChange={(e) => setFormGvgYears(e.target.value)}
-                      className="text-xs w-full border border-slate-200 rounded-lg px-3 py-2 bg-slate-50 focus:outline-hidden focus:ring-2 focus:ring-blue-500 font-medium"
-                    />
+                      className="text-xs w-full border border-slate-200 rounded-lg px-3 py-2 bg-slate-50 focus:outline-hidden focus:ring-2 focus:ring-blue-500 font-medium" />
                   </div>
-
                   <div>
-                    <label className="text-xs font-bold text-slate-500 block mb-1">
-                      Thực tế đơn vị (Đơn vị)
-                    </label>
-                    <select
-                      value={formUnitExperience}
-                      onChange={(e) => setFormUnitExperience(e.target.value)}
-                      className="text-xs w-full border border-slate-200 rounded-lg px-3 py-2 bg-slate-50 focus:outline-hidden focus:ring-2 focus:ring-blue-500 font-medium"
-                    >
+                    <label className="text-xs font-bold text-slate-500 block mb-1">Thực tế đơn vị</label>
+                    <select value={formUnitExperience} onChange={(e) => setFormUnitExperience(e.target.value)}
+                      className="text-xs w-full border border-slate-200 rounded-lg px-3 py-2 bg-slate-50 focus:outline-hidden focus:ring-2 focus:ring-blue-500 font-medium">
                       <option value="">Chưa đi thực tế</option>
                       <option value="Cấp phân đội">Cấp phân đội</option>
                       <option value="Cấp tiểu đoàn">Cấp tiểu đoàn</option>
@@ -938,38 +772,65 @@ export default function TeacherList({
                       <option value="Cấp lữ đoàn">Cấp lữ đoàn</option>
                     </select>
                   </div>
-
                   <div>
-                    <label className="text-xs font-bold text-slate-500 block mb-1">
-                      Năm đi thực tế
-                    </label>
-                    <input
-                      type="text"
-                      placeholder="Ví dụ: 2021"
-                      value={formUnitExperienceYear}
+                    <label className="text-xs font-bold text-slate-500 block mb-1">Năm đi thực tế</label>
+                    <input type="text" placeholder="Ví dụ: 2021" value={formUnitExperienceYear}
                       disabled={!formUnitExperience}
                       onChange={(e) => setFormUnitExperienceYear(e.target.value)}
-                      className={`text-xs w-full border border-slate-200 rounded-lg px-3 py-2 bg-slate-50 focus:outline-hidden focus:ring-2 focus:ring-blue-500 font-medium ${!formUnitExperience ? 'opacity-50 cursor-not-allowed' : ''}`}
-                    />
+                      className={`text-xs w-full border border-slate-200 rounded-lg px-3 py-2 bg-slate-50 focus:outline-hidden focus:ring-2 focus:ring-blue-500 font-medium ${!formUnitExperience ? 'opacity-50 cursor-not-allowed' : ''}`} />
                   </div>
                 </div>
 
+                {/* Quá trình công tác tích hợp ngay trong form thêm/sửa */}
+                {isAdmin && (
+                  <div className="pt-4 border-t border-slate-200">
+                    <div className="flex items-center gap-2 mb-3">
+                      <Clock className="w-4 h-4 text-indigo-500" />
+                      <span className="text-xs font-extrabold text-indigo-600 uppercase tracking-wider">
+                        Quá trình công tác theo năm học
+                        {!editingTeacher && (
+                          <span className="text-[10px] font-medium text-slate-500 normal-case ml-1">
+                            (lưu giảng viên trước, sau đó có thể bổ sung)
+                          </span>
+                        )}
+                      </span>
+                    </div>
+                    {editingTeacher ? (
+                      <WorkHistoryManager
+                        teacher={editingTeacher}
+                        workHistories={workHistories}
+                        academicYears={academicYears}
+                        onAddWorkHistory={onAddWorkHistory || (() => {})}
+                        onEditWorkHistory={onEditWorkHistory || (() => {})}
+                        onDeleteWorkHistory={onDeleteWorkHistory || (() => {})}
+                        isAdmin={isAdmin}
+                      />
+                    ) : (
+                      <div className="text-center py-6 bg-slate-50 rounded-xl border border-dashed border-slate-200">
+                        <Clock className="w-8 h-8 text-slate-300 mx-auto mb-2" />
+                        <p className="text-xs text-slate-500 font-medium">
+                          Quá trình công tác sẽ được thêm sau khi tạo giảng viên.
+                        </p>
+                        <p className="text-xs text-slate-400 mt-1">
+                          Nhấn "Lưu dữ liệu" để tạo giảng viên, sau đó sửa để thêm quá trình công tác.
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                )}
+
                 <div className="pt-4 border-t border-slate-100 flex justify-end gap-2.5">
-                  <button
-                    type="button"
-                    onClick={() => setIsModalOpen(false)}
-                    className="border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 font-semibold text-xs px-4 py-2 rounded-lg cursor-pointer transition-colors"
-                  >
+                  <button type="button" onClick={() => setIsModalOpen(false)}
+                    className="border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 font-semibold text-xs px-4 py-2 rounded-lg cursor-pointer transition-colors">
                     Hủy bỏ
                   </button>
-                  <button
-                    type="submit"
-                    className="bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white font-bold text-xs px-4 py-2 rounded-lg shadow-xs cursor-pointer transition-colors"
-                  >
+                  <button type="button"
+                    onClick={() => handleSave({ preventDefault: () => {} } as any)}
+                    className="bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white font-bold text-xs px-4 py-2 rounded-lg shadow-xs cursor-pointer transition-colors">
                     Lưu dữ liệu
                   </button>
                 </div>
-              </form>
+              </div>
             </motion.div>
           </div>
         )}
@@ -997,16 +858,12 @@ export default function TeacherList({
                 </div>
               </div>
               <div className="mt-5 pt-3.5 border-t border-slate-100 flex justify-end gap-2.5">
-                <button
-                  onClick={() => setTeacherToDelete(null)}
-                  className="px-3 py-1.5 border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 font-bold text-xs rounded-lg cursor-pointer transition-colors"
-                >
+                <button type="button" onClick={() => setTeacherToDelete(null)}
+                  className="px-3 py-1.5 border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 font-bold text-xs rounded-lg cursor-pointer transition-colors">
                   Hủy bỏ
                 </button>
-                <button
-                  onClick={executeDelete}
-                  className="px-3.5 py-1.5 bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs rounded-lg cursor-pointer shadow-xs transition-colors"
-                >
+                <button type="button" onClick={executeDelete}
+                  className="px-3.5 py-1.5 bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs rounded-lg cursor-pointer shadow-xs transition-colors">
                   Xác nhận Xóa
                 </button>
               </div>

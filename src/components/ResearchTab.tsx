@@ -3,7 +3,7 @@ import { Teacher, ResearchLog, ResearchType, AcademicYearConfig } from '../types
 import { getRankString, getResearchTypeName, getRoleName, ACTIVITY_DATA, calculateNCKHPersonal } from '../data';
 import { 
   Plus, Search, Edit2, Trash2, FileCode2, Sparkles, Check, X, 
-  CheckCircle, AlertCircle, RefreshCw, Eye, BookOpen, Clock, FileText
+  CheckCircle, AlertCircle, RefreshCw, Eye, BookOpen, Clock, FileText, Users
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 
@@ -63,21 +63,18 @@ export default function ResearchTab({
   const [formPeriod, setFormPeriod] = useState<string>(selectedYear);
   const [formStatus, setFormStatus] = useState<'approved' | 'pending' | 'rejected'>('approved');
   const [formNotes, setFormNotes] = useState('');
+  const [formCoAuthorIds, setFormCoAuthorIds] = useState<string[]>([]);
+  const [showCoAuthorPanel, setShowCoAuthorPanel] = useState(false);
 
-  // Unique existing works from all research logs
+  // Unique existing works from all research logs (store full log reference for auto-fill)
   const uniqueExistingWorks = useMemo(() => {
     const seen = new Set<string>();
-    const works: { title: string; type: ResearchType; journal: string; year: string }[] = [];
+    const works: ResearchLog[] = [];
     researchLogs.forEach(log => {
       const normalized = log.title.trim().toLowerCase();
       if (!seen.has(normalized)) {
         seen.add(normalized);
-        works.push({
-          title: log.title,
-          type: log.type,
-          journal: log.journalOrOrganization || '',
-          year: log.publicationYear || ''
-        });
+        works.push(log);
       }
     });
     return works;
@@ -92,7 +89,7 @@ export default function ResearchTab({
     const query = formTitle.toLowerCase();
     return uniqueExistingWorks.filter(w => 
       w.title.toLowerCase().includes(query) || 
-      w.journal.toLowerCase().includes(query)
+      (w.journalOrOrganization || '').toLowerCase().includes(query)
     );
   }, [uniqueExistingWorks, formTitle]);
 
@@ -147,8 +144,8 @@ export default function ResearchTab({
       ];
     }
     return [
-      { value: 'main', label: 'Tác giả chính / liên hệ (First/Corresponding Author)' },
-      { value: 'co_author', label: 'Đồng tác giả (Co-author)' }
+      { value: 'main', label: 'Tác giả chính / liên hệ' },
+      { value: 'co_author', label: 'Đồng tác giả' }
     ];
   }, [formType]);
 
@@ -176,6 +173,8 @@ export default function ResearchTab({
     setFormJournal('');
     setFormStatus(userRole === 'teacher' ? 'pending' : 'approved');
     setFormNotes('');
+    setFormCoAuthorIds([]);
+    setShowCoAuthorPanel(false);
     setIsModalOpen(true);
   };
 
@@ -232,6 +231,47 @@ export default function ResearchTab({
       onEditResearchLog(logData);
     } else {
       onAddResearchLog(logData);
+      
+      // Tự động tạo bản ghi cho các đồng tác giả được chọn
+      if (formCoAuthorIds.length > 0) {
+        const coAuthorRole: 'main' | 'co_author' | 'leader' | 'member' = 
+          (formType.startsWith('dt_') || formType.startsWith('sk_') || formType === 'gt_tl' || formType.startsWith('project') || formType.startsWith('book_compilation'))
+            ? 'member' 
+            : 'co_author';
+        
+        // Tổng số thành viên = 1 (chủ trì) + số đồng tác giả được chọn
+        const totalMembers = 1 + formCoAuthorIds.length;
+        
+        formCoAuthorIds.forEach((coAuthorId) => {
+          // Tính giờ cho đồng tác giả (role: member/co_author)
+          const coAuthorHours = calculateNCKHPersonal(
+            Number(formPoints) * 100, // Convert back to base points
+            Number(formQuantity),
+            Number(formYears),
+            totalMembers,
+            'co_author'
+          );
+          
+          const coAuthorLog: ResearchLog = {
+            id: `res-${Date.now()}-${coAuthorId}`,
+            teacherId: coAuthorId,
+            title: formTitle.trim(),
+            type: formType,
+            role: coAuthorRole,
+            points: Number(formPoints),
+            convertedHours: coAuthorHours,
+            publicationYear: formPublicationYear,
+            period: formPeriod,
+            journalOrOrganization: formJournal.trim(),
+            status: formStatus,
+            notes: `[Đồng tác giả] ${formNotes.trim() || ''}`.trim() || undefined,
+            years: Number(formYears),
+            members: totalMembers,
+            quantity: Number(formQuantity)
+          };
+          onAddResearchLog(coAuthorLog);
+        });
+      }
     }
     setIsModalOpen(false);
   };
@@ -364,13 +404,13 @@ export default function ResearchTab({
             {/* Desktop Table view */}
             <div className="hidden md:block overflow-x-auto bg-white rounded-xl border border-slate-200 shadow-xs">
               <table className="w-full text-sm text-left border-collapse">
-                <thead className="bg-slate-50 border-b border-slate-200 text-xs font-extrabold text-slate-500 uppercase tracking-wider">
+                <thead className="bg-slate-50 border-b border-slate-200 text-xs font-extrabold text-slate-500 tracking-wider">
                   <tr>
                     <th className="px-4 py-3 min-w-[320px]">Tên đề tài / bài báo</th>
                     <th className="px-4 py-3">Tác giả</th>
                     <th className="px-4 py-3">Vai trò</th>
                     <th className="px-4 py-3">Nơi công bố</th>
-                    <th className="px-4 py-3 text-right">Giờ quy đổi</th>
+                    <th className="px-4 py-3 text-right">Giờ NCKH</th>
                     <th className="px-4 py-3 text-center">Trạng thái</th>
                     <th className="px-4 py-3 text-right">Thao tác</th>
                   </tr>
@@ -387,19 +427,19 @@ export default function ResearchTab({
                         <td className="px-4 py-3.5">
                           <div className="space-y-1">
                             <div className="flex items-center gap-1.5 flex-wrap">
-                              <span className="text-[10px] font-mono font-bold text-slate-400 bg-slate-50 px-1.5 py-0.2 rounded border border-slate-100">
+                              <span className="text-xs font-mono font-bold text-slate-400 bg-slate-50 px-1.5 py-0.2 rounded border border-slate-100">
                                 {log.publicationYear}
                               </span>
-                              <span className="text-[10px] font-semibold text-slate-500 bg-slate-100/65 px-1.5 py-0.2 rounded">
+                              <span className="text-xs font-semibold text-slate-500 bg-slate-100/65 px-1.5 py-0.2 rounded">
                                 {getResearchTypeName(log.type)}
                               </span>
                             </div>
-                            <h4 className="text-xs font-bold text-slate-800 leading-snug hover:text-blue-600 block mt-1 line-clamp-2">
+                            <h4 className="text-sm font-bold text-slate-800 leading-snug hover:text-blue-600 block mt-1 line-clamp-2">
                               {log.title}
                             </h4>
                           </div>
                         </td>
-                        <td className="px-4 py-3.5 font-bold text-slate-700 whitespace-nowrap">
+                        <td className="px-4 py-3.5 text-slate-700 whitespace-nowrap">
                           {teacher ? teacher.name : 'N/A'}
                         </td>
                         <td className="px-4 py-3.5 whitespace-nowrap">
@@ -411,9 +451,9 @@ export default function ResearchTab({
                           {log.journalOrOrganization}
                         </td>
                         <td className="px-4 py-3.5 text-right font-extrabold text-blue-600 font-mono">
-                          {log.convertedHours} h
+                          {log.convertedHours}
                         </td>
-                        <td className="px-4 py-3.5 text-center whitespace-nowrap">
+                        <td className="px-1 py-3.5 text-center whitespace-nowrap">
                           <span className={`inline-block text-[10px] font-bold px-2 py-0.5 rounded ${
                             log.status === 'approved' ? 'bg-emerald-50 text-emerald-700 border border-emerald-150' :
                             log.status === 'pending' ? 'bg-amber-50 text-amber-700 border border-amber-150' :
@@ -422,7 +462,7 @@ export default function ResearchTab({
                             {log.status === 'approved' ? 'Đã duyệt' : log.status === 'pending' ? 'Chờ duyệt' : 'Từ chối'}
                           </span>
                         </td>
-                        <td className="px-4 py-3.5 text-right whitespace-nowrap" onClick={(e) => e.stopPropagation()}>
+                        <td className="px-1 py-3.5 text-right whitespace-nowrap" onClick={(e) => e.stopPropagation()}>
                           <div className="flex items-center justify-end gap-1.5">
                             {isAdmin && onApproveLog && (
                               <button 
@@ -773,10 +813,76 @@ export default function ResearchTab({
                     </select>
                   </div>
 
+                  {/* Đồng tác giả selection - chỉ hiện khi khai báo mới */}
+                  {!editingLog && (
+                    <div className="col-span-2 lg:col-span-4">
+                      <div className="flex justify-between items-center mb-1">
+                        <label className="text-xs font-bold text-slate-500 block">
+                          Đồng tác giả (tự động tính giờ cho từng người)
+                        </label>
+                        <button
+                          type="button"
+                          onClick={() => setShowCoAuthorPanel(!showCoAuthorPanel)}
+                          className="text-xs font-bold text-blue-600 hover:text-blue-700 bg-blue-50 px-2 py-0.5 rounded-sm flex items-center gap-1 cursor-pointer transition-colors"
+                        >
+                          <Users className="w-2.5 h-2.5" />
+                          {formCoAuthorIds.length > 0 
+                            ? `Đã chọn ${formCoAuthorIds.length} đồng tác giả` 
+                            : 'Chọn đồng tác giả'}
+                        </button>
+                      </div>
+                      {showCoAuthorPanel && (
+                        <div className="border border-slate-200 rounded-lg bg-white max-h-48 overflow-y-auto">
+                          <div className="p-2 border-b border-slate-100 bg-slate-50 text-xs font-semibold text-slate-400 sticky top-0">
+                            Chọn giảng viên đồng tác giả trong khoa
+                          </div>
+                          {teachers
+                            .filter(t => t.id !== formTeacherId)
+                            .map((teacher) => (
+                              <label
+                                key={teacher.id}
+                                className="flex items-center gap-3 px-3 py-2 hover:bg-slate-50 cursor-pointer border-b border-slate-50 last:border-0"
+                              >
+                                <input
+                                  type="checkbox"
+                                  checked={formCoAuthorIds.includes(teacher.id)}
+                                  onChange={(e) => {
+                                    if (e.target.checked) {
+                                      setFormCoAuthorIds(prev => [...prev, teacher.id]);
+                                    } else {
+                                      setFormCoAuthorIds(prev => prev.filter(id => id !== teacher.id));
+                                    }
+                                  }}
+                                  className="w-4 h-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
+                                />
+                                <div className="flex-1 min-w-0">
+                                  <div className="text-xs font-bold text-slate-700 truncate">{teacher.name}</div>
+                                  <div className="text-[10px] text-slate-400 font-medium">{teacher.department} • {getRankString(teacher.rank)}</div>
+                                </div>
+                              </label>
+                            ))
+                          }
+                        </div>
+                      )}
+                      {formCoAuthorIds.length > 0 && !showCoAuthorPanel && (
+                        <div className="flex flex-wrap gap-1 mt-1">
+                          {formCoAuthorIds.map(id => {
+                            const t = teachers.find(te => te.id === id);
+                            return t ? (
+                              <span key={id} className="text-[10px] bg-blue-50 text-blue-700 px-1.5 py-0.5 rounded font-bold border border-blue-100">
+                                {t.name}
+                              </span>
+                            ) : null;
+                          })}
+                        </div>
+                      )}
+                    </div>
+                  )}
+
                   <div className="col-span-2 lg:col-span-4 relative">
                     <div className="flex justify-between items-center mb-1">
                       <label className="text-xs font-bold text-slate-500 block mb-1">
-                        Tên công trình / Đề tài / Tên bài báo quốc tế <span className="text-rose-500">*</span>
+                        Tên công trình / Đề tài / Bài báo <span className="text-rose-500">*</span>
                       </label>
                       {uniqueExistingWorks.length > 0 && (
                         <button
@@ -822,10 +928,17 @@ export default function ResearchTab({
                             key={idx}
                             type="button"
                             onMouseDown={() => {
+                              // Tự động điền TẤT CẢ thông tin từ công trình đã lưu
                               setFormTitle(work.title);
                               setFormType(work.type);
-                              setFormJournal(work.journal);
-                              setFormPublicationYear(work.year);
+                              setFormJournal(work.journalOrOrganization || '');
+                              setFormPublicationYear(work.publicationYear || '');
+                              setFormRole(work.role || 'leader');
+                              setFormQuantity(work.quantity || 1);
+                              setFormYears(work.years || 1);
+                              setFormMembers(work.members || 1);
+                              setFormNotes(work.notes || '');
+                              // Giữ nguyên teacherId và period hiện tại (không copy từ bản ghi cũ)
                               setShowSuggestions(false);
                             }}
                             className="w-full text-left px-3 py-2 hover:bg-slate-50 flex flex-col gap-1 transition-colors group cursor-pointer"
@@ -837,12 +950,18 @@ export default function ResearchTab({
                               <span className="bg-slate-100 text-slate-600 px-1.5 py-0.2 rounded shrink-0 font-bold">
                                 {getResearchTypeName(work.type)}
                               </span>
-                              {work.journal && (
+                              {work.journalOrOrganization && (
                                 <span className="truncate">
-                                  Nơi công bố: <b>{work.journal}</b>
+                                  Nơi công bố: <b>{work.journalOrOrganization}</b>
                                 </span>
                               )}
-                              {work.year && <span>• Năm {work.year}</span>}
+                              {work.publicationYear && <span>• Năm {work.publicationYear}</span>}
+                            </div>
+                            <div className="flex items-center gap-2 text-[10px] text-slate-400 font-medium truncate">
+                              <span>SLL: {work.quantity || 1}</span>
+                              <span>• SN: {work.years || 1}</span>
+                              <span>• STV: {work.members || 1}</span>
+                              <span>• {getRoleName(work.role)}</span>
                             </div>
                           </button>
                         ))}
@@ -852,7 +971,7 @@ export default function ResearchTab({
 
                   <div className="col-span-2 lg:col-span-2">
                     <label className="text-xs font-bold text-slate-500 block mb-1">
-                      Chọn loại thành tựu / Đề tài NCKH <span className="text-rose-500">*</span>
+                      Chọn loại nhiệm vụ NCKH <span className="text-rose-500">*</span>
                     </label>
                     <select
                       value={formType}
@@ -988,7 +1107,7 @@ export default function ResearchTab({
                       className="text-xs w-full border border-slate-200 rounded-lg px-3 py-2 bg-slate-50 focus:outline-hidden focus:ring-2 focus:ring-blue-500 font-medium"
                     >
                       <option value="approved">Đã kiểm tra chứng minh & duyệt</option>
-                      <option value="pending">Đang chờ bộ môn xét duyệt</option>
+                      <option value="pending">Đang chờ xét duyệt</option>
                       <option value="rejected">Mất minh chứng / Từ chối tính điểm</option>
                     </select>
                   </div>

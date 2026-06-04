@@ -1,12 +1,13 @@
 import { useState, useEffect } from 'react';
-import { Teacher, TeachingLog, ResearchLog, RankNorm, AcademicYearConfig } from './types';
+import { Teacher, TeachingLog, ResearchLog, RankNorm, AcademicYearConfig, WorkHistory } from './types';
 import { 
   DEFAULT_RANKS_NORM, 
   ACADEMIC_YEARS, 
   DEPARTMENTS, 
   TEACHERS_SAMPLE, 
   TEACHING_LOGS_SAMPLE, 
-  RESEARCH_LOGS_SAMPLE 
+  RESEARCH_LOGS_SAMPLE,
+  WORK_HISTORY_SAMPLE
 } from './data';
 import StatsDashboard from './components/StatsDashboard';
 import TeacherList from './components/TeacherList';
@@ -16,6 +17,7 @@ import DataManagement from './components/DataManagement';
 import LoginScreen from './components/LoginScreen';
 import AccountSecurityTab from './components/AccountSecurityTab';
 import StandardsTab from './components/StandardsTab';
+import TeachersByYearTab from './components/TeachersByYearTab';
 import { 
   BarChart3, Users, BookOpen, FileCode2, Settings, 
   GraduationCap, Calendar, Sparkles, LogOut, ShieldCheck, UserCheck, Award
@@ -37,7 +39,7 @@ export default function App() {
   const [authLoading, setAuthLoading] = useState(true);
 
   // Active Tab
-  const [activeTab, setActiveTab] = useState<'stats' | 'teachers' | 'teaching' | 'research' | 'settings' | 'account' | 'standards'>('stats');
+  const [activeTab, setActiveTab] = useState<'stats' | 'teachers' | 'teaching' | 'research' | 'settings' | 'account' | 'standards' | 'teachersByYear'>('stats');
 
   // Core Data States
   const [teachers, setTeachers] = useState<Teacher[]>([]);
@@ -45,6 +47,7 @@ export default function App() {
   const [researchLogs, setResearchLogs] = useState<ResearchLog[]>([]);
   const [rankNorms, setRankNorms] = useState<RankNorm[]>([]);
   const [academicYears, setAcademicYears] = useState<AcademicYearConfig[]>([]);
+  const [workHistories, setWorkHistories] = useState<WorkHistory[]>([]);
   const [selectedYear, setSelectedYear] = useState<string>('2025-2026');
   const [hasInitYearOnFetch, setHasInitYearOnFetch] = useState(false);
 
@@ -68,6 +71,9 @@ export default function App() {
         }
         for (const rl of RESEARCH_LOGS_SAMPLE) {
           await setDoc(doc(db, 'research_logs', rl.id), cleanDocData(rl));
+        }
+        for (const wh of WORK_HISTORY_SAMPLE) {
+          await setDoc(doc(db, 'work_histories', wh.id), cleanDocData(wh));
         }
         console.log('Firestore seeded successfully!');
       }
@@ -96,6 +102,7 @@ export default function App() {
       setResearchLogs([]);
       setRankNorms([]);
       setAcademicYears([]);
+      setWorkHistories([]);
       return;
     }
 
@@ -167,6 +174,18 @@ export default function App() {
       handleFirestoreError(err, OperationType.GET, 'academic_years');
     });
     unsubscribes.push(unsubscribeYears);
+
+    // Work History listener
+    const unsubscribeWorkHistories = onSnapshot(collection(db, 'work_histories'), (snap) => {
+      const list: WorkHistory[] = [];
+      snap.forEach((docSnap) => {
+        list.push(docSnap.data() as WorkHistory);
+      });
+      setWorkHistories(list);
+    }, (err) => {
+      handleFirestoreError(err, OperationType.GET, 'work_histories');
+    });
+    unsubscribes.push(unsubscribeWorkHistories);
 
     return () => {
       unsubscribes.forEach(unsub => unsub());
@@ -273,11 +292,15 @@ export default function App() {
       // Cascade delete logs
       const updatedTeaching = teachingLogs.filter(log => log.teacherId === id);
       const updatedResearch = researchLogs.filter(log => log.teacherId === id);
+      const updatedWorkHistory = workHistories.filter(wh => wh.teacherId === id);
       for (const log of updatedTeaching) {
         await deleteDoc(doc(db, 'teaching_logs', log.id));
       }
       for (const log of updatedResearch) {
         await deleteDoc(doc(db, 'research_logs', log.id));
+      }
+      for (const wh of updatedWorkHistory) {
+        await deleteDoc(doc(db, 'work_histories', wh.id));
       }
     } catch (err) {
       handleFirestoreError(err, OperationType.DELETE, `teachers/${id}`);
@@ -342,6 +365,31 @@ export default function App() {
     }
   };
 
+  // Work History CRUD in Firestore
+  const handleAddWorkHistory = async (wh: WorkHistory) => {
+    try {
+      await setDoc(doc(db, 'work_histories', wh.id), cleanDocData(wh));
+    } catch (err) {
+      handleFirestoreError(err, OperationType.CREATE, `work_histories/${wh.id}`);
+    }
+  };
+
+  const handleEditWorkHistory = async (wh: WorkHistory) => {
+    try {
+      await setDoc(doc(db, 'work_histories', wh.id), cleanDocData(wh));
+    } catch (err) {
+      handleFirestoreError(err, OperationType.UPDATE, `work_histories/${wh.id}`);
+    }
+  };
+
+  const handleDeleteWorkHistory = async (id: string) => {
+    try {
+      await deleteDoc(doc(db, 'work_histories', id));
+    } catch (err) {
+      handleFirestoreError(err, OperationType.DELETE, `work_histories/${id}`);
+    }
+  };
+
   // Settings Handlers
   const handleUpdateNorms = async (norms: RankNorm[]) => {
     try {
@@ -383,6 +431,9 @@ export default function App() {
       for (const yr of academicYears) {
         await deleteDoc(doc(db, 'academic_years', yr.id));
       }
+      for (const wh of workHistories) {
+        await deleteDoc(doc(db, 'work_histories', wh.id));
+      }
       await initializeFirebaseDataIfEmpty();
     } catch (err) {
       console.error('Reset error:', err);
@@ -420,6 +471,13 @@ export default function App() {
             });
           });
         }
+        if (parsed.workHistories) {
+          parsed.workHistories.forEach((wh: any) => {
+            setDoc(doc(db, 'work_histories', wh.id), cleanDocData(wh)).catch(err => {
+              handleFirestoreError(err, OperationType.CREATE, `work_histories/${wh.id}`);
+            });
+          });
+        }
         if (parsed.selectedYear) syncSelectedYear(parsed.selectedYear);
         return true;
       }
@@ -437,6 +495,7 @@ export default function App() {
       researchLogs,
       rankNorms,
       academicYears,
+      workHistories,
       selectedYear
     };
     return JSON.stringify(data, null, 2);
@@ -502,6 +561,18 @@ export default function App() {
           >
             <Users className="w-4 h-4 shrink-0" />
             <span>Hồ sơ giảng viên</span>
+          </button>
+
+          <button
+            onClick={() => setActiveTab('teachersByYear')}
+            className={`w-full flex items-center gap-3 px-6 py-3 border-l-4 text-xs font-semibold uppercase tracking-wider transition-all text-left cursor-pointer ${
+              activeTab === 'teachersByYear' 
+                ? 'bg-[#094870]/50 border-sky-400 text-sky-200 font-extrabold' 
+                : 'border-transparent text-slate-300/85 hover:text-white hover:bg-white/5'
+            }`}
+          >
+            <UserCheck className="w-4 h-4 shrink-0" />
+            <span>Giảng viên năm học</span>
           </button>
 
           <button
@@ -701,6 +772,16 @@ export default function App() {
                 Giảng viên
               </button>
               <button
+                onClick={() => setActiveTab('teachersByYear')}
+                className={`text-xs font-bold px-3 py-1.5 rounded-lg transition-all shrink-0 cursor-pointer ${
+                  activeTab === 'teachersByYear' 
+                    ? 'bg-[#094870] text-white font-extrabold shadow-sm border border-white/10' 
+                    : 'text-blue-200/80 hover:text-white'
+                }`}
+              >
+                GV năm học
+              </button>
+              <button
                 onClick={() => setActiveTab('teaching')}
                 className={`text-xs font-bold px-3 py-1.5 rounded-lg transition-all shrink-0 cursor-pointer ${
                   activeTab === 'teaching' 
@@ -772,6 +853,7 @@ export default function App() {
                   researchLogs={researchLogs}
                   rankNorms={rankNorms}
                   academicYear={selectedYear}
+                  workHistories={workHistories}
                 />
               )}
 
@@ -784,6 +866,20 @@ export default function App() {
                   onDeleteTeacher={handleDeleteTeacher}
                   userRole={currentUser?.role}
                   currentTeacherId={currentUser?.teacherId}
+                  workHistories={workHistories}
+                  academicYears={academicYears}
+                  onAddWorkHistory={handleAddWorkHistory}
+                  onEditWorkHistory={handleEditWorkHistory}
+                  onDeleteWorkHistory={handleDeleteWorkHistory}
+                />
+              )}
+
+              {activeTab === 'teachersByYear' && (
+                <TeachersByYearTab 
+                  teachers={teachers}
+                  workHistories={workHistories}
+                  rankNorms={rankNorms}
+                  selectedYear={selectedYear}
                 />
               )}
 

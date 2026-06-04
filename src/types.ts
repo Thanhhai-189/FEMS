@@ -33,6 +33,25 @@ export interface Teacher {
   notes?: string; // Ghi chú thêm/ghi nhớ mật khẩu từ admin
 }
 
+/**
+ * WorkHistory: Lưu trữ quá trình công tác của giảng viên theo từng năm học.
+ * Đây là hồ sơ gốc để khi lọc lấy dữ liệu theo năm lịch sử.
+ */
+export interface WorkHistory {
+  id: string;
+  teacherId: string;
+  academicYear: string;      // Năm học, vd: "2025-2026"
+  department: string;        // Đơn vị công tác
+  position: string;          // Chức vụ
+  academicTitle: string;     // Chức danh chuyên môn
+  rank: AcademicRank;        // Học vị trong năm đó
+  reductionRate: number;     // Tỷ lệ giảm trừ (%)
+  status: 'A' | 'I';        // Trạng thái hoạt động
+  party: string;             // Chức vụ Đảng (nếu có)
+  createdBy?: string;        // Người tạo (admin)
+  createdAt?: number;        // Timestamp
+}
+
 export type TeachingType = 
   | 'theoretical'
   | 'practical_day_lab'

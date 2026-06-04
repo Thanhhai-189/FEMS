@@ -260,7 +260,7 @@ export default function TeachingHoursTab({
           <span className="text-xl font-bold text-slate-800 font-mono mt-0.5 block">{totalFilteredHours.actual} tiết</span>
         </div>
         <div className="bg-white p-4 rounded-xl border border-blue-100 bg-blue-50/15 shadow-sm">
-          <span className="text-blue-600 font-bold text-xs block uppercase font-bold tracking-wider">Giờ quy đổi tiêu chuẩn</span>
+          <span className="text-blue-600 font-bold text-xs block uppercase font-bold tracking-wider">Giờ chuẩn</span>
           <span className="text-xl font-extrabold text-blue-700 font-mono mt-0.5 block">{totalFilteredHours.converted} giờ</span>
         </div>
       </div>
@@ -276,9 +276,9 @@ export default function TeachingHoursTab({
                 <th className="py-3.5 px-4">Lớp & Sĩ số</th>
                 <th className="py-3.5 px-4">Học kỳ</th>
                 <th className="py-3.5 px-4">Hình thức</th>
-                <th className="py-3.5 px-4 text-center">Số lượng</th>
-                <th className="py-3.5 px-4 text-center">Hệ số định mức</th>
-                <th className="py-3.5 px-4 text-right">Giờ quy chuẩn</th>
+                <th className="py-3.5 px-4 text-center">Số tiết</th>
+                <th className="py-3.5 px-4 text-center">Hệ số</th>
+                <th className="py-3.5 px-4 text-center">Giờ chuẩn</th>
                 <th className="py-3.5 px-4 text-center">Thao tác</th>
               </tr>
             </thead>
@@ -314,7 +314,7 @@ export default function TeachingHoursTab({
                       <td className="py-3 px-4">
                         <div>
                           <span className="font-semibold text-slate-700 font-mono block">{log.className}</span>
-                          <span className="text-xs font-semibold text-slate-400">{log.studentCount} sinh viên</span>
+                          <span className="text-xs font-semibold text-slate-400">{log.studentCount} học viên</span>
                         </div>
                       </td>
                       <td className="py-3 px-4 font-semibold text-slate-600 text-xs">
@@ -322,25 +322,30 @@ export default function TeachingHoursTab({
                       </td>
                       <td className="py-3 px-4">
                         <span className={`inline-block text-xs font-bold px-2 py-0.5 rounded ${
-                          log.type === 'theoretical' ? 'bg-blue-50 text-blue-700 border border-blue-100' :
-                          log.type === 'practical' ? 'bg-emerald-50 text-emerald-700 border border-emerald-100' :
-                          'bg-amber-50 text-amber-700 border border-amber-100'
+                          log.type === 'theoretical' ? ' text-blue-700 ' :
+                          log.type === 'practical' ? ' text-emerald-700' :
+                          'text-amber-700'
                         }`}>
                           {getTeachingTypeName(log.type)}
                         </span>
                       </td>
                       <td className="py-3 px-4 text-center font-mono font-bold text-slate-650">
-                        {log.actualHours} <span className="text-slate-400 font-normal text-[10px]">{TEACHING_ACTIVITIES.find(a => a.id === log.type)?.unit || 'tiết'}</span>
+                        <div className="flex flex-col items-center">
+                          <span>{log.actualHours}</span>
+                          <span className="text-slate-400 font-normal text-xs">
+                            {TEACHING_ACTIVITIES.find(a => a.id === log.type)?.unit || 'tiết'}
+                          </span>
+                        </div>
                       </td>
                       <td className="py-3 px-4 text-center">
                         <span className="font-mono bg-slate-100 text-slate-700 px-1.5 py-0.2 rounded font-bold text-xs" title={`Hệ số định chuẩn: x${log.coefficient}`}>
                           x{log.coefficient}
                         </span>
                       </td>
-                      <td className="py-3 px-4 text-right font-mono font-extrabold text-blue-600">
-                        {log.convertedHours} h
+                      <td className="py-3 px-4 text-center font-mono font-extrabold text-blue-600">
+                        {log.convertedHours} 
                       </td>
-                      <td className="py-3 px-4 text-center" onClick={(e) => e.stopPropagation()}>
+                      <td className="py-3 px-3 text-center" onClick={(e) => e.stopPropagation()}>
                         <div className="flex justify-center gap-1">
                           {(isAdmin || log.teacherId === currentTeacherId) ? (
                             <>
@@ -422,12 +427,12 @@ export default function TeachingHoursTab({
 
                   <div>
                     <label className="text-xs font-bold text-slate-500 block mb-1">
-                      Tên môn học <span className="text-rose-500">*</span>
+                      Tên học phần <span className="text-rose-500">*</span>
                     </label>
                     <input
                       type="text"
                       required
-                      placeholder="Ví dụ: Cơ sở dữ liệu phân tán"
+                      placeholder="Ví dụ: Cấu tạo ô tô"
                       value={formSubjectName}
                       onChange={(e) => setFormSubjectName(e.target.value)}
                       className="text-xs w-full border border-slate-200 rounded-lg px-3 py-2 bg-slate-50 focus:outline-hidden focus:ring-2 focus:ring-blue-500 font-medium"
@@ -436,11 +441,11 @@ export default function TeachingHoursTab({
 
                   <div>
                     <label className="text-xs font-bold text-slate-500 block mb-1">
-                      Mã môn học
+                      Mã học phần
                     </label>
                     <input
                       type="text"
-                      placeholder="Mã học phần MH101"
+                      placeholder="MH101"
                       value={formSubjectCode}
                       onChange={(e) => setFormSubjectCode(e.target.value)}
                       className="text-xs w-full border border-slate-200 rounded-lg px-3 py-2 bg-slate-50 focus:outline-hidden focus:ring-2 focus:ring-blue-500 font-mono"
@@ -449,7 +454,7 @@ export default function TeachingHoursTab({
 
                   <div>
                     <label className="text-xs font-bold text-slate-500 block mb-1">
-                      Tên lớp chính thức <span className="text-rose-500">*</span>
+                      Lớp <span className="text-rose-500">*</span>
                     </label>
                     <input
                       type="text"
@@ -463,7 +468,7 @@ export default function TeachingHoursTab({
 
                   <div>
                     <label className="text-xs font-bold text-slate-500 block mb-1">
-                      Số tín chỉ môn học
+                      Số tín chỉ
                     </label>
                     <input
                       type="number"
@@ -485,7 +490,7 @@ export default function TeachingHoursTab({
                     />
                   </div>
 
-                  <div>
+                  <div class="col-span-2 lg:col-span-4">
                     <label className="text-xs font-bold text-slate-500 block mb-1">
                       Hình thức giảng dạy / Hoạt động
                     </label>
@@ -518,7 +523,7 @@ export default function TeachingHoursTab({
 
                   <div>
                     <label className="text-xs font-bold text-slate-500 block mb-1">
-                      Sĩ số lớp (quy định hệ số)
+                      Sĩ số lớp 
                     </label>
                     <input
                       type="number"

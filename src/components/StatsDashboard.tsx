@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { Teacher, TeachingLog, ResearchLog, RankNorm } from '../types';
+import { Teacher, TeachingLog, ResearchLog, RankNorm, WorkHistory } from '../types';
 import { getRankString, getTeachingTypeName, getResearchTypeName, getTeacherTeachingNorm, ACTIVITY_DATA } from '../data';
 import { motion } from 'motion/react';
 import { 
@@ -14,6 +14,7 @@ interface StatsDashboardProps {
   researchLogs: ResearchLog[];
   rankNorms: RankNorm[];
   academicYear: string;
+  workHistories?: WorkHistory[];
 }
 
 // ── Component PieChart SVG ──
@@ -176,63 +177,95 @@ const PieChart = React.memo(({ data, size = 280, totalHours }: PieChartProps) =>
   );
 });
 
-export default function StatsDashboard({ teachers, teachingLogs, researchLogs, rankNorms, academicYear }: StatsDashboardProps) {
+export default function StatsDashboard({ teachers, teachingLogs, researchLogs, rankNorms, academicYear, workHistories = [] }: StatsDashboardProps) {
   const [selectedDepartment, setSelectedDepartment] = useState<string>('all');
 
+  // Lọc giảng viên chỉ lấy những người có bản ghi WorkHistory trong năm học được chọn
+  const yearTeachers = useMemo(() => {
+    if (!workHistories || workHistories.length === 0) return teachers;
+    const teacherIdsInYear = new Set(
+      workHistories
+        .filter(wh => wh.academicYear === academicYear)
+        .map(wh => wh.teacherId)
+    );
+    return teachers.filter(t => teacherIdsInYear.has(t.id));
+  }, [teachers, workHistories, academicYear]);
+
   const departments = useMemo(() => {
-    const list = new Set(teachers.map(t => t.department));
+    const list = new Set(yearTeachers.map(t => t.department));
     return ['all', ...Array.from(list)];
-  }, [teachers]);
+  }, [yearTeachers]);
 
   // Filter teachers by department
   const filteredTeachers = useMemo(() => {
-    if (selectedDepartment === 'all') return teachers;
-    return teachers.filter(t => t.department === selectedDepartment);
-  }, [teachers, selectedDepartment]);
+    if (selectedDepartment === 'all') return yearTeachers;
+    return yearTeachers.filter(t => t.department === selectedDepartment);
+  }, [yearTeachers, selectedDepartment]);
 
   const filteredTeacherIds = useMemo(() => {
     return new Set(filteredTeachers.map(t => t.id));
   }, [filteredTeachers]);
 
   // Calculations for teacher statistics
+  // Sử dụng dữ liệu WorkHistory theo năm học để tính định mức và giảm trừ
   const teacherStats = useMemo(() => {
-    return teachers.map(teacher => {
-      // Find norms
-      const normConfig = rankNorms.find(rn => rn.rank === teacher.rank) || { teachingNorm: 200, researchNorm: 150 };
-      
-      const isStaff = teacher.position && (teacher.position.toLowerCase() === 'nhân viên' || teacher.position.toLowerCase().includes('nhân viên'));
+    // Tạo map WorkHistory theo teacherId cho năm đang chọn
+    const yearWorkHistoryMap = new Map<string, WorkHistory>();
+    if (workHistories && workHistories.length > 0) {
+      workHistories
+        .filter(wh => wh.academicYear === academicYear)
+        .forEach(wh => {
+          // Nếu có nhiều bản ghi cùng năm, lấy bản ghi mới nhất (giả định theo thứ tự xuất hiện)
+          const existing = yearWorkHistoryMap.get(wh.teacherId);
+          if (!existing) {
+            yearWorkHistoryMap.set(wh.teacherId, wh);
+          }
+        });
+    }
 
-      // For teaching norms, we use the user's specific position and party-based 280 hours baseline configuration
-      const posNorm = isStaff ? { percent: 0, hours: 0 } : getTeacherTeachingNorm(teacher.position, teacher.party);
+    return teachers.map(teacher => {
+      // Lấy WorkHistory theo năm học nếu có, fallback về thông tin hiện tại
+      const wh = yearWorkHistoryMap.get(teacher.id);
+      const yearPosition = wh?.position ?? teacher.position;
+      const yearParty = wh?.party ?? teacher.party;
+      const yearRank = wh?.rank ?? teacher.rank;
+      const yearStatus = wh?.status ?? teacher.status;
+      const yearReductionRate = wh?.reductionRate ?? teacher.reductionRate ?? 0;
+      const yearDepartment = wh?.department ?? teacher.department;
+
+      // Find norms
+      const normConfig = rankNorms.find(rn => rn.rank === yearRank) || { teachingNorm: 200, researchNorm: 150 };
+      
+      const isStaff = yearPosition && (yearPosition.toLowerCase() === 'nhân viên' || yearPosition.toLowerCase().includes('nhân viên'));
+
+      // Tính định mức giảng dạy theo chức vụ & chức vụ đảng trong năm học
+      const posNorm = isStaff ? { percent: 0, hours: 0 } : getTeacherTeachingNorm(yearPosition, yearParty);
       const baseTeachingNorm = posNorm.hours;
       
-      // Giảm định mức giảng dạy theo tỉ lệ khi nhập vào ô "% Giảm trừ định mức (0-100%)" (hoặc 100% nếu inactive)
-      const actualReduction = teacher.status === 'I' ? 100 : (teacher.reductionRate || 0);
+      // Áp dụng tỷ lệ giảm trừ theo năm học (từ WorkHistory)
+      const actualReduction = yearStatus === 'I' ? 100 : (yearReductionRate || 0);
       const adjustedTeachingNorm = isStaff ? 0 : Math.round(baseTeachingNorm * (1 - actualReduction / 100));
       
       // Base research norm is 600 administrative hours
       const baseResearchNorm = isStaff ? 0 : 600;
       
-      // Research norm reduction: 
-      // "không giảm trừ đối với người giữ chức, nhưng vẫn giảm trừ đối với người không thực hiện full năm, ví dụ nghỉ đẻ, công tác, tính theo % giảm"
+      // Research norm reduction theo logic chức vụ trong năm học
       let researchReduction = 0;
       if (isStaff) {
         researchReduction = 100;
-      } else if (teacher.status === 'I') {
-        // "ví dụ nghỉ đẻ, công tác" - status Inactive
-        researchReduction = teacher.reductionRate > 0 ? teacher.reductionRate : 50;
+      } else if (yearStatus === 'I') {
+        researchReduction = yearReductionRate > 0 ? yearReductionRate : 50;
       } else {
-        // For active teachers, if they do not hold a leadership position ("người giữ chức"), we can apply their general reduction rate if any.
-        // Leadership positions have their teaching norm reduced automatically based on POSITION_NORMS; they are NOT reduced for research.
-        const holdsPosition = teacher.position && (
-          teacher.position.toLowerCase().includes('chủ nhiệm') ||
-          teacher.position.toLowerCase().includes('trưởng') ||
-          teacher.position.toLowerCase().includes('phó')
+        // Người giữ chức vụ lãnh đạo không giảm trừ NCKH
+        const holdsPosition = yearPosition && (
+          yearPosition.toLowerCase().includes('chủ nhiệm') ||
+          yearPosition.toLowerCase().includes('trưởng') ||
+          yearPosition.toLowerCase().includes('phó')
         );
         if (!holdsPosition) {
-          researchReduction = teacher.reductionRate;
+          researchReduction = yearReductionRate;
         } else {
-          researchReduction = 0; // "không giảm trừ đối với người giữ chức"
+          researchReduction = 0;
         }
       }
       const adjustedResearchNorm = isStaff ? 0 : Math.round(baseResearchNorm * (1 - researchReduction / 100));
@@ -258,7 +291,7 @@ export default function StatsDashboard({ teachers, teachingLogs, researchLogs, r
       const totalOvertime = Math.max(0, Math.round((teachingExcess - researchDeficit / 3) * 10) / 10);
 
       return {
-        teacher,
+        teacher: { ...teacher, position: yearPosition, party: yearParty, rank: yearRank, status: yearStatus as 'A' | 'I', reductionRate: yearReductionRate, department: yearDepartment },
         academicYear,
         norms: {
           originalTeaching: baseTeachingNorm,
@@ -278,7 +311,7 @@ export default function StatsDashboard({ teachers, teachingLogs, researchLogs, r
         metBoth: teachingSum >= adjustedTeachingNorm && researchSum >= adjustedResearchNorm
       };
     });
-  }, [teachers, teachingLogs, researchLogs, rankNorms, academicYear]);
+  }, [teachers, teachingLogs, researchLogs, rankNorms, academicYear, workHistories]);
 
   // Filter stats for currently selected department
   const filteredTeacherStats = useMemo(() => {
@@ -689,21 +722,11 @@ export default function StatsDashboard({ teachers, teachingLogs, researchLogs, r
               <tr className="bg-slate-50/75 border-b border-slate-100 text-xs font-semibold text-slate-500">
                 <th className="py-3 px-4 w-12 text-center">STT</th>
                 <th className="py-3 px-4">Giảng viên</th>
-                <th className="py-3 px-4">Chức danh / Học hàm</th>
+                <th className="py-3 px-4">Học hàm</th>
                 <th className="py-3 px-4 w-44">Tỷ lệ giờ giảng</th>
                 <th className="py-3 px-4 w-44">Tỷ lệ NCKH</th>
                 <th className="py-3 px-4 text-center">Đạt KPI kép</th>
-                <th className="py-3 px-4 text-right">
-                  <div className="flex items-center justify-end gap-1 group relative cursor-help">
-                    <span>Giờ vượt mức</span>
-                    <HelpCircle className="w-3.5 h-3.5 text-slate-400 group-hover:text-slate-600 transition-colors" />
-                    <div className="absolute right-0 bottom-full mb-2 w-72 p-3 bg-slate-800 text-white text-[11px] rounded-lg shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 font-normal leading-relaxed text-left">
-                      <p className="font-bold border-b border-slate-700 pb-1 mb-1.5 text-blue-400">Cách tính giờ vượt mức:</p>
-                      <p className="mb-1">Bằng <strong>Giờ giảng còn dư - 1/3 giờ NCKH còn thiếu</strong>.</p>
-                      <p className="text-slate-300">Giờ giảng dư được dùng để bù cho giờ NCKH thiếu (3 giờ giảng dạy = 1 giờ NCKH). Giờ NCKH dư không được dùng bù ngược lại cho giờ giảng thiếu.</p>
-                    </div>
-                  </div>
-                </th>
+                <th className="py-3 px-4 text-right">Giờ vượt mức</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
@@ -716,8 +739,8 @@ export default function StatsDashboard({ teachers, teachingLogs, researchLogs, r
                     </td>
                     <td className="py-3.5 px-4">
                       <div>
-                        <span className="text-xs font-bold text-slate-800 block">{stat.teacher.name}</span>
-                        <span className="text-xs text-slate-400 font-mono">{stat.teacher.department}</span>
+                        <span className="text-sm font-bold text-slate-800 block">{stat.teacher.name}</span>
+                        <span className="text-xs text-slate-400 ">{stat.teacher.department}</span>
                       </div>
                     </td>
                     <td className="py-3.5 px-4">
@@ -727,7 +750,7 @@ export default function StatsDashboard({ teachers, teachingLogs, researchLogs, r
                         </span>
                         {stat.teacher.reductionRate > 0 && (
                           <span className="text-xs text-blue-600 font-bold bg-blue-50 px-1 py-0.2 rounded w-fit">
-                            Giảm {stat.teacher.reductionRate}% {stat.teacher.status === 'I' ? '(Nghỉ học/Công tác)' : `(${stat.teacher.position})`}
+                            Giảm {stat.teacher.reductionRate}% {stat.teacher.status === 'I' ? '(Nghỉ học/Công tác)' : ``}
                           </span>
                         )}
                         {stat.teacher.status === 'I' && stat.teacher.reductionRate === 0 && (
@@ -867,11 +890,11 @@ export default function StatsDashboard({ teachers, teachingLogs, researchLogs, r
               <div className="p-2.5 bg-slate-50 rounded-lg border-l-4 border-l-blue-500">
                 <strong className="text-slate-800 block mb-1">Công thức tính:</strong>
                 <code className="font-mono bg-white px-1.5 py-0.5 rounded border border-slate-200 font-bold text-blue-600 block w-fit mt-1">
-                  Giờ vượt mức = Giờ giảng còn dư - (1/3 × Giờ NCKH còn thiếu)
+                  Giờ vượt mức = Giờ giảng còn dư - Giờ NCKH còn thiếu (Giờ hành chính)
                 </code>
               </div>
               <div className="bg-amber-50/60 p-2.5 rounded-lg border border-amber-100/70 text-amber-800">
-                <strong>Bù trừ khi thiếu:</strong> Số giờ giảng dạy còn dư được sử dụng để bù đắp cho số giờ NCKH còn thiếu theo tỷ lệ quy đổi <strong>3 giờ giảng dạy = 1 giờ NCKH</strong> (bằng cách trừ đi 1/3 số giờ NCKH thiếu).
+                <strong>Bù trừ khi thiếu:</strong> Số giờ giảng dạy còn dư được sử dụng để bù đắp cho số giờ NCKH còn thiếu theo tỷ lệ quy đổi <strong>1 giờ giảng dạy = 3 giờ NCKH</strong> (bằng cách trừ đi 1/3 số giờ NCKH thiếu).
               </div>
               <div className="bg-slate-50/65 p-2.5 rounded-lg border border-slate-100 text-slate-500">
                 <strong>Không bù ngược lại:</strong> Số giờ NCKH dư thừa <strong>không được phép sử dụng</strong> để bù đắp cho số giờ giảng dạy thiếu hụt.

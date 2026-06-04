@@ -19,8 +19,42 @@ service cloud.firestore {
       );
     }
 
-    function isOwner(userId) {
-      return isSignedIn() && request.auth.uid == userId;
+    // Lấy email từ user đang đăng nhập
+    function currentUserEmail() {
+      return isSignedIn() ? request.auth.token.email : '';
+    }
+
+    // Lấy email chuẩn hóa (lowercase, trim)
+    function normalizeEmail(email) {
+      return email is string ? email.lower().trim() : '';
+    }
+
+    // Kiểm tra teacherId trong document có phải của user đang đăng nhập hay không
+    // bằng cách so sánh email của teacher (lookup từ collection teachers)
+    function isOwnerTeacher(teacherId) {
+      return isSignedIn() && exists(
+        /databases/$(database)/documents/teachers/$(teacherId)
+      ) && get(
+        /databases/$(database)/documents/teachers/$(teacherId)
+      ).data.email == currentUserEmail();
+    }
+
+    // Cho create: check teacherId trong request.resource.data
+    function isOwnerTeacherOnCreate(teacherId) {
+      return isSignedIn() && exists(
+        /databases/$(database)/documents/teachers/$(teacherId)
+      ) && get(
+        /databases/$(database)/documents/teachers/$(teacherId)
+      ).data.email == currentUserEmail();
+    }
+
+    // Cho update/delete: check teacherId trong resource.data
+    function isOwnerTeacherOnResource(teacherId) {
+      return isSignedIn() && exists(
+        /databases/$(database)/documents/teachers/$(teacherId)
+      ) && get(
+        /databases/$(database)/documents/teachers/$(teacherId)
+      ).data.email == currentUserEmail();
     }
 
     function isValidId(id) {
@@ -29,7 +63,7 @@ service cloud.firestore {
 
     // Entity shapes
     function isValidTeacher(data) {
-      return data.id is string && data.id.size() <= 128 
+      return data.id is string && data.id.size() <= 128
           && data.code is string && data.code.size() <= 50
           && data.name is string && data.name.size() <= 200
           && data.email is string && data.email.size() <= 150
@@ -55,6 +89,19 @@ service cloud.firestore {
           && data.academicYear is string && data.academicYear.size() <= 20;
     }
 
+    function isValidWorkHistory(data) {
+      return data.id is string && data.id.size() <= 128
+          && data.teacherId is string && data.teacherId.size() <= 128
+          && data.academicYear is string && data.academicYear.size() <= 20
+          && data.department is string && data.department.size() <= 150
+          && data.position is string && data.position.size() <= 200
+          && data.academicTitle is string && data.academicTitle.size() <= 100
+          && data.rank is string && (data.rank == 'GS' || data.rank == 'PGS' || data.rank == 'TS' || data.rank == 'ThS' || data.rank == 'CN' || data.rank == 'KS')
+          && data.reductionRate is number
+          && data.status is string && (data.status == 'A' || data.status == 'I')
+          && data.party is string && data.party.size() <= 100;
+    }
+
     function isValidResearchLog(data) {
       return data.id is string && data.id.size() <= 128
           && data.teacherId is string && data.teacherId.size() <= 128
@@ -78,25 +125,25 @@ service cloud.firestore {
     // 2. Teachers Collection
     match /teachers/{teacherId} {
       allow read, list: if isSignedIn();
-      allow create: if (isAdmin() || isOwner(teacherId)) && isValidTeacher(request.resource.data) && isValidId(teacherId);
-      allow update: if (isAdmin() || isOwner(teacherId)) && isValidTeacher(request.resource.data) && isValidId(teacherId);
+      allow create: if (isAdmin() || isOwnerTeacherOnCreate(teacherId)) && isValidTeacher(request.resource.data) && isValidId(teacherId);
+      allow update: if (isAdmin() || isOwnerTeacherOnResource(teacherId)) && isValidTeacher(request.resource.data) && isValidId(teacherId);
       allow delete: if isAdmin();
     }
 
     // 3. Teaching Logs Collection
     match /teaching_logs/{logId} {
       allow read, list: if isSignedIn();
-      allow create: if (isAdmin() || isOwner(request.resource.data.teacherId)) && isValidTeachingLog(request.resource.data) && isValidId(logId);
-      allow update: if (isAdmin() || isOwner(resource.data.teacherId)) && isValidTeachingLog(request.resource.data) && isValidId(logId);
-      allow delete: if isAdmin() || isOwner(resource.data.teacherId);
+      allow create: if (isAdmin() || isOwnerTeacherOnCreate(request.resource.data.teacherId)) && isValidTeachingLog(request.resource.data) && isValidId(logId);
+      allow update: if (isAdmin() || isOwnerTeacherOnResource(resource.data.teacherId)) && isValidTeachingLog(request.resource.data) && isValidId(logId);
+      allow delete: if isAdmin() || isOwnerTeacherOnResource(resource.data.teacherId);
     }
 
     // 4. Research Logs Collection
     match /research_logs/{logId} {
       allow read, list: if isSignedIn();
-      allow create: if (isAdmin() || isOwner(request.resource.data.teacherId)) && isValidResearchLog(request.resource.data) && isValidId(logId);
-      allow update: if (isAdmin() || isOwner(resource.data.teacherId)) && isValidResearchLog(request.resource.data) && isValidId(logId);
-      allow delete: if isAdmin() || isOwner(resource.data.teacherId);
+      allow create: if (isAdmin() || isOwnerTeacherOnCreate(request.resource.data.teacherId)) && isValidResearchLog(request.resource.data) && isValidId(logId);
+      allow update: if (isAdmin() || isOwnerTeacherOnResource(resource.data.teacherId)) && isValidResearchLog(request.resource.data) && isValidId(logId);
+      allow delete: if isAdmin() || isOwnerTeacherOnResource(resource.data.teacherId);
     }
 
     // 5. Rank Norms Collection
@@ -109,6 +156,15 @@ service cloud.firestore {
     match /academic_years/{yearId} {
       allow read, list: if isSignedIn();
       allow write: if isAdmin() && isValidId(yearId);
+    }
+
+    // 7. Work History Collection
+    match /work_histories/{whId} {
+      allow read, list: if isSignedIn();
+      // Giảng viên có thể tạo/sửa work_history của chính họ (dựa trên email)
+      allow create: if (isAdmin() || isOwnerTeacherOnCreate(request.resource.data.teacherId)) && isValidWorkHistory(request.resource.data) && isValidId(whId);
+      allow update: if (isAdmin() || isOwnerTeacherOnResource(resource.data.teacherId)) && isValidWorkHistory(request.resource.data) && isValidId(whId);
+      allow delete: if isAdmin() || isOwnerTeacherOnResource(resource.data.teacherId);
     }
   }
 }

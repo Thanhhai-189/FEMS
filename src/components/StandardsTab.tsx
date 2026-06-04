@@ -778,12 +778,20 @@ export default function StandardsTab({ teachers, researchLogs }: StandardsTabPro
           <table className="w-full text-left border-collapse">
             <thead>
                <tr className="border-b border-slate-200 bg-slate-50/50 text-xs font-bold text-slate-400 tracking-wider">
-                <th className="py-3 px-4">Họ tên/chức vụ/chức danh</th>
+                <th className="py-3 px-4 text-left">
+                  Họ tên<br />
+                  Chức vụ<br />
+                  Chức danh
+                </th>                
                 <th className="py-3 px-4">Thời gian giữ ngạch</th>
                 <th className="py-3 px-4">Bằng cấp</th>
                 <th className="py-3 px-4">Thực tế đơn vị</th>
                 <th className="py-3 px-4">Hoạt động chuyên môn</th>
-                <th className="py-3 px-4">Ngoại ngữ/ Tin học/ Sư phạm</th>
+                <th className="py-3 px-4">
+                  <div>Ngoại ngữ</div>
+                  <div>Tin học</div>
+                  <div>Sư phạm</div>
+                </th>
                 <th className="py-3 px-4 text-center">Đánh giá</th>
                 <th className="py-3 px-4 text-center">Chi tiết</th>
               </tr>
@@ -989,29 +997,157 @@ export default function StandardsTab({ teachers, researchLogs }: StandardsTabPro
 
                       <td className="py-3 px-4">
                         <div className="space-y-1.5">
-                          <div className="flex items-center gap-1.5">
-                            <span className="font-semibold text-slate-500">Đề tài:</span>
-                            <span className="bg-blue-50 text-blue-700 px-1.5 py-0.2 rounded font-bold font-mono border border-blue-100">
-                              {item.projectLeaderCount} chính / {item.projects.length} tổng
-                            </span>
-                          </div>
+                          {(() => {
+                            const target = item.targetEvalTitle;
+                            // Quyết định dùng bộ số liệu nào dựa trên target title
+                            const projectCount = target === 'Giảng viên cao cấp'
+                              ? item.gvccProjectsCount
+                              : item.gvcProjectsCount;
+                            const projectLeaderCount = target === 'Giảng viên cao cấp'
+                              ? item.gvccProjectLeaderCount
+                              : item.gvcProjectLeaderCount;
+                            const projectMemberCount = target === 'Giảng viên cao cấp'
+                              ? (item.gvccProjectsCount - item.gvccProjectLeaderCount)
+                              : item.gvcProjectMemberCount;
+                            const bookLeaderCount = target === 'Giảng viên cao cấp'
+                              ? item.gvccBookLeaderCount
+                              : item.gvcBookLeaderCount;
+                            const bookMemberCount = target === 'Giảng viên cao cấp'
+                              ? item.gvccBookMemberCount
+                              : item.gvcBookMemberCount;
+                            const articleCount = target === 'Giảng viên cao cấp'
+                              ? item.gvccArticlesCount
+                              : item.gvcArticlesCount;
+                            const guidanceCount = target === 'Giảng viên cao cấp'
+                              ? item.gvccGuidancesCount
+                              : item.gvcGuidanceCount;
+                            const phdGuidanceCount = target === 'Giảng viên cao cấp'
+                              ? item.gvccPhdGuidanceCount
+                              : 0;
 
-                          <div className="flex items-center gap-1.5">
-                            <span className="font-semibold text-slate-700">Tổng số:</span>
-                            <span className="bg-indigo-50 text-indigo-700 px-1.5 py-0.2 rounded font-bold font-mono border border-indigo-100">
-                              {item.articles.length} bài báo
-                            </span>
-                          </div>
-                          {item.internationalArticlesCount > 0 && (
-                            <span className="text-xs font-bold text-amber-600 bg-amber-50 px-1.5 py-0.2 rounded block w-fit border border-amber-200/50">
-                              🌐 {item.internationalArticlesCount} Quốc tế (ISI/Scopus)
-                            </span>
-                          )}
-                          {item.bookLeaderCount > 0 && (
-                            <span className="text-xs font-bold text-violet-600 bg-violet-50 px-1.5 py-0.2 rounded block w-fit border border-violet-200/50">
-                              📚 {item.bookLeaderCount} Giáo trình (Chủ biên)
-                            </span>
-                          )}
+                            // Điều kiện đạt cho từng mục
+                            // GVC: Chủ trì ≥ 1 hoặc tham gia ≥ 2 | GVCC: Chủ trì ≥ 2 (cấp CS) hoặc ≥ 1 cấp cao hơn
+                            let meetsProject = false;
+                            let projectReqText = '';
+                            if (target === 'Giảng viên cao cấp') {
+                              // GVCC: Chủ trì ≥ 2 đề tài cấp cơ sở HOẶC ≥ 1 đề tài cấp Bộ/Ngành trở lên
+                              meetsProject = (projectLeaderCount >= 2) || (projectLeaderCount >= 1 && (item.gvccHighLeaderCount ?? 0) >= 1);
+                              projectReqText = 'Chủ trì ≥ 2 cấp CS hoặc ≥ 1 cấp Bộ';
+                            } else if (target === 'Giảng viên chính') {
+                              meetsProject = (projectLeaderCount >= 1) || (projectMemberCount >= 2);
+                              projectReqText = 'Chủ trì ≥ 1 hoặc tham gia ≥ 2';
+                            } else {
+                              meetsProject = true; // GV không yêu cầu
+                              projectReqText = 'Chưa yêu cầu (GV)';
+                            }
+
+                            // GT-TL: GVC: Chủ trì ≥ 1 hoặc tham gia ≥ 2 | GVCC: Chủ trì ≥ 2 hoặc tổng tham gia ≥ 3
+                            let meetsBook = false;
+                            let bookReqText = '';
+                            if (target === 'Giảng viên cao cấp') {
+                              meetsBook = (bookLeaderCount >= 2) || (bookLeaderCount + bookMemberCount >= 3);
+                              bookReqText = 'Chủ trì ≥ 2 hoặc tổng ≥ 3';
+                            } else if (target === 'Giảng viên chính') {
+                              meetsBook = (bookLeaderCount >= 1) || (bookMemberCount >= 2);
+                              bookReqText = 'Chủ trì ≥ 1 hoặc tham gia ≥ 2';
+                            } else {
+                              meetsBook = true;
+                              bookReqText = 'Chưa yêu cầu (GV)';
+                            }
+
+                            // Bài báo: GVC: ≥ 2 | GVCC: ≥ 3
+                            let meetsArticle = false;
+                            let articleReqText = '';
+                            if (target === 'Giảng viên cao cấp') {
+                              meetsArticle = articleCount >= 3;
+                              articleReqText = 'Cần ≥ 3 bài báo';
+                            } else if (target === 'Giảng viên chính') {
+                              meetsArticle = articleCount >= 2;
+                              articleReqText = 'Cần ≥ 2 bài báo';
+                            } else {
+                              meetsArticle = true;
+                              articleReqText = 'Chưa yêu cầu (GV)';
+                            }
+
+                            // Hướng dẫn:
+                            // GVC: TS - ≥ 1 HV cao học BVTC; ThS - ≥ 3 HV/NCKH/sáng kiến; Thay thế - ≥ 3 giải Olympic (≥ giải 3)
+                            // GVCC: ≥ 2 HV cao học HOẶC ≥ 1 NCS bảo vệ thành công
+                            let meetsGuidance = false;
+                            let guidanceReqText = '';
+                            if (target === 'Giảng viên cao cấp') {
+                              meetsGuidance = (phdGuidanceCount >= 1) || (guidanceCount >= 2);
+                              guidanceReqText = '≥ 2 HV cao học HOẶC ≥ 1 NCS BVTC';
+                            } else if (target === 'Giảng viên chính') {
+                              const isPhd = ['TS', 'PGS', 'GS'].includes(item.rank);
+                              if (isPhd) {
+                                meetsGuidance = (phdGuidanceCount >= 1) || (guidanceCount >= 1);
+                                guidanceReqText = 'TS: ≥ 1 HV cao học BVTC';
+                              } else {
+                                meetsGuidance = (guidanceCount >= 3) || !!(item.gvgYears && item.gvgYears.trim());
+                                guidanceReqText = 'ThS: ≥ 3 HV/NCKH hoặc GVG';
+                              }
+                            } else {
+                              meetsGuidance = true;
+                              guidanceReqText = 'Chưa yêu cầu (GV)';
+                            }
+
+                            // Hiển thị 4 hàng
+                            return (
+                              <div className="space-y-1.5">
+                                {/* Row 1: Đề tài */}
+                                <div className="flex items-center gap-1.5">
+                                  {meetsProject ? (
+                                    <span className="text-xs inline-flex items-center gap-1 font-bold text-emerald-700" title={`Đạt yêu cầu: ${projectReqText} (Hiện: ${projectLeaderCount} chủ trì / ${projectMemberCount} thành viên)`}>
+                                      <span>✓ Đề tài: <span className="font-mono">{projectLeaderCount} chính / {projectCount} tổng</span></span>
+                                    </span>
+                                  ) : (
+                                    <span className="text-xs inline-flex items-center gap-1 font-bold text-rose-600" title={`Chưa đạt: ${projectReqText} (Hiện: ${projectLeaderCount} chủ trì / ${projectMemberCount} thành viên)`}>
+                                      <span>✗ Đề tài: <span className="font-mono">{projectLeaderCount} chính / {projectCount} tổng</span></span>
+                                    </span>
+                                  )}
+                                </div>
+
+                                {/* Row 2: GT-TL */}
+                                <div className="flex items-center gap-1.5">
+                                  {meetsBook ? (
+                                    <span className="text-xs inline-flex items-center gap-1 font-bold text-emerald-700" title={`Đạt yêu cầu: ${bookReqText} (Hiện: ${bookLeaderCount} chủ biên / ${bookMemberCount} tham gia)`}>
+                                      <span>✓ GT-TL: <span className="font-mono">{bookLeaderCount} chủ biên / {bookMemberCount + bookLeaderCount} tổng</span></span>
+                                    </span>
+                                  ) : (
+                                    <span className="text-xs inline-flex items-center gap-1 font-bold text-rose-600" title={`Chưa đạt: ${bookReqText} (Hiện: ${bookLeaderCount} chủ biên / ${bookMemberCount} tham gia)`}>
+                                      <span>✗ GT-TL: <span className="font-mono">{bookLeaderCount} chủ biên / {bookMemberCount + bookLeaderCount} tổng</span></span>
+                                    </span>
+                                  )}
+                                </div>
+
+                                {/* Row 3: Bài báo */}
+                                <div className="flex items-center gap-1.5">
+                                  {meetsArticle ? (
+                                    <span className="text-xs inline-flex items-center gap-1 font-bold text-emerald-700" title={`Đạt yêu cầu: ${articleReqText} (Hiện: ${articleCount} bài)`}>
+                                      <span>✓ Bài báo: <span className="font-mono">{articleCount} bài</span></span>
+                                    </span>
+                                  ) : (
+                                    <span className="text-xs inline-flex items-center gap-1 font-bold text-rose-600" title={`Chưa đạt: ${articleReqText} (Hiện: ${articleCount} bài)`}>
+                                      <span>✗ Bài báo: <span className="font-mono">{articleCount} bài</span></span>
+                                    </span>
+                                  )}
+                                </div>
+
+                                {/* Row 4: Hướng dẫn */}
+                                <div className="flex items-center gap-1.5">
+                                  {meetsGuidance ? (
+                                    <span className="text-xs inline-flex items-center gap-1 font-bold text-emerald-700" title={`Đạt yêu cầu: ${guidanceReqText} (Hiện: ${guidanceCount} lượt, ${phdGuidanceCount} NCS)`}>
+                                      <span>✓ Hướng dẫn: <span className="font-mono">{guidanceCount} lượt{phdGuidanceCount > 0 ? ` (${phdGuidanceCount} NCS)` : ''}</span></span>
+                                    </span>
+                                  ) : (
+                                    <span className="text-xs inline-flex items-center gap-1 font-bold text-rose-600" title={`Chưa đạt: ${guidanceReqText} (Hiện: ${guidanceCount} lượt, ${phdGuidanceCount} NCS)`}>
+                                      <span>✗ Hướng dẫn: <span className="font-mono">{guidanceCount} lượt{phdGuidanceCount > 0 ? ` (${phdGuidanceCount} NCS)` : ''}</span></span>
+                                    </span>
+                                  )}
+                                </div>
+                              </div>
+                            );
+                          })()}
                         </div>
                       </td>
 
@@ -1494,25 +1630,84 @@ export default function StandardsTab({ teachers, researchLogs }: StandardsTabPro
                   )}
 
                   <div className="space-y-2.5 text-xs text-slate-700">
+                    {/* 1. Bằng cấp */}
                     <div className="grid grid-cols-3 gap-2 border-b border-slate-200/60 pb-2">
-                      <span className="font-semibold text-slate-400">1. Số năm giảng dạy:</span>
-                      <span className="col-span-2 font-bold text-slate-800">
-                        {selectedTeacher.teachingYears} năm (Bắt đầu giảng dạy từ năm {selectedTeacher.startYear || 'N/A'})
-                      </span>
+                      <span className="font-semibold text-slate-400">1. Bằng cấp:</span>
+                      <div className="col-span-2 font-bold text-slate-800">
+                        <div>
+                          {(() => {
+                            const degreeText = selectedTeacher.rank === 'CN' ? 'Cử nhân/Kỹ sư' 
+                              : selectedTeacher.rank === 'ThS' ? 'Thạc sĩ' 
+                              : selectedTeacher.rank === 'TS' ? 'Tiến sĩ' 
+                              : selectedTeacher.rank === 'PGS' ? 'Phó Giáo sư' 
+                              : selectedTeacher.rank === 'GS' ? 'Giáo sư' 
+                              : selectedTeacher.rank;
+                            
+                            // So sánh với yêu cầu của chức danh tiếp theo
+                            const heldTitle = selectedTeacher.academicTitle || 'Không';
+                            let requiredDegree = '';
+                            let requiredDegreeFull = '';
+                            let meetsRequired = false;
+                            
+                            if (heldTitle === 'Giảng viên cao cấp') {
+                              // Đã đạt cao nhất
+                              requiredDegree = '';
+                            } else if (heldTitle === 'Giảng viên chính') {
+                              // Mục tiêu: GVCC yêu cầu TS
+                              requiredDegree = 'TS';
+                              requiredDegreeFull = 'Tiến sĩ';
+                              meetsRequired = ['TS', 'PGS', 'GS'].includes(selectedTeacher.rank);
+                            } else if (heldTitle === 'Giảng viên') {
+                              // Mục tiêu: GVC yêu cầu ThS
+                              requiredDegree = 'ThS';
+                              requiredDegreeFull = 'Thạc sĩ';
+                              meetsRequired = ['ThS', 'TS', 'PGS', 'GS'].includes(selectedTeacher.rank);
+                            } else {
+                              // Chưa có chức danh - mục tiêu GV yêu cầu CN
+                              requiredDegree = 'CN';
+                              requiredDegreeFull = 'Cử nhân/Kỹ sư';
+                              meetsRequired = ['CN', 'ThS', 'TS', 'PGS', 'GS'].includes(selectedTeacher.rank);
+                            }
+
+                            return (
+                              <div className="space-y-1">
+                                <div className="flex items-center gap-2">
+                                  <span className={`px-1.5 py-0.5 rounded ${selectedTeacher.rank === 'TS' || selectedTeacher.rank === 'PGS' || selectedTeacher.rank === 'GS' ? 'bg-blue-50 text-blue-700' : selectedTeacher.rank === 'ThS' ? 'bg-indigo-50 text-indigo-700' : 'bg-slate-100 text-slate-600'}`}>
+                                    {degreeText}
+                                  </span>
+                                </div>
+                                {requiredDegree && (
+                                  <div className="text-xs">
+                                    {meetsRequired ? (
+                                      <span className="text-emerald-700 font-semibold">
+                                        ✓ Đạt yêu cầu {selectedTeacher.targetEvalTitle === 'Giảng viên cao cấp' ? 'GVCC' : 'GVC'} (cần {requiredDegreeFull})
+                                      </span>
+                                    ) : (
+                                      <span className="text-rose-600 font-semibold">
+                                        ✗ Chưa đạt yêu cầu {selectedTeacher.targetEvalTitle === 'Giảng viên cao cấp' ? 'GVCC' : 'GVC'} (cần {requiredDegreeFull})
+                                      </span>
+                                    )}
+                                  </div>
+                                )}
+                              </div>
+                            );
+                          })()}
+                        </div>
+                      </div>
                     </div>
 
-                    <div className="grid grid-cols-3 gap-2 border-b border-slate-200/60 pb-2 bg-blue-50/30 p-1.5 rounded">
-                      <span className="font-semibold text-blue-800">1.2. Thời gian giữ ngạch:</span>
+                    {/* 2. Thời gian giữ ngạch */}
+                    <div className="grid grid-cols-3 gap-2 border-b border-slate-200/60 pb-2">                      <span className="font-semibold text-slate-400">2. Thời gian giữ ngạch:</span>
                       <div className="col-span-2 text-slate-800">
                         <div className="font-bold">
-                          • Thời gian giữ ngạch Giảng viên: <span className="text-blue-700">{selectedTeacher.yearsAsGv} năm</span> 
+                          • Thời gian giữ ngạch Giảng viên: <span className="text-blue-700">{selectedTeacher.yearsAsGv} năm</span>
                           {selectedTeacher.meetsGvcNgachYears ? ' (Đạt chuẩn GVC)' : ' (Chưa đủ 06 năm)'}
                         </div>
                         <div className="font-bold mt-1">
                           • Thời gian giữ ngạch Giảng viên chính: <span className="text-blue-700">{selectedTeacher.yearsAsGvc} năm</span>
                           {selectedTeacher.meetsGvccNgachYears ? ' (Đạt chuẩn GVCC)' : ' (Chưa đủ 06 năm)'}
                         </div>
-                        
+
                         {(selectedTeacher.isGvcSpecial1 || selectedTeacher.isGvcSpecial2 || selectedTeacher.isGvccSpecial1 || selectedTeacher.isGvccSpecial2) && (
                           <div className="mt-2 text-xs bg-emerald-50 text-emerald-800 p-1 rounded border border-emerald-200">
                             <b>Đặc cách ghi nhận:</b>
@@ -1525,22 +1720,7 @@ export default function StandardsTab({ teachers, researchLogs }: StandardsTabPro
                       </div>
                     </div>
 
-                    <div className="grid grid-cols-3 gap-2 border-b border-slate-200/60 pb-2">
-                      <span className="font-semibold text-slate-400">2. Nghiệp vụ sư phạm:</span>
-                      <span className="col-span-2 font-bold text-slate-800">
-                        {selectedTeacher.pedagogyCertYear ? `Năm cấp: ${selectedTeacher.pedagogyCertYear}` : '❌ Chưa bổ sung thông tin chứng chỉ sư phạm'}
-                      </span>
-                    </div>
-
-                    {selectedTeacher.gvgYears && (
-                      <div className="grid grid-cols-3 gap-2 border-b border-slate-200/60 pb-2">
-                        <span className="font-semibold text-rose-500">2.2. Giảng viên dạy giỏi:</span>
-                        <span className="col-span-2 font-bold text-rose-600 bg-rose-50/50 border border-rose-100/60 rounded px-1.5 py-0.5 text-xs w-fit">
-                          Đạt GVG các năm: {selectedTeacher.gvgYears} (Đủ điều kiện thay thế hướng dẫn khoa học)
-                        </span>
-                      </div>
-                    )}
-
+                    {/* 3. Thực tế đơn vị */}
                     <div className="grid grid-cols-3 gap-2 border-b border-slate-200/60 pb-2">
                       <span className="font-semibold text-slate-400">3. Thực tế đơn vị:</span>
                       <div className="col-span-2 text-slate-800">
@@ -1553,93 +1733,92 @@ export default function StandardsTab({ teachers, researchLogs }: StandardsTabPro
                             : selectedTeacher.targetEvalTitle === 'Giảng viên chính'
                               ? selectedTeacher.meetsGvcUnitExp
                               : selectedTeacher.meetsGvUnitExp;
-                          
-                          const reqText = selectedTeacher.targetEvalTitle === 'Giảng viên' ? 'Yêu cầu: Cấp tiểu đoàn trở lên đối với học vị Giảng viên' : 'Yêu cầu: Cấp trung (lữ) đoàn trở lên đối với học vị Giảng viên chính, cao cấp';
-                          
+
+                          const reqText = selectedTeacher.targetEvalTitle === 'Giảng viên' ? 'Yêu cầu: Cấp tiểu đoàn trở lên' : 'Yêu cầu: Cấp trung (lữ) đoàn trở lên';
+
                           return meetsExp ? (
                             <span className="text-xs text-emerald-700 bg-emerald-50 border border-emerald-200 rounded px-1.5 py-0.5 mt-1 inline-block font-semibold">
-                              ✓ Đạt chuẩn thực tế đơn vị ({reqText})
+                              ✓ Đạt chuẩn thực tế đơn vị
                             </span>
                           ) : (
                             <span className="text-xs text-rose-600 bg-rose-50 border border-rose-200 rounded px-1.5 py-0.5 mt-1 inline-block font-semibold">
-                              ✗ Chưa đạt thực tế đơn vị ({reqText})
+                              ✗ Chưa đạt thực tế đơn vị
                             </span>
                           );
                         })()}
                       </div>
                     </div>
 
+                    {/* 4. Hoạt động chuyên môn */}
                     <div className="grid grid-cols-3 gap-2 border-b border-slate-200/60 pb-2">
-                      <span className="font-semibold text-slate-400">4. Đề tài KHCN:</span>
-                      <div className="col-span-2 font-bold text-slate-800">
+                      <span className="font-semibold text-slate-400">4. Hoạt động chuyên môn:</span>
+                      <div className="col-span-2 font-bold text-slate-800 space-y-1">
+                        {/* 4a. Đề tài */}
                         <div>
-                          {selectedTeacher.projects.length} đề tài nghiệm thu  ({selectedTeacher.projectLeaderCount} chủ trì / {selectedTeacher.projectMemberCount} thành viên)
+                          <span className="text-slate-500">a. Đề tài:</span> {selectedTeacher.projects.length} đề tài ({selectedTeacher.projectLeaderCount} chủ trì / {selectedTeacher.projectMemberCount} thành viên)
                           {selectedTeacher.hasGvReset && selectedTeacher.academicTitle === 'Giảng viên' && (
-                            <span className="text-amber-700 block mt-1 text-xs bg-amber-50/60 py-0.5 px-1.5 rounded w-fit">
-                              ↳ <b>Được tính xét GVC (sau mốc {selectedTeacher.gvReceiptYear}):</b> {selectedTeacher.gvcProjectsCount} đề tài ({selectedTeacher.gvcProjectLeaderCount} chủ trì / {selectedTeacher.gvcProjectMemberCount} thành viên)
+                            <span className="text-amber-700 block mt-0.5 text-xs bg-amber-50/60 py-0.5 px-1.5 rounded w-fit">
+                              ↳ <b>Xét GVC (sau {selectedTeacher.gvReceiptYear}):</b> {selectedTeacher.gvcProjectsCount} đề tài ({selectedTeacher.gvcProjectLeaderCount} CT)
                             </span>
                           )}
                           {selectedTeacher.hasGvcReset && selectedTeacher.academicTitle === 'Giảng viên chính' && (
-                            <span className="text-amber-700 block mt-1 text-xs bg-amber-50/60 py-0.5 px-1.5 rounded w-fit">
-                              ↳ <b>Được tính xét GVCC (sau mốc {selectedTeacher.gvReceiptYear}):</b> {selectedTeacher.gvccProjectsCount} đề tài ({selectedTeacher.gvccProjectLeaderCount} chủ trì)
+                            <span className="text-amber-700 block mt-0.5 text-xs bg-amber-50/60 py-0.5 px-1.5 rounded w-fit">
+                              ↳ <b>Xét GVCC (sau {selectedTeacher.gvReceiptYear}):</b> {selectedTeacher.gvccProjectsCount} đề tài ({selectedTeacher.gvccProjectLeaderCount} CT)
+                            </span>
+                          )}
+                        </div>
+                        {/* 4b. Giáo trình */}
+                        <div>
+                          <span className="text-slate-500">b. Giáo trình:</span> {selectedTeacher.bookLeaderCount} chủ biên
+                          {selectedTeacher.hasGvcReset && (
+                            <span className="text-amber-700 block mt-0.5 text-xs bg-amber-50/60 py-0.5 px-1.5 rounded w-fit">
+                              ↳ <b>Xét GVCC (sau {selectedTeacher.gvReceiptYear}):</b> {selectedTeacher.gvccBookLeaderCount} GT chủ biên
+                            </span>
+                          )}
+                        </div>
+                        {/* 4c. Bài báo */}
+                        <div>
+                          <span className="text-slate-500">c. Bài báo:</span> {selectedTeacher.articles.length} bài (Có {selectedTeacher.internationalArticlesCount} bài ISI/Scopus)
+                          {selectedTeacher.hasGvReset && selectedTeacher.academicTitle === 'Giảng viên' && (
+                            <span className="text-amber-700 block mt-0.5 text-xs bg-amber-50/60 py-0.5 px-1.5 rounded w-fit">
+                              ↳ <b>Xét GVC (sau {selectedTeacher.gvReceiptYear}):</b> {selectedTeacher.gvcArticlesCount} bài
+                            </span>
+                          )}
+                          {selectedTeacher.hasGvcReset && selectedTeacher.academicTitle === 'Giảng viên chính' && (
+                            <span className="text-amber-700 block mt-0.5 text-xs bg-amber-50/60 py-0.5 px-1.5 rounded w-fit">
+                              ↳ <b>Xét GVCC (sau {selectedTeacher.gvReceiptYear}):</b> {selectedTeacher.gvccArticlesCount} bài ({selectedTeacher.gvccInternationalArticlesCount} ISI/Scopus)
+                            </span>
+                          )}
+                        </div>
+                        {/* 4d. Hướng dẫn */}
+                        <div>
+                          <span className="text-slate-500">d. Hướng dẫn:</span> {selectedTeacher.gvcGuidancesCount || 0} lượt hướng dẫn NCKH
+                          {selectedTeacher.gvccPhdGuidanceCount > 0 && (
+                            <span className="ml-1 text-blue-700">({selectedTeacher.gvccPhdGuidanceCount} NCS)</span>
+                          )}
+                          {selectedTeacher.gvgYears && (
+                            <span className="text-rose-600 block mt-0.5 text-xs bg-rose-50/50 border border-rose-100/60 rounded px-1.5 py-0.5 w-fit">
+                              GVG: {selectedTeacher.gvgYears} (Thay thế hướng dẫn khoa học)
                             </span>
                           )}
                         </div>
                       </div>
                     </div>
 
+                    {/* 5. Ngoại ngữ, tin học, NV sư phạm */}
                     <div className="grid grid-cols-3 gap-2 border-b border-slate-200/60 pb-2">
-                      <span className="font-semibold text-slate-400">5. Sáng kiến cải tiến:</span>
-                      <span className="col-span-2 font-bold text-slate-800">
+                      <span className="font-semibold text-slate-400">5. Ngoại ngữ, tin học, NV sư phạm:</span>
+                      <div className="col-span-2 font-bold text-slate-800 space-y-1">
                         <div>
-                          {selectedTeacher.initiativeCount} sáng kiến được nghiệm thu 
-                          {selectedTeacher.hasGvReset && (
-                            <span className="text-amber-700 block mt-1 text-xs bg-amber-50/60 py-0.5 px-1.5 rounded w-fit">
-                              ↳ <b>Sau mốc {selectedTeacher.gvReceiptYear}:</b> {selectedTeacher.gvcInitiativeCount} sáng kiến
-                            </span>
-                          )}
+                          <span className="text-slate-500">Ngoại ngữ:</span> <b>{selectedTeacher.langCertStr || 'Chưa nộp'}</b>
                         </div>
-                      </span>
-                    </div>
-
-                    <div className="grid grid-cols-3 gap-2 border-b border-slate-200/60 pb-2">
-                      <span className="font-semibold text-slate-400">6. Sách & Giáo trình:</span>
-                      <span className="col-span-2 font-bold text-slate-800">
                         <div>
-                          {selectedTeacher.bookLeaderCount} giáo trình chủ biên
-                          {selectedTeacher.hasGvcReset && (
-                            <span className="text-amber-700 block mt-1 text-xs bg-amber-50/60 py-0.5 px-1.5 rounded w-fit">
-                              ↳ <b>Sau mốc {selectedTeacher.gvReceiptYear} (xét GVCC):</b> {selectedTeacher.gvccBookLeaderCount} giáo trình chủ biên
-                            </span>
-                          )}
+                          <span className="text-slate-500">Tin học:</span> <b>{selectedTeacher.itCertStr}</b>
                         </div>
-                      </span>
-                    </div>
-
-                    <div className="grid grid-cols-3 gap-2 border-b border-slate-200/60 pb-2">
-                      <span className="font-semibold text-slate-400">7. Bài báo khoa học:</span>
-                      <span className="col-span-2 font-bold text-slate-800">
                         <div>
-                          {selectedTeacher.articles.length} bài đăng tạp chí chuyên ngành (Có {selectedTeacher.internationalArticlesCount} bài ISI/Scopus nước ngoài)
-                          {selectedTeacher.hasGvReset && selectedTeacher.academicTitle === 'Giảng viên' && (
-                            <span className="text-amber-700 block mt-1 text-xs bg-amber-50/60 py-0.5 px-1.5 rounded w-fit">
-                              ↳ <b>Để xét GVC (sau {selectedTeacher.gvReceiptYear}):</b> {selectedTeacher.gvcArticlesCount} bài báo khoa học
-                            </span>
-                          )}
-                          {selectedTeacher.hasGvcReset && selectedTeacher.academicTitle === 'Giảng viên chính' && (
-                            <span className="text-amber-700 block mt-1 text-xs bg-amber-50/60 py-0.5 px-1.5 rounded w-fit">
-                              ↳ <b>Để xét GVCC (sau {selectedTeacher.gvReceiptYear}):</b> {selectedTeacher.gvccArticlesCount} bài báo khoa học ({selectedTeacher.gvccInternationalArticlesCount} bài ISI/Scopus)
-                            </span>
-                          )}
+                          <span className="text-slate-500">Nghiệp vụ sư phạm:</span> <b>{selectedTeacher.pedagogyCertYear ? `Năm cấp: ${selectedTeacher.pedagogyCertYear}` : '❌ Chưa có'}</b>
                         </div>
-                      </span>
-                    </div>
-
-                    <div className="grid grid-cols-3 gap-2 pb-1">
-                      <span className="font-semibold text-slate-400">8. Ngoại ngữ & Tin học:</span>
-                      <span className="col-span-2 font-bold text-slate-800">
-                        Chứng chỉ NN: <b>{selectedTeacher.langCertStr || 'Chưa nộp'}</b> | Tin học: <b>{selectedTeacher.itCertStr}</b>
-                      </span>
+                      </div>
                     </div>
                   </div>
                 </div>

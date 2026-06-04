@@ -1,4 +1,4 @@
-import { Teacher, TeachingLog, ResearchLog, RankNorm, AcademicYearConfig, DepartmentConfig } from './types';
+import { Teacher, TeachingLog, ResearchLog, RankNorm, AcademicYearConfig, DepartmentConfig, WorkHistory } from './types';
 
 export interface PositionNorm {
   pos: string;
@@ -76,7 +76,7 @@ export const DEFAULT_RANKS_NORM: RankNorm[] = [
   { rank: 'GS', rankName: 'Giáo sư', teachingNorm: 140, researchNorm: 600 },
   { rank: 'PGS', rankName: 'Phó Giáo sư', teachingNorm: 180, researchNorm: 600 },
   { rank: 'TS', rankName: 'Tiến sĩ', teachingNorm: 220, researchNorm: 600 },
-  { rank: 'ThS', rankName: 'Thạc sĩ', teachingNorm: 270, researchNorm: 600 },
+  { rank: 'ThS', rankName: 'Thạc sĩ', teachingNorm: 280, researchNorm: 600 },
   { rank: 'CN', rankName: 'Cử nhân/Trợ giảng', teachingNorm: 300, researchNorm: 600 }
 ];
 
@@ -209,6 +209,57 @@ export const TEACHERS_SAMPLE: Teacher[] = [
     status: 'I', // Đang đi học, miễn giảm 100% giờ giảng dạy, NCKH giảm 50%
     reductionRate: 100
   }
+];
+
+/**
+ * WORK_HISTORY_SAMPLE: Dữ liệu mẫu quá trình công tác theo năm học.
+ * Mỗi giảng viên có thể có nhiều bản ghi cho các năm học khác nhau.
+ */
+export const WORK_HISTORY_SAMPLE: WorkHistory[] = [
+  // Nguyễn Văn Hùng (GV01) - Chủ nhiệm khoa, Bí thư chi bộ
+  { id: 'WH01', teacherId: 'GV01', academicYear: '2023-2024', department: 'Nguyên lý Động cơ - Điện', position: 'Chủ nhiệm khoa', academicTitle: 'Giảng viên cao cấp', rank: 'GS', reductionRate: 55, status: 'A', party: 'Bí thư chi bộ' },
+  { id: 'WH02', teacherId: 'GV01', academicYear: '2024-2025', department: 'Nguyên lý Động cơ - Điện', position: 'Chủ nhiệm khoa', academicTitle: 'Giảng viên cao cấp', rank: 'GS', reductionRate: 55, status: 'A', party: 'Bí thư chi bộ' },
+  { id: 'WH03', teacherId: 'GV01', academicYear: '2025-2026', department: 'Nguyên lý Động cơ - Điện', position: 'Chủ nhiệm khoa', academicTitle: 'Giảng viên cao cấp', rank: 'GS', reductionRate: 55, status: 'A', party: 'Bí thư chi bộ' },
+
+  // Lê Thị Thúy (GV02) - Trưởng bộ môn
+  { id: 'WH04', teacherId: 'GV02', academicYear: '2023-2024', department: 'Nguyên lý Kết cấu ô tô', position: 'Trưởng bộ môn', academicTitle: 'Giảng viên chính', rank: 'PGS', reductionRate: 20, status: 'A', party: 'Không kiêm nhiệm' },
+  { id: 'WH05', teacherId: 'GV02', academicYear: '2024-2025', department: 'Nguyên lý Kết cấu ô tô', position: 'Trưởng bộ môn', academicTitle: 'Giảng viên chính', rank: 'PGS', reductionRate: 20, status: 'A', party: 'Không kiêm nhiệm' },
+  { id: 'WH06', teacherId: 'GV02', academicYear: '2025-2026', department: 'Nguyên lý Kết cấu ô tô', position: 'Trưởng bộ môn', academicTitle: 'Giảng viên chính', rank: 'PGS', reductionRate: 20, status: 'A', party: 'Không kiêm nhiệm' },
+
+  // Trần Minh Quang (GV03) - Giảng viên chính
+  { id: 'WH07', teacherId: 'GV03', academicYear: '2023-2024', department: 'Quản lý Khai thác', position: 'Giảng viên chính', academicTitle: 'Giảng viên', rank: 'TS', reductionRate: 0, status: 'A', party: 'Không kiêm nhiệm' },
+  { id: 'WH08', teacherId: 'GV03', academicYear: '2024-2025', department: 'Quản lý Khai thác', position: 'Giảng viên chính', academicTitle: 'Giảng viên', rank: 'TS', reductionRate: 0, status: 'A', party: 'Không kiêm nhiệm' },
+  { id: 'WH09', teacherId: 'GV03', academicYear: '2025-2026', department: 'Quản lý Khai thác', position: 'Giảng viên chính', academicTitle: 'Giảng viên', rank: 'TS', reductionRate: 0, status: 'A', party: 'Không kiêm nhiệm' },
+
+  // Phạm Thanh Sơn (GV04) - Giảng viên
+  { id: 'WH10', teacherId: 'GV04', academicYear: '2023-2024', department: 'Nguyên lý Động cơ - Điện', position: 'Giảng viên', academicTitle: 'Không', rank: 'TS', reductionRate: 0, status: 'A', party: 'Không kiêm nhiệm' },
+  { id: 'WH11', teacherId: 'GV04', academicYear: '2024-2025', department: 'Nguyên lý Động cơ - Điện', position: 'Giảng viên', academicTitle: 'Giảng viên', rank: 'TS', reductionRate: 0, status: 'A', party: 'Không kiêm nhiệm' },
+  { id: 'WH12', teacherId: 'GV04', academicYear: '2025-2026', department: 'Nguyên lý Động cơ - Điện', position: 'Giảng viên', academicTitle: 'Giảng viên', rank: 'TS', reductionRate: 0, status: 'A', party: 'Không kiêm nhiệm' },
+
+  // Nguyễn Thị Mai (GV05) - Giảng viên
+  { id: 'WH13', teacherId: 'GV05', academicYear: '2023-2024', department: 'Nguyên lý Kết cấu ô tô', position: 'Giảng viên', academicTitle: 'Không', rank: 'ThS', reductionRate: 0, status: 'A', party: 'Không kiêm nhiệm' },
+  { id: 'WH14', teacherId: 'GV05', academicYear: '2024-2025', department: 'Nguyên lý Kết cấu ô tô', position: 'Giảng viên', academicTitle: 'Giảng viên', rank: 'ThS', reductionRate: 0, status: 'A', party: 'Không kiêm nhiệm' },
+  { id: 'WH15', teacherId: 'GV05', academicYear: '2025-2026', department: 'Nguyên lý Kết cấu ô tô', position: 'Giảng viên', academicTitle: 'Giảng viên', rank: 'ThS', reductionRate: 0, status: 'A', party: 'Không kiêm nhiệm' },
+
+  // Hoàng Văn Nam (GV06) - Giảng viên
+  { id: 'WH16', teacherId: 'GV06', academicYear: '2023-2024', department: 'Nguyên lý Kết cấu ô tô', position: 'Giảng viên', academicTitle: 'Không', rank: 'ThS', reductionRate: 0, status: 'A', party: 'Không kiêm nhiệm' },
+  { id: 'WH17', teacherId: 'GV06', academicYear: '2024-2025', department: 'Nguyên lý Kết cấu ô tô', position: 'Giảng viên', academicTitle: 'Giảng viên', rank: 'ThS', reductionRate: 0, status: 'A', party: 'Không kiêm nhiệm' },
+  { id: 'WH18', teacherId: 'GV06', academicYear: '2025-2026', department: 'Nguyên lý Kết cấu ô tô', position: 'Giảng viên', academicTitle: 'Giảng viên', rank: 'ThS', reductionRate: 0, status: 'A', party: 'Không kiêm nhiệm' },
+
+  // Bùi Thị Vân (GV07) - Trợ giảng
+  { id: 'WH19', teacherId: 'GV07', academicYear: '2023-2024', department: 'Nguyên lý Động cơ - Điện', position: 'Trợ giảng', academicTitle: 'Không', rank: 'ThS', reductionRate: 0, status: 'A', party: 'Không kiêm nhiệm' },
+  { id: 'WH20', teacherId: 'GV07', academicYear: '2024-2025', department: 'Nguyên lý Động cơ - Điện', position: 'Trợ giảng', academicTitle: 'Không', rank: 'ThS', reductionRate: 0, status: 'A', party: 'Không kiêm nhiệm' },
+  { id: 'WH21', teacherId: 'GV07', academicYear: '2025-2026', department: 'Nguyên lý Động cơ - Điện', position: 'Trợ giảng', academicTitle: 'Không', rank: 'ThS', reductionRate: 0, status: 'A', party: 'Không kiêm nhiệm' },
+
+  // Đỗ Văn Đạt (GV08) - Trợ giảng
+  { id: 'WH22', teacherId: 'GV08', academicYear: '2023-2024', department: 'Quản lý Khai thác', position: 'Trợ giảng', academicTitle: 'Không', rank: 'CN', reductionRate: 0, status: 'A', party: 'Không kiêm nhiệm' },
+  { id: 'WH23', teacherId: 'GV08', academicYear: '2024-2025', department: 'Quản lý Khai thác', position: 'Trợ giảng', academicTitle: 'Không', rank: 'CN', reductionRate: 0, status: 'A', party: 'Không kiêm nhiệm' },
+  { id: 'WH24', teacherId: 'GV08', academicYear: '2025-2026', department: 'Quản lý Khai thác', position: 'Trợ giảng', academicTitle: 'Không', rank: 'CN', reductionRate: 0, status: 'A', party: 'Không kiêm nhiệm' },
+
+  // Vũ Hoàng Dương (GV09) - Đang đi học (Inactive)
+  { id: 'WH25', teacherId: 'GV09', academicYear: '2023-2024', department: 'Nguyên lý Động cơ - Điện', position: 'Giảng viên (Đang nghiên cứu sinh nước ngoài)', academicTitle: 'Không', rank: 'TS', reductionRate: 100, status: 'I', party: 'Không kiêm nhiệm' },
+  { id: 'WH26', teacherId: 'GV09', academicYear: '2024-2025', department: 'Nguyên lý Động cơ - Điện', position: 'Giảng viên (Đang nghiên cứu sinh nước ngoài)', academicTitle: 'Không', rank: 'TS', reductionRate: 100, status: 'I', party: 'Không kiêm nhiệm' },
+  { id: 'WH27', teacherId: 'GV09', academicYear: '2025-2026', department: 'Nguyên lý Động cơ - Điện', position: 'Giảng viên (Đang nghiên cứu sinh nước ngoài)', academicTitle: 'Không', rank: 'TS', reductionRate: 100, status: 'I', party: 'Không kiêm nhiệm' },
 ];
 
 export const TEACHING_LOGS_SAMPLE: TeachingLog[] = [
@@ -400,7 +451,7 @@ export const TEACHING_LOGS_SAMPLE: TeachingLog[] = [
     academicYear: '2024-2025'
   },
 
-  // Nguyễn Thị Mai (ThS - Định mức 270 giờ)
+  // Nguyễn Thị Mai (ThS - Định mức 280 giờ)
   {
     id: 'T013',
     teacherId: 'GV05',
@@ -507,7 +558,7 @@ export const TEACHING_LOGS_SAMPLE: TeachingLog[] = [
     academicYear: '2024-2025'
   },
 
-  // Hoàng Văn Nam (ThS - Định mức 270 giờ)
+  // Hoàng Văn Nam (ThS - Định mức 280 giờ)
   {
     id: 'T020',
     teacherId: 'GV06',
@@ -539,7 +590,7 @@ export const TEACHING_LOGS_SAMPLE: TeachingLog[] = [
     academicYear: '2024-2025'
   },
 
-  // Bùi Thị Vân (ThS - Định mức 270 giờ)
+  // Bùi Thị Vân (ThS - Định mức 280 giờ)
   {
     id: 'T022',
     teacherId: 'GV07',
