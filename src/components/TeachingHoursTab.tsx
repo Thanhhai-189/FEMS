@@ -32,8 +32,28 @@ export default function TeachingHoursTab({
   currentTeacherId
 }: TeachingHoursTabProps) {
   const isAdmin = userRole === 'admin';
+  const currentTeacher = teachers.find(t => t.id === currentTeacherId);
+  const isDepartmentHead = !isAdmin && !!currentTeacher?.position?.toLowerCase().includes('trưởng bộ môn');
+  const managedDepartment = currentTeacher?.department || '';
+  const canManageAll = isAdmin;
+
+  const manageableTeachers = useMemo(() => {
+    if (canManageAll) return teachers;
+    if (isDepartmentHead) return teachers.filter(t => t.department === managedDepartment);
+    return teachers.filter(t => t.id === currentTeacherId);
+  }, [teachers, canManageAll, isDepartmentHead, managedDepartment, currentTeacherId]);
+
+  const canManageLog = (log: TeachingLog) => {
+    if (canManageAll) return true;
+    if (isDepartmentHead) {
+      const teacher = teachers.find(t => t.id === log.teacherId);
+      return teacher?.department === managedDepartment;
+    }
+    return log.teacherId === currentTeacherId;
+  };
   
   const [searchQuery, setSearchQuery] = useState('');
+  const [selectedDepartment, setSelectedDepartment] = useState<string>('all');
   const [selectedSemester, setSelectedSemester] = useState<string>('all');
   const [selectedTeacherId, setSelectedTeacherId] = useState<string>(() => {
     return userRole === 'teacher' && currentTeacherId ? currentTeacherId : 'all';
@@ -56,6 +76,7 @@ export default function TeachingHoursTab({
   const [formClassName, setFormClassName] = useState('');
   const [formCredits, setFormCredits] = useState(3);
   const [formStudentCount, setFormStudentCount] = useState(40);
+  const [formTkbSheets, setFormTkbSheets] = useState(0);
   const [formType, setFormType] = useState<TeachingType>('theoretical');
   const [formCoefficient, setFormCoefficient] = useState(1.0);
   const [formActualHours, setFormActualHours] = useState(45);
@@ -89,12 +110,13 @@ export default function TeachingHoursTab({
 
   const openAddModal = () => {
     setEditingLog(null);
-    setFormTeacherId(userRole === 'teacher' && currentTeacherId ? currentTeacherId : (teachers[0]?.id || ''));
+    setFormTeacherId(!canManageAll && !isDepartmentHead && currentTeacherId ? currentTeacherId : (manageableTeachers[0]?.id || ''));
     setFormSubjectCode('');
     setFormSubjectName('');
     setFormClassName('');
     setFormCredits(3);
     setFormStudentCount(40);
+    setFormTkbSheets(0);
     setFormType('theoretical');
     setFormSemester('HK1');
     setFormYear(selectedYear);
@@ -115,6 +137,7 @@ export default function TeachingHoursTab({
     setFormClassName(log.className);
     setFormCredits(log.credits);
     setFormStudentCount(log.studentCount);
+    setFormTkbSheets(log.tkbSheets ?? 0);
     setFormType(log.type);
     setFormSemester(log.semester);
     setFormYear(log.academicYear);
@@ -140,6 +163,7 @@ export default function TeachingHoursTab({
       className: formClassName.trim(),
       credits: Number(formCredits),
       studentCount: Number(formStudentCount),
+      tkbSheets: Number(formTkbSheets),
       type: formType,
       coefficient: Number(formCoefficient),
       actualHours: Number(formActualHours),
@@ -182,10 +206,12 @@ export default function TeachingHoursTab({
       
       const matchSemester = selectedSemester === 'all' || log.semester === selectedSemester;
       const matchTeacher = selectedTeacherId === 'all' || log.teacherId === selectedTeacherId;
+      const matchDepartment = selectedDepartment === 'all' || teacher?.department === selectedDepartment;
+      const matchScope = canManageAll || (isDepartmentHead ? teacher?.department === managedDepartment : log.teacherId === currentTeacherId);
       
-      return matchSearch && matchSemester && matchTeacher;
+      return matchSearch && matchSemester && matchTeacher && matchDepartment && matchScope;
     });
-  }, [teachingLogs, selectedYear, searchQuery, selectedSemester, selectedTeacherId, teachers]);
+  }, [teachingLogs, selectedYear, searchQuery, selectedSemester, selectedTeacherId, selectedDepartment, teachers, canManageAll, isDepartmentHead, managedDepartment, currentTeacherId]);
 
   // Aggregate sum of filtered logs
   const totalFilteredHours = useMemo(() => {
@@ -201,7 +227,7 @@ export default function TeachingHoursTab({
     <div className="space-y-6">
       {/* Search and control bar */}
       <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-        <div className="flex-1 grid grid-cols-1 sm:grid-cols-3 gap-3">
+        <div className="flex-1 grid grid-cols-1 sm:grid-cols-4 gap-3">
           {/* Search */}
           <div className="relative">
             <Search className="absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
@@ -214,15 +240,28 @@ export default function TeachingHoursTab({
             />
           </div>
 
+          {/* Department filter */}
+          <select
+            value={isDepartmentHead ? managedDepartment : selectedDepartment}
+            disabled={isDepartmentHead || (!canManageAll && !isDepartmentHead)}
+            onChange={(e) => setSelectedDepartment(e.target.value)}
+            className={`text-xs border border-slate-200 rounded-lg px-3 py-2 focus:outline-hidden focus:ring-2 focus:ring-blue-500 bg-slate-50 font-medium ${isDepartmentHead || (!canManageAll && !isDepartmentHead) ? 'opacity-70 cursor-not-allowed' : ''}`}
+          >
+            {canManageAll && <option value="all">Tất cả đơn vị</option>}
+            {[...new Set(teachers.map(t => t.department).filter(Boolean))].sort().map(dep => (
+              <option key={dep} value={dep}>{dep}</option>
+            ))}
+          </select>
+
           {/* Teacher filter */}
           <select
             value={selectedTeacherId}
-            disabled={!isAdmin}
+            disabled={!canManageAll && !isDepartmentHead}
             onChange={(e) => setSelectedTeacherId(e.target.value)}
-            className={`text-xs border border-slate-200 rounded-lg px-3 py-2 focus:outline-hidden focus:ring-2 focus:ring-blue-500 bg-slate-50 font-medium ${!isAdmin ? 'opacity-70 cursor-not-allowed' : ''}`}
+            className={`text-xs border border-slate-200 rounded-lg px-3 py-2 focus:outline-hidden focus:ring-2 focus:ring-blue-500 bg-slate-50 font-medium ${!canManageAll && !isDepartmentHead ? 'opacity-70 cursor-not-allowed' : ''}`}
           >
-            {isAdmin && <option value="all">Tất cả giảng viên</option>}
-            {teachers.map(t => (
+            {(canManageAll || isDepartmentHead) && <option value="all">Tất cả giảng viên</option>}
+            {manageableTeachers.map(t => (
               <option key={t.id} value={t.id}>{t.name} ({getRankString(t.rank)})</option>
             ))}
           </select>
@@ -347,7 +386,7 @@ export default function TeachingHoursTab({
                       </td>
                       <td className="py-3 px-3 text-center" onClick={(e) => e.stopPropagation()}>
                         <div className="flex justify-center gap-1">
-                          {(isAdmin || log.teacherId === currentTeacherId) ? (
+                          {canManageLog(log) ? (
                             <>
                               <button
                                 onClick={(e) => {
@@ -414,12 +453,12 @@ export default function TeachingHoursTab({
                     </label>
                     <select
                       value={formTeacherId}
-                      disabled={!isAdmin}
+                      disabled={!canManageAll && !isDepartmentHead}
                       onChange={(e) => setFormTeacherId(e.target.value)}
                       className="text-xs w-full border border-slate-200 rounded-lg px-3 py-2 bg-slate-50 focus:outline-hidden focus:ring-2 focus:ring-blue-500 font-semibold"
                     >
                       <option value="">-- Chọn giảng viên --</option>
-                      {teachers.map(t => (
+                      {manageableTeachers.map(t => (
                         <option key={t.id} value={t.id}>{t.name} ({getRankString(t.rank)} - {t.department})</option>
                       ))}
                     </select>
@@ -490,7 +529,7 @@ export default function TeachingHoursTab({
                     />
                   </div>
 
-                  <div class="col-span-2 lg:col-span-4">
+                  <div className="col-span-2 lg:col-span-4">
                     <label className="text-xs font-bold text-slate-500 block mb-1">
                       Hình thức giảng dạy / Hoạt động
                     </label>
@@ -545,6 +584,19 @@ export default function TeachingHoursTab({
                           }
                         }
                       }}
+                      className="text-xs w-full border border-slate-200 rounded-lg px-3 py-2 bg-slate-50 focus:outline-hidden focus:ring-2 focus:ring-blue-500 font-mono font-bold"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="text-xs font-bold text-slate-500 block mb-1">
+                      Số tờ TKB/KH
+                    </label>
+                    <input
+                      type="number"
+                      min="0"
+                      value={formTkbSheets}
+                      onChange={(e) => setFormTkbSheets(Number(e.target.value))}
                       className="text-xs w-full border border-slate-200 rounded-lg px-3 py-2 bg-slate-50 focus:outline-hidden focus:ring-2 focus:ring-blue-500 font-mono font-bold"
                     />
                   </div>
@@ -758,6 +810,13 @@ export default function TeachingHoursTab({
 
                   <div className="grid grid-cols-2 gap-4">
                     <div>
+                      <span className="text-slate-450 block mb-0.5 text-xs uppercase font-bold tracking-wider">Số tờ TKB/KH:</span>
+                      <div className="font-semibold text-slate-700 text-xs bg-slate-50 px-2.5 py-1 rounded border border-slate-100 inline-block font-mono">
+                        {detailPreview.tkbSheets ?? 0} tờ
+                      </div>
+                    </div>
+
+                    <div>
                       <span className="text-slate-450 block mb-0.5 text-xs uppercase font-bold tracking-wider">Học kỳ:</span>
                       <div className="font-bold text-slate-800 text-xs">
                         {detailPreview.semester === 'HK1' ? 'Học kỳ 1' : detailPreview.semester === 'HK2' ? 'Học kỳ 2' : 'Học kỳ phụ (HK3)'}
@@ -804,7 +863,7 @@ export default function TeachingHoursTab({
 
               {/* Footer */}
               <div className="px-5 py-3 border-t border-slate-100 bg-slate-50/55 flex justify-end gap-2.5">
-                {(isAdmin || detailPreview.teacherId === currentTeacherId) && (
+                {canManageLog(detailPreview) && (
                   <button
                     type="button"
                     onClick={() => {

@@ -29,6 +29,38 @@ interface StandardsTabProps {
   researchLogs: ResearchLog[];
 }
 
+// === Type-based classification helpers (không lọc theo title để tránh nhiễu) ===
+
+// Báo cáo hội thảo cấp TRƯỜNG trở lên (loại bc_khoa theo yêu cầu)
+const ARTICLE_EXTRA_IDS = new Set(['bc_truong', 'bc_cs_tc', 'bc_bo', 'bc_qg']);
+
+const inCategory = (category: string, type: string): boolean =>
+  ACTIVITY_DATA.find(c => c.category === category)?.items.some(i => i.id === type) === true;
+
+const isProjectType = (t: string): boolean =>
+  t.startsWith('dt_') || t.startsWith('project_') || inCategory('Đề tài nghiên cứu', t);
+
+const isInitiativeType = (t: string): boolean =>
+  t.startsWith('sk_') || t.startsWith('initiative_') || inCategory('Sáng kiến', t);
+
+const isArticleType = (t: string): boolean =>
+  t.startsWith('bb_') || t.startsWith('isi_') ||
+  t.startsWith('international_journal') || t.startsWith('national_journal') ||
+  ARTICLE_EXTRA_IDS.has(t) ||
+  inCategory('Bài báo khoa học', t);
+
+const isBookType = (t: string): boolean =>
+  t === 'gt_tl' || t === 'book_compilation' || inCategory('Giáo trình & Tài liệu', t);
+
+const isGvcGuideType = (t: string): boolean =>
+  t === 'student_research_guide' || t.includes('guide') || t.includes('instruct');
+
+const isGvccGuideType = (t: string): boolean =>
+  t === 'master_thesis' || t === 'phd_instruction' || t.includes('master') || t.includes('phd');
+
+const isInternationalArticleType = (t: string): boolean =>
+  t.startsWith('bb_isi') || t.includes('isi') || t.includes('scopus') || t.startsWith('international_');
+
 export default function StandardsTab({ teachers, researchLogs }: StandardsTabProps) {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedDept, setSelectedDept] = useState('all');
@@ -84,48 +116,20 @@ export default function StandardsTab({ teachers, researchLogs }: StandardsTabPro
       );
 
       // --- 1. OVERALL/LIFETIME STATISTICS FOR TABLE DISPLAY ---
-      const lifetimeProjects = approvedLogs.filter((log) => {
-        const isProjectCode = log.type.startsWith('dt_') || log.type.startsWith('project_');
-        const inProjectCategory = ACTIVITY_DATA.find(c => c.category === "Đề tài nghiên cứu")
-          ?.items.some(item => item.id === log.type);
-        const hasProjectKeyword = log.title.toLowerCase().includes('đề tài');
-        return isProjectCode || inProjectCategory || hasProjectKeyword;
-      });
+      const lifetimeProjects = approvedLogs.filter((log) => isProjectType(log.type));
 
       const lifetimeProjectLeaderCount = lifetimeProjects.filter(l => l.role === 'leader' || l.role === 'main').length;
-      const lifetimeProjectMemberCount = lifetimeProjects.filter(l => l.role === 'member' || l.role === 'co_author').length;
+      const lifetimeProjectMemberCount = lifetimeProjects.filter(l => l.role === 'member').length;
 
-      const lifetimeInitiatives = approvedLogs.filter((log) => {
-        const isInitiativeCode = log.type.startsWith('sk_') || log.type.startsWith('initiative_');
-        const inInitiativeCategory = ACTIVITY_DATA.find(c => c.category === "Sáng kiến")
-          ?.items.some(item => item.id === log.type);
-        const hasInitiativeKeyword = log.title.toLowerCase().includes('sáng kiến');
-        return isInitiativeCode || inInitiativeCategory || hasInitiativeKeyword;
-      });
+      const lifetimeInitiatives = approvedLogs.filter((log) => isInitiativeType(log.type));
       const lifetimeInitiativeCount = lifetimeInitiatives.length;
 
-      const lifetimeArticles = approvedLogs.filter((log) => {
-        const isArticleCode = log.type.startsWith('bb_') || log.type.startsWith('isi_') || log.type.startsWith('international_journal') || log.type.startsWith('national_journal');
-        const inArticleCategory = ACTIVITY_DATA.find(c => c.category === "Bài báo khoa học")
-          ?.items.some(item => item.id === log.type);
-        const hasArticleKeyword = log.title.toLowerCase().includes('bài báo') || log.title.toLowerCase().includes('tạp chí');
-        return isArticleCode || inArticleCategory || hasArticleKeyword;
-      });
+      const lifetimeArticles = approvedLogs.filter((log) => isArticleType(log.type));
 
-      const lifetimeInternationalArticles = lifetimeArticles.filter(log => {
-        const isIntCode = log.type.startsWith('bb_isi') || log.type.includes('isi') || log.type.includes('scopus') || log.type.startsWith('international_');
-        const isIntTitle = log.title.toLowerCase().includes('isi') || log.title.toLowerCase().includes('scopus') || log.title.toLowerCase().includes('international');
-        return isIntCode || isIntTitle;
-      });
+      const lifetimeInternationalArticles = lifetimeArticles.filter(log => isInternationalArticleType(log.type));
       const lifetimeDomesticArticles = lifetimeArticles.length - lifetimeInternationalArticles.length;
 
-      const lifetimeBooks = approvedLogs.filter((log) => {
-        const isBookCode = log.type === 'gt_tl' || log.type === 'book_compilation';
-        const inBookCategory = ACTIVITY_DATA.find(c => c.category === "Giáo trình & Tài liệu")
-          ?.items.some(item => item.id === log.type);
-        const hasBookKeyword = log.title.toLowerCase().includes('giáo trình') || log.title.toLowerCase().includes('sách chuyên khảo');
-        return isBookCode || inBookCategory || hasBookKeyword;
-      });
+      const lifetimeBooks = approvedLogs.filter((log) => isBookType(log.type));
       const lifetimeBookLeaderCount = lifetimeBooks.filter(l => l.role === 'leader' || l.role === 'main').length;
 
       // --- 2. APPLIED RESET STRATEGY FOR GVC & GVCC VALS ---
@@ -147,32 +151,14 @@ export default function StandardsTab({ teachers, researchLogs }: StandardsTabPro
         return true;
       });
 
-      const gvcProjects = gvcApprovedLogs.filter((log) => {
-        const isProjectCode = log.type.startsWith('dt_') || log.type.startsWith('project_');
-        const inProjectCategory = ACTIVITY_DATA.find(c => c.category === "Đề tài nghiên cứu")
-          ?.items.some(item => item.id === log.type);
-        const hasProjectKeyword = log.title.toLowerCase().includes('đề tài');
-        return isProjectCode || inProjectCategory || hasProjectKeyword;
-      });
+      const gvcProjects = gvcApprovedLogs.filter((log) => isProjectType(log.type));
       const gvcProjectLeaderCount = gvcProjects.filter(l => l.role === 'leader' || l.role === 'main').length;
-      const gvcProjectMemberCount = gvcProjects.filter(l => l.role === 'member' || l.role === 'co_author').length;
+      const gvcProjectMemberCount = gvcProjects.filter(l => l.role === 'member').length;
 
-      const gvcInitiatives = gvcApprovedLogs.filter((log) => {
-        const isInitiativeCode = log.type.startsWith('sk_') || log.type.startsWith('initiative_');
-        const inInitiativeCategory = ACTIVITY_DATA.find(c => c.category === "Sáng kiến")
-          ?.items.some(item => item.id === log.type);
-        const hasInitiativeKeyword = log.title.toLowerCase().includes('sáng kiến');
-        return isInitiativeCode || inInitiativeCategory || hasInitiativeKeyword;
-      });
+      const gvcInitiatives = gvcApprovedLogs.filter((log) => isInitiativeType(log.type));
       const gvcInitiativeCount = gvcInitiatives.length;
 
-      const gvcArticles = gvcApprovedLogs.filter((log) => {
-        const isArticleCode = log.type.startsWith('bb_') || log.type.startsWith('isi_') || log.type.startsWith('international_journal') || log.type.startsWith('national_journal');
-        const inArticleCategory = ACTIVITY_DATA.find(c => c.category === "Bài báo khoa học")
-          ?.items.some(item => item.id === log.type);
-        const hasArticleKeyword = log.title.toLowerCase().includes('bài báo') || log.title.toLowerCase().includes('tạp chí');
-        return isArticleCode || inArticleCategory || hasArticleKeyword;
-      });
+      const gvcArticles = gvcApprovedLogs.filter((log) => isArticleType(log.type));
 
       // Reset conditions for Giảng viên cao cấp (GVCC): only count logs published from the year they became Giảng viên chính
       const hasGvcReset = (curTitle === 'Giảng viên chính' || curTitle === 'Giảng viên cao cấp') && titleYearNum !== null;
@@ -191,36 +177,14 @@ export default function StandardsTab({ teachers, researchLogs }: StandardsTabPro
         return true;
       });
 
-      const gvccProjects = gvccApprovedLogs.filter((log) => {
-        const isProjectCode = log.type.startsWith('dt_') || log.type.startsWith('project_');
-        const inProjectCategory = ACTIVITY_DATA.find(c => c.category === "Đề tài nghiên cứu")
-          ?.items.some(item => item.id === log.type);
-        const hasProjectKeyword = log.title.toLowerCase().includes('đề tài');
-        return isProjectCode || inProjectCategory || hasProjectKeyword;
-      });
+      const gvccProjects = gvccApprovedLogs.filter((log) => isProjectType(log.type));
       const gvccProjectLeaderCount = gvccProjects.filter(l => l.role === 'leader' || l.role === 'main').length;
 
-      const gvccArticles = gvccApprovedLogs.filter((log) => {
-        const isArticleCode = log.type.startsWith('bb_') || log.type.startsWith('isi_') || log.type.startsWith('international_journal') || log.type.startsWith('national_journal');
-        const inArticleCategory = ACTIVITY_DATA.find(c => c.category === "Bài báo khoa học")
-          ?.items.some(item => item.id === log.type);
-        const hasArticleKeyword = log.title.toLowerCase().includes('bài báo') || log.title.toLowerCase().includes('tạp chí');
-        return isArticleCode || inArticleCategory || hasArticleKeyword;
-      });
+      const gvccArticles = gvccApprovedLogs.filter((log) => isArticleType(log.type));
 
-      const gvccInternationalArticles = gvccArticles.filter(log => {
-        const isIntCode = log.type.startsWith('bb_isi') || log.type.includes('isi') || log.type.includes('scopus') || log.type.startsWith('international_');
-        const isIntTitle = log.title.toLowerCase().includes('isi') || log.title.toLowerCase().includes('scopus') || log.title.toLowerCase().includes('international');
-        return isIntCode || isIntTitle;
-      });
+      const gvccInternationalArticles = gvccArticles.filter(log => isInternationalArticleType(log.type));
 
-      const gvccBooks = gvccApprovedLogs.filter((log) => {
-        const isBookCode = log.type === 'gt_tl' || log.type === 'book_compilation';
-        const inBookCategory = ACTIVITY_DATA.find(c => c.category === "Giáo trình & Tài liệu")
-          ?.items.some(item => item.id === log.type);
-        const hasBookKeyword = log.title.toLowerCase().includes('giáo trình') || log.title.toLowerCase().includes('sách chuyên khảo');
-        return isBookCode || inBookCategory || hasBookKeyword;
-      });
+      const gvccBooks = gvccApprovedLogs.filter((log) => isBookType(log.type));
       const gvccBookLeaderCount = gvccBooks.filter(l => l.role === 'leader' || l.role === 'main').length;
 
       // --- Lang & IT certs ---
@@ -398,15 +362,9 @@ export default function StandardsTab({ teachers, researchLogs }: StandardsTabPro
       }
 
       // Biên soạn
-      const gvcBooks = gvcApprovedLogs.filter((log) => {
-        const isBookCode = log.type === 'gt_tl' || log.type === 'book_compilation';
-        const inBookCategory = ACTIVITY_DATA.find(c => c.category === "Giáo trình & Tài liệu")
-          ?.items.some(item => item.id === log.type);
-        const hasBookKeyword = log.title.toLowerCase().includes('giáo trình') || log.title.toLowerCase().includes('sách chuyên khảo') || log.title.toLowerCase().includes('tài liệu') || log.title.toLowerCase().includes('sách biên soạn');
-        return isBookCode || inBookCategory || hasBookKeyword;
-      });
+      const gvcBooks = gvcApprovedLogs.filter((log) => isBookType(log.type));
       const gvcBookLeaderCount = gvcBooks.filter(l => l.role === 'leader' || l.role === 'main').length;
-      const gvcBookMemberCount = gvcBooks.filter(l => l.role === 'member' || l.role === 'co_author').length;
+      const gvcBookMemberCount = gvcBooks.filter(l => l.role === 'member').length;
       const meetsGvcBooks = (gvcBookLeaderCount >= 1) || (gvcBookMemberCount >= 2);
       
       if (!meetsGvcBooks) {
@@ -427,11 +385,7 @@ export default function StandardsTab({ teachers, researchLogs }: StandardsTabPro
       }
 
       // Hướng dẫn
-      const gvcGuidances = gvcApprovedLogs.filter((log) => {
-        const isGuideCode = log.type === 'student_research_guide' || log.type.includes('guide') || log.type.includes('instruct');
-        const hasGuideKeyword = log.title.toLowerCase().includes('hướng dẫn') || log.title.toLowerCase().includes('dạy giỏi') || log.title.toLowerCase().includes('giảng viên giỏi');
-        return isGuideCode || hasGuideKeyword;
-      });
+      const gvcGuidances = gvcApprovedLogs.filter((log) => isGvcGuideType(log.type));
       const meetsGvcGuidance = gvcGuidances.length >= 1 || !!(teacher.gvgYears && teacher.gvgYears.trim());
       if (!meetsGvcGuidance) {
         gvcMissing.push('Yêu cầu Hướng dẫn: Có thành tích trong hướng dẫn học viên NCKH hoặc đạt danh hiệu giảng viên dạy giỏi cấp Học viện');
@@ -496,8 +450,9 @@ export default function StandardsTab({ teachers, researchLogs }: StandardsTabPro
       
       // NCKH (Đề tài)
       const gvccLeaderProjects = gvccProjects.filter(l => l.role === 'leader' || l.role === 'main');
+      // Cấp Bộ/Ngành trở lên: chỉ phân biệt theo TYPE (loại bỏ lọc theo title gây nhiễu)
       const gvccHighLeaderCount = gvccLeaderProjects.filter(
-        l => l.type === 'project_national' || l.type === 'project_ministry' || l.type.includes('national') || l.type.includes('ministry') || l.type.startsWith('dt_b') || l.type.startsWith('dt_nn') || l.title.toLowerCase().includes('bộ') || l.title.toLowerCase().includes('ngành') || l.title.toLowerCase().includes('tỉnh') || l.title.toLowerCase().includes('nhà nước')
+        l => l.type === 'project_national' || l.type === 'project_ministry' || l.type.includes('national') || l.type.includes('ministry') || l.type.startsWith('dt_b') || l.type.startsWith('dt_nn')
       ).length;
       const totalGvccLeaderCount = gvccLeaderProjects.length;
       const meetsGvccResearch = (gvccHighLeaderCount >= 1) || (totalGvccLeaderCount >= 2);
@@ -511,7 +466,7 @@ export default function StandardsTab({ teachers, researchLogs }: StandardsTabPro
       }
 
       // Biên soạn
-      const gvccBookMemberCount = gvccBooks.filter(l => l.role === 'member' || l.role === 'co_author').length;
+      const gvccBookMemberCount = gvccBooks.filter(l => l.role === 'member').length;
       const meetsGvccBooks = (gvccBookLeaderCount >= 2) || (gvccBookLeaderCount + gvccBookMemberCount >= 3);
 
       if (!meetsGvccBooks) {
@@ -532,12 +487,8 @@ export default function StandardsTab({ teachers, researchLogs }: StandardsTabPro
       }
 
       // Hướng dẫn
-      const gvccGuidances = gvccApprovedLogs.filter((log) => {
-        const isGuideCode = log.type === 'master_thesis' || log.type === 'phd_instruction' || log.type.includes('master') || log.type.includes('phd');
-        const hasGuideKeyword = log.title.toLowerCase().includes('bảo vệ thành công') || log.title.toLowerCase().includes('thạc sĩ') || log.title.toLowerCase().includes('tiến sĩ') || log.title.toLowerCase().includes('nghiên cứu sinh') || log.title.toLowerCase().includes('cao học') || log.title.toLowerCase().includes('luận văn') || log.title.toLowerCase().includes('luận án');
-        return isGuideCode || hasGuideKeyword;
-      });
-      const gvccPhdGuidanceCount = gvccGuidances.filter(l => l.title.toLowerCase().includes('tiến sĩ') || l.title.toLowerCase().includes('nghiên cứu sinh') || l.type === 'phd_instruction').length;
+      const gvccGuidances = gvccApprovedLogs.filter((log) => isGvccGuideType(log.type));
+      const gvccPhdGuidanceCount = gvccGuidances.filter(l => l.type === 'phd_instruction' || l.type.includes('phd')).length;
       const meetsGvccGuidances = (gvccPhdGuidanceCount >= 1) || (gvccGuidances.length >= 2);
 
       if (!meetsGvccGuidances) {

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Teacher, TeachingLog, ResearchLog, RankNorm, AcademicYearConfig, WorkHistory } from './types';
+import { Teacher, TeachingLog, ResearchLog, RankNorm, AcademicYearConfig, WorkHistory, AuditLog, UserRole } from './types';
 import { 
   DEFAULT_RANKS_NORM, 
   ACADEMIC_YEARS, 
@@ -18,9 +18,11 @@ import LoginScreen from './components/LoginScreen';
 import AccountSecurityTab from './components/AccountSecurityTab';
 import StandardsTab from './components/StandardsTab';
 import TeachersByYearTab from './components/TeachersByYearTab';
+import AuditLogTab from './components/AuditLogTab';
+import RoleManagementTab from './components/RoleManagementTab';
 import { 
   BarChart3, Users, BookOpen, FileCode2, Settings, 
-  GraduationCap, Calendar, Sparkles, LogOut, ShieldCheck, UserCheck, Award
+  GraduationCap, Calendar, Sparkles, LogOut, ShieldCheck, UserCheck, Award, ClipboardList
 } from 'lucide-react';
 import { motion, LayoutGroup } from 'motion/react';
 import { onAuthStateChanged, signOut } from 'firebase/auth';
@@ -28,7 +30,6 @@ import { collection, onSnapshot, doc, setDoc, deleteDoc, updateDoc, getDocs, get
 import { db, auth, handleFirestoreError, OperationType, cleanDocData } from './firebase';
 
 export default function App() {
-  // Use Firebase User State & Auth Loading
   const [currentUser, setCurrentUser] = useState<{ 
     role: 'admin' | 'teacher'; 
     teacherId?: string;
@@ -38,161 +39,94 @@ export default function App() {
   } | null>(null);
   const [authLoading, setAuthLoading] = useState(true);
 
-  // Active Tab
-  const [activeTab, setActiveTab] = useState<'stats' | 'teachers' | 'teaching' | 'research' | 'settings' | 'account' | 'standards' | 'teachersByYear'>('stats');
+  const [activeTab, setActiveTab] = useState<'stats' | 'teachers' | 'teaching' | 'research' | 'settings' | 'account' | 'standards' | 'teachersByYear' | 'audit' | 'roles'>('stats');
 
-  // Core Data States
   const [teachers, setTeachers] = useState<Teacher[]>([]);
   const [teachingLogs, setTeachingLogs] = useState<TeachingLog[]>([]);
   const [researchLogs, setResearchLogs] = useState<ResearchLog[]>([]);
   const [rankNorms, setRankNorms] = useState<RankNorm[]>([]);
   const [academicYears, setAcademicYears] = useState<AcademicYearConfig[]>([]);
   const [workHistories, setWorkHistories] = useState<WorkHistory[]>([]);
+  const [auditLogs, setAuditLogs] = useState<AuditLog[]>([]);
+  const [userRoles, setUserRoles] = useState<UserRole[]>([]);
   const [selectedYear, setSelectedYear] = useState<string>('2025-2026');
   const [hasInitYearOnFetch, setHasInitYearOnFetch] = useState(false);
 
-  // Seeding initial data if empty
   const initializeFirebaseDataIfEmpty = async () => {
     try {
       const snap = await getDocs(collection(db, 'rank_norms'));
       if (snap.empty) {
-        console.log('Seeding initial data to Firestore...');
-        for (const norm of DEFAULT_RANKS_NORM) {
-          await setDoc(doc(db, 'rank_norms', norm.rank), cleanDocData(norm));
-        }
-        for (const yr of ACADEMIC_YEARS) {
-          await setDoc(doc(db, 'academic_years', yr.id), cleanDocData(yr));
-        }
-        for (const t of TEACHERS_SAMPLE) {
-          await setDoc(doc(db, 'teachers', t.id), cleanDocData(t));
-        }
-        for (const tl of TEACHING_LOGS_SAMPLE) {
-          await setDoc(doc(db, 'teaching_logs', tl.id), cleanDocData(tl));
-        }
-        for (const rl of RESEARCH_LOGS_SAMPLE) {
-          await setDoc(doc(db, 'research_logs', rl.id), cleanDocData(rl));
-        }
-        for (const wh of WORK_HISTORY_SAMPLE) {
-          await setDoc(doc(db, 'work_histories', wh.id), cleanDocData(wh));
-        }
-        console.log('Firestore seeded successfully!');
+        for (const norm of DEFAULT_RANKS_NORM) await setDoc(doc(db, 'rank_norms', norm.rank), cleanDocData(norm));
+        for (const yr of ACADEMIC_YEARS) await setDoc(doc(db, 'academic_years', yr.id), cleanDocData(yr));
+        for (const t of TEACHERS_SAMPLE) await setDoc(doc(db, 'teachers', t.id), cleanDocData(t));
+        for (const tl of TEACHING_LOGS_SAMPLE) await setDoc(doc(db, 'teaching_logs', tl.id), cleanDocData(tl));
+        for (const rl of RESEARCH_LOGS_SAMPLE) await setDoc(doc(db, 'research_logs', rl.id), cleanDocData(rl));
+        for (const wh of WORK_HISTORY_SAMPLE) await setDoc(doc(db, 'work_histories', wh.id), cleanDocData(wh));
       }
-    } catch (error) {
-      console.error('Error seeding data:', error);
-    }
+    } catch (error) { console.error('Error seeding data:', error); }
   };
 
-  // 1. Retrieve local settings on mount
+  // Migrate dữ liệu cũ: research_logs.role 'co_author' → 'member'
+  // (chạy mỗi lần app khởi động; idempotent — query trả rỗng khi đã migrate)
+  const migrateLegacyCoAuthorRole = async () => {
+    try {
+      const snap = await getDocs(query(collection(db, 'research_logs'), where('role', '==', 'co_author')));
+      if (snap.empty) return;
+      for (const d of snap.docs) {
+        await updateDoc(doc(db, 'research_logs', d.id), { role: 'member' });
+      }
+      console.log(`Đã migrate ${snap.size} research_logs: co_author → member`);
+    } catch (err) { console.error('Lỗi migrate role co_author:', err); }
+  };
+
   useEffect(() => {
     const localSelectedYear = localStorage.getItem('faculty_selected_year');
-    if (localSelectedYear) {
-      setSelectedYear(localSelectedYear);
-    } else {
-      setSelectedYear('2025-2026');
-      localStorage.setItem('faculty_selected_year', '2025-2026');
-    }
+    setSelectedYear(localSelectedYear || '2025-2026');
   }, []);
 
-  // 2. Load Firestore Data in real-time & seed if empty (only when user session is active)
   useEffect(() => {
-    if (!currentUser) {
-      // Clear data when signed out to prevent leaking state
-      setTeachers([]);
-      setTeachingLogs([]);
-      setResearchLogs([]);
-      setRankNorms([]);
-      setAcademicYears([]);
-      setWorkHistories([]);
-      return;
-    }
-
-    // Run seeding check seamlessly
+    if (!currentUser) { setTeachers([]); setTeachingLogs([]); setResearchLogs([]); setRankNorms([]); setAcademicYears([]); setWorkHistories([]); setUserRoles([]); return; }
     initializeFirebaseDataIfEmpty();
-
+    migrateLegacyCoAuthorRole();
     const unsubscribes: (() => void)[] = [];
 
-    const unsubscribeTeachers = onSnapshot(collection(db, 'teachers'), (snap) => {
-      const list: Teacher[] = [];
-      snap.forEach((docSnap) => {
-        list.push(docSnap.data() as Teacher);
-      });
-      setTeachers(list);
-    }, (err) => {
-      handleFirestoreError(err, OperationType.GET, 'teachers');
-    });
-    unsubscribes.push(unsubscribeTeachers);
+    const add = (col: string, setter: (list: any[]) => void) => {
+      const unsub = onSnapshot(collection(db, col), (snap) => {
+        const list: any[] = []; snap.forEach(d => list.push(d.data()));
+        setter(list);
+      }, (err) => handleFirestoreError(err, OperationType.GET, col));
+      unsubscribes.push(unsub);
+    };
 
-    const unsubscribeTeaching = onSnapshot(collection(db, 'teaching_logs'), (snap) => {
-      const list: TeachingLog[] = [];
-      snap.forEach((docSnap) => {
-        list.push(docSnap.data() as TeachingLog);
-      });
-      setTeachingLogs(list);
-    }, (err) => {
-      handleFirestoreError(err, OperationType.GET, 'teaching_logs');
-    });
-    unsubscribes.push(unsubscribeTeaching);
+    add('teachers', setTeachers);
+    add('teaching_logs', setTeachingLogs);
+    add('research_logs', setResearchLogs);
+    add('rank_norms', setRankNorms);
+    add('user_roles', setUserRoles);
+    add('work_histories', setWorkHistories);
 
-    const unsubscribeResearch = onSnapshot(collection(db, 'research_logs'), (snap) => {
-      const list: ResearchLog[] = [];
-      snap.forEach((docSnap) => {
-        list.push(docSnap.data() as ResearchLog);
-      });
-      setResearchLogs(list);
-    }, (err) => {
-      handleFirestoreError(err, OperationType.GET, 'research_logs');
-    });
-    unsubscribes.push(unsubscribeResearch);
-
-    const unsubscribeNorms = onSnapshot(collection(db, 'rank_norms'), (snap) => {
-      const list: RankNorm[] = [];
-      snap.forEach((docSnap) => {
-        list.push(docSnap.data() as RankNorm);
-      });
-      setRankNorms(list);
-    }, (err) => {
-      handleFirestoreError(err, OperationType.GET, 'rank_norms');
-    });
-    unsubscribes.push(unsubscribeNorms);
-
-    const unsubscribeYears = onSnapshot(collection(db, 'academic_years'), (snap) => {
-      const list: AcademicYearConfig[] = [];
-      snap.forEach((docSnap) => {
-        list.push(docSnap.data() as AcademicYearConfig);
-      });
+    const unsubYears = onSnapshot(collection(db, 'academic_years'), (snap) => {
+      const list: AcademicYearConfig[] = []; snap.forEach(d => list.push(d.data() as AcademicYearConfig));
       setAcademicYears(list);
-
-      // Auto-select the newest cycle on initial data fetch of the database
       if (list.length > 0 && !hasInitYearOnFetch) {
         const sorted = [...list].sort((a, b) => b.year.localeCompare(a.year));
-        const latestYear = sorted[0].year;
-        setSelectedYear(latestYear);
-        localStorage.setItem('faculty_selected_year', latestYear);
+        setSelectedYear(sorted[0].year);
+        localStorage.setItem('faculty_selected_year', sorted[0].year);
         setHasInitYearOnFetch(true);
       }
-    }, (err) => {
-      handleFirestoreError(err, OperationType.GET, 'academic_years');
-    });
-    unsubscribes.push(unsubscribeYears);
+    }, (err) => handleFirestoreError(err, OperationType.GET, 'academic_years'));
+    unsubscribes.push(unsubYears);
 
-    // Work History listener
-    const unsubscribeWorkHistories = onSnapshot(collection(db, 'work_histories'), (snap) => {
-      const list: WorkHistory[] = [];
-      snap.forEach((docSnap) => {
-        list.push(docSnap.data() as WorkHistory);
-      });
-      setWorkHistories(list);
-    }, (err) => {
-      handleFirestoreError(err, OperationType.GET, 'work_histories');
-    });
-    unsubscribes.push(unsubscribeWorkHistories);
+    const unsubAudit = onSnapshot(collection(db, 'audit_logs'), (snap) => {
+      const list: AuditLog[] = []; snap.forEach(d => list.push(d.data() as AuditLog));
+      list.sort((a, b) => b.timestamp - a.timestamp);
+      setAuditLogs(list);
+    }, (err) => handleFirestoreError(err, OperationType.GET, 'audit_logs'));
+    unsubscribes.push(unsubAudit);
 
-    return () => {
-      unsubscribes.forEach(unsub => unsub());
-    };
+    return () => { unsubscribes.forEach(u => u()); };
   }, [currentUser]);
 
-  // 3. Listen to Auth State changes & resolve current user roles
   useEffect(() => {
     const unsubscribeAuth = onAuthStateChanged(auth, async (firebaseUser) => {
       if (firebaseUser) {
@@ -200,42 +134,23 @@ export default function App() {
         const uid = firebaseUser.uid;
         const photoURL = firebaseUser.photoURL;
         const displayName = firebaseUser.displayName;
-
         if (email === 'thanhhaihvkt@gmail.com') {
           setCurrentUser({ role: 'admin', teacherId: uid, photoURL, displayName, email });
         } else {
           try {
-            // Pre-validation to match existing teacher record pre-created by the admin
             const q = query(collection(db, 'teachers'), where('email', '==', email.trim().toLowerCase()));
-            const querySnapshot = await getDocs(q);
-            
-            if (!querySnapshot.empty) {
-              const teacherDoc = querySnapshot.docs[0];
-              const teacherData = teacherDoc.data() as Teacher;
-              setCurrentUser({ 
-                role: 'teacher', 
-                teacherId: teacherDoc.id, 
-                photoURL, 
-                displayName: teacherData.name || displayName, 
-                email 
-              });
+            const qs = await getDocs(q);
+            if (!qs.empty) {
+              const td = qs.docs[0].data() as Teacher;
+              setCurrentUser({ role: 'teacher', teacherId: qs.docs[0].id, photoURL, displayName: td.name || displayName, email });
             } else {
-              // De-authorize and instantly delete the newly created/unlisted user so they never appear in Auth
-              try {
-                await firebaseUser.delete();
-              } catch (delError) {
-                console.error('Error deleting unlisted user under onAuthStateChanged:', delError);
-              }
+              try { await firebaseUser.delete(); } catch (err) { console.error(err); }
               await signOut(auth);
               setCurrentUser(null);
             }
           } catch (e) {
-            console.error('Error linking/verifying teacher email:', e);
-            try {
-              await firebaseUser.delete();
-            } catch (delError) {
-              console.error('Error deleting user under error catch branch:', delError);
-            }
+            console.error(e);
+            try { await firebaseUser.delete(); } catch (err) { console.error(err); }
             await signOut(auth);
             setCurrentUser(null);
           }
@@ -245,713 +160,150 @@ export default function App() {
       }
       setAuthLoading(false);
     });
-
     return () => unsubscribeAuth();
   }, []);
 
-  const handleLogin = (role: 'admin' | 'teacher', teacherId?: string) => {
-    setCurrentUser({ role, teacherId });
-    setActiveTab('stats');
-  };
+  const handleLogin = (role: 'admin' | 'teacher', teacherId?: string) => { setCurrentUser({ role, teacherId }); setActiveTab('stats'); };
+  const handleLogout = async () => { try { await signOut(auth); setCurrentUser(null); } catch {} };
+  const syncSelectedYear = (year: string) => { setSelectedYear(year); localStorage.setItem('faculty_selected_year', year); };
 
-  const handleLogout = async () => {
+  const writeAuditLog = async (action: 'CREATE' | 'UPDATE' | 'DELETE', collection: string, documentId: string, summary: string) => {
     try {
-      await signOut(auth);
-      setCurrentUser(null);
-    } catch (e) {
-      console.error('Logout error:', e);
-    }
+      const mt = teachers.find(t => t.id === currentUser?.teacherId);
+      const log: AuditLog = { id: `audit-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`, timestamp: Date.now(), action, collection, documentId, summary, performedBy: currentUser?.teacherId || 'unknown', performedByName: mt?.name || 'Admin' };
+      await setDoc(doc(db, 'audit_logs', log.id), cleanDocData(log));
+    } catch {}
   };
 
-  const syncSelectedYear = (year: string) => {
-    setSelectedYear(year);
-    localStorage.setItem('faculty_selected_year', year);
-  };
-
-  // HANDLERS
-  // Teacher CRUD in Firestore
-  const handleAddTeacher = async (teacher: Teacher) => {
-    try {
-      await setDoc(doc(db, 'teachers', teacher.id), cleanDocData(teacher));
-    } catch (err) {
-      handleFirestoreError(err, OperationType.CREATE, `teachers/${teacher.id}`);
-    }
-  };
-
-  const handleEditTeacher = async (teacher: Teacher) => {
-    try {
-      await setDoc(doc(db, 'teachers', teacher.id), cleanDocData(teacher));
-    } catch (err) {
-      handleFirestoreError(err, OperationType.UPDATE, `teachers/${teacher.id}`);
-    }
-  };
-
+  const handleAddTeacher = async (teacher: Teacher) => { try { await setDoc(doc(db, 'teachers', teacher.id), cleanDocData(teacher)); writeAuditLog('CREATE', 'teachers', teacher.id, `Thêm GV: ${teacher.name}`); } catch (err) { handleFirestoreError(err, OperationType.CREATE, `teachers/${teacher.id}`); } };
+  const handleEditTeacher = async (teacher: Teacher) => { try { await setDoc(doc(db, 'teachers', teacher.id), cleanDocData(teacher)); writeAuditLog('UPDATE', 'teachers', teacher.id, `Sửa GV: ${teacher.name}`); } catch (err) { handleFirestoreError(err, OperationType.UPDATE, `teachers/${teacher.id}`); } };
   const handleDeleteTeacher = async (id: string) => {
-    try {
-      await deleteDoc(doc(db, 'teachers', id));
-      // Cascade delete logs
-      const updatedTeaching = teachingLogs.filter(log => log.teacherId === id);
-      const updatedResearch = researchLogs.filter(log => log.teacherId === id);
-      const updatedWorkHistory = workHistories.filter(wh => wh.teacherId === id);
-      for (const log of updatedTeaching) {
-        await deleteDoc(doc(db, 'teaching_logs', log.id));
-      }
-      for (const log of updatedResearch) {
-        await deleteDoc(doc(db, 'research_logs', log.id));
-      }
-      for (const wh of updatedWorkHistory) {
-        await deleteDoc(doc(db, 'work_histories', wh.id));
-      }
-    } catch (err) {
-      handleFirestoreError(err, OperationType.DELETE, `teachers/${id}`);
-    }
+    const tn = teachers.find(t => t.id === id)?.name || id;
+    try { await deleteDoc(doc(db, 'teachers', id)); writeAuditLog('DELETE', 'teachers', id, `Xóa GV: ${tn}`);
+      for (const l of teachingLogs.filter(l => l.teacherId === id)) await deleteDoc(doc(db, 'teaching_logs', l.id));
+      for (const l of researchLogs.filter(l => l.teacherId === id)) await deleteDoc(doc(db, 'research_logs', l.id));
+      for (const w of workHistories.filter(w => w.teacherId === id)) await deleteDoc(doc(db, 'work_histories', w.id));
+    } catch (err) { handleFirestoreError(err, OperationType.DELETE, `teachers/${id}`); }
   };
 
-  // Teaching Log CRUD in Firestore
-  const handleAddTeachingLog = async (log: TeachingLog) => {
-    try {
-      await setDoc(doc(db, 'teaching_logs', log.id), cleanDocData(log));
-    } catch (err) {
-      handleFirestoreError(err, OperationType.CREATE, `teaching_logs/${log.id}`);
-    }
-  };
+  const handleAddTeachingLog = async (log: TeachingLog) => { try { await setDoc(doc(db, 'teaching_logs', log.id), cleanDocData(log)); writeAuditLog('CREATE', 'teaching_logs', log.id, `Thêm giờ giảng: ${log.subjectName}`); } catch (err) { handleFirestoreError(err, OperationType.CREATE, `teaching_logs/${log.id}`); } };
+  const handleEditTeachingLog = async (log: TeachingLog) => { try { await setDoc(doc(db, 'teaching_logs', log.id), cleanDocData(log)); writeAuditLog('UPDATE', 'teaching_logs', log.id, `Sửa giờ giảng: ${log.subjectName}`); } catch (err) { handleFirestoreError(err, OperationType.UPDATE, `teaching_logs/${log.id}`); } };
+  const handleDeleteTeachingLog = async (id: string) => { const l = teachingLogs.find(l => l.id === id); try { await deleteDoc(doc(db, 'teaching_logs', id)); writeAuditLog('DELETE', 'teaching_logs', id, `Xóa giờ giảng: ${l?.subjectName || id}`); } catch (err) { handleFirestoreError(err, OperationType.DELETE, `teaching_logs/${id}`); } };
 
-  const handleEditTeachingLog = async (log: TeachingLog) => {
-    try {
-      await setDoc(doc(db, 'teaching_logs', log.id), cleanDocData(log));
-    } catch (err) {
-      handleFirestoreError(err, OperationType.UPDATE, `teaching_logs/${log.id}`);
-    }
-  };
+  const handleAddResearchLog = async (log: ResearchLog) => { try { await setDoc(doc(db, 'research_logs', log.id), cleanDocData(log)); writeAuditLog('CREATE', 'research_logs', log.id, `Thêm NCKH: ${log.title.substring(0, 60)}`); } catch (err) { handleFirestoreError(err, OperationType.CREATE, `research_logs/${log.id}`); } };
+  const handleEditResearchLog = async (log: ResearchLog) => { try { await setDoc(doc(db, 'research_logs', log.id), cleanDocData(log)); writeAuditLog('UPDATE', 'research_logs', log.id, `Sửa NCKH: ${log.title.substring(0, 60)}`); } catch (err) { handleFirestoreError(err, OperationType.UPDATE, `research_logs/${log.id}`); } };
+  const handleDeleteResearchLog = async (id: string) => { const l = researchLogs.find(l => l.id === id); try { await deleteDoc(doc(db, 'research_logs', id)); writeAuditLog('DELETE', 'research_logs', id, `Xóa NCKH: ${l?.title?.substring(0, 60) || id}`); } catch (err) { handleFirestoreError(err, OperationType.DELETE, `research_logs/${id}`); } };
+  const handleApproveResearchLog = async (id: string, status: 'approved' | 'rejected' | 'pending') => { const l = researchLogs.find(l => l.id === id); try { await updateDoc(doc(db, 'research_logs', id), { status }); writeAuditLog('UPDATE', 'research_logs', id, `Phê duyệt: ${l?.title?.substring(0, 50)} → ${status}`); } catch (err) { handleFirestoreError(err, OperationType.UPDATE, `research_logs/${id}`); } };
 
-  const handleDeleteTeachingLog = async (id: string) => {
-    try {
-      await deleteDoc(doc(db, 'teaching_logs', id));
-    } catch (err) {
-      handleFirestoreError(err, OperationType.DELETE, `teaching_logs/${id}`);
-    }
-  };
+  const handleAddWorkHistory = async (wh: WorkHistory) => { try { await setDoc(doc(db, 'work_histories', wh.id), cleanDocData(wh)); writeAuditLog('CREATE', 'work_histories', wh.id, `Thêm CT: ${wh.position} (${wh.academicYear})`); } catch (err) { handleFirestoreError(err, OperationType.CREATE, `work_histories/${wh.id}`); } };
+  const handleEditWorkHistory = async (wh: WorkHistory) => { try { await setDoc(doc(db, 'work_histories', wh.id), cleanDocData(wh)); writeAuditLog('UPDATE', 'work_histories', wh.id, `Sửa CT: ${wh.position} (${wh.academicYear})`); } catch (err) { handleFirestoreError(err, OperationType.UPDATE, `work_histories/${wh.id}`); } };
+  const handleDeleteWorkHistory = async (id: string) => { const w = workHistories.find(w => w.id === id); try { await deleteDoc(doc(db, 'work_histories', id)); writeAuditLog('DELETE', 'work_histories', id, `Xóa CT: ${w?.position || id}`); } catch (err) { handleFirestoreError(err, OperationType.DELETE, `work_histories/${id}`); } };
 
-  // Research Log CRUD in Firestore
-  const handleAddResearchLog = async (log: ResearchLog) => {
-    try {
-      await setDoc(doc(db, 'research_logs', log.id), cleanDocData(log));
-    } catch (err) {
-      handleFirestoreError(err, OperationType.CREATE, `research_logs/${log.id}`);
-    }
-  };
+  const handleSaveUserRole = async (role: UserRole) => { try { await setDoc(doc(db, 'user_roles', role.teacherId), cleanDocData(role)); writeAuditLog('UPDATE', 'user_roles', role.teacherId, `Phân quyền ${role.name}: ${role.role}`); } catch (err) { handleFirestoreError(err, OperationType.UPDATE, `user_roles/${role.teacherId}`); } };
+  const handleDeleteUserRole = async (teacherId: string) => { try { await deleteDoc(doc(db, 'user_roles', teacherId)); writeAuditLog('DELETE', 'user_roles', teacherId, `Xóa phân quyền`); } catch (err) { handleFirestoreError(err, OperationType.DELETE, `user_roles/${teacherId}`); } };
 
-  const handleEditResearchLog = async (log: ResearchLog) => {
-    try {
-      await setDoc(doc(db, 'research_logs', log.id), cleanDocData(log));
-    } catch (err) {
-      handleFirestoreError(err, OperationType.UPDATE, `research_logs/${log.id}`);
-    }
-  };
+  const handleUpdateNorms = async (norms: RankNorm[]) => { try { for (const n of norms) await setDoc(doc(db, 'rank_norms', n.rank), cleanDocData(n)); } catch (err) { handleFirestoreError(err, OperationType.UPDATE, 'rank_norms'); } };
+  const handleSetAcademicYear = (year: string) => syncSelectedYear(year);
+  const handleAddAcademicYear = async (yc: AcademicYearConfig) => { try { await setDoc(doc(db, 'academic_years', yc.id), cleanDocData(yc)); syncSelectedYear(yc.year); } catch (err) { handleFirestoreError(err, OperationType.CREATE, `academic_years/${yc.id}`); } };
+  const handleResetToDefault = async () => { try { for (const t of teachers) await deleteDoc(doc(db, 'teachers', t.id)); for (const l of teachingLogs) await deleteDoc(doc(db, 'teaching_logs', l.id)); for (const l of researchLogs) await deleteDoc(doc(db, 'research_logs', l.id)); for (const n of rankNorms) await deleteDoc(doc(db, 'rank_norms', n.rank)); for (const y of academicYears) await deleteDoc(doc(db, 'academic_years', y.id)); for (const w of workHistories) await deleteDoc(doc(db, 'work_histories', w.id)); await initializeFirebaseDataIfEmpty(); } catch (err) { console.error(err); } };
+  const handleImportData = (d: string): boolean => { try { const p = JSON.parse(d); if (p.teachers && p.teachingLogs && p.researchLogs && p.rankNorms) { p.teachers.forEach((t: any) => setDoc(doc(db, 'teachers', t.id), cleanDocData(t))); p.teachingLogs.forEach((t: any) => setDoc(doc(db, 'teaching_logs', t.id), cleanDocData(t))); p.researchLogs.forEach((t: any) => setDoc(doc(db, 'research_logs', t.id), cleanDocData(t))); p.rankNorms.forEach((t: any) => setDoc(doc(db, 'rank_norms', t.rank), cleanDocData(t))); if (p.academicYears) p.academicYears.forEach((y: any) => setDoc(doc(db, 'academic_years', y.id), cleanDocData(y))); if (p.workHistories) p.workHistories.forEach((w: any) => setDoc(doc(db, 'work_histories', w.id), cleanDocData(w))); if (p.selectedYear) syncSelectedYear(p.selectedYear); return true; } return false; } catch { return false; } };
+  const handleExportData = (): string => JSON.stringify({ teachers, teachingLogs, researchLogs, rankNorms, academicYears, workHistories, selectedYear }, null, 2);
 
-  const handleDeleteResearchLog = async (id: string) => {
-    try {
-      await deleteDoc(doc(db, 'research_logs', id));
-    } catch (err) {
-      handleFirestoreError(err, OperationType.DELETE, `research_logs/${id}`);
-    }
-  };
-
-  const handleApproveResearchLog = async (id: string, status: 'approved' | 'rejected' | 'pending') => {
-    try {
-      await updateDoc(doc(db, 'research_logs', id), { status });
-    } catch (err) {
-      handleFirestoreError(err, OperationType.UPDATE, `research_logs/${id}`);
-    }
-  };
-
-  // Work History CRUD in Firestore
-  const handleAddWorkHistory = async (wh: WorkHistory) => {
-    try {
-      await setDoc(doc(db, 'work_histories', wh.id), cleanDocData(wh));
-    } catch (err) {
-      handleFirestoreError(err, OperationType.CREATE, `work_histories/${wh.id}`);
-    }
-  };
-
-  const handleEditWorkHistory = async (wh: WorkHistory) => {
-    try {
-      await setDoc(doc(db, 'work_histories', wh.id), cleanDocData(wh));
-    } catch (err) {
-      handleFirestoreError(err, OperationType.UPDATE, `work_histories/${wh.id}`);
-    }
-  };
-
-  const handleDeleteWorkHistory = async (id: string) => {
-    try {
-      await deleteDoc(doc(db, 'work_histories', id));
-    } catch (err) {
-      handleFirestoreError(err, OperationType.DELETE, `work_histories/${id}`);
-    }
-  };
-
-  // Settings Handlers
-  const handleUpdateNorms = async (norms: RankNorm[]) => {
-    try {
-      for (const norm of norms) {
-        await setDoc(doc(db, 'rank_norms', norm.rank), cleanDocData(norm));
-      }
-    } catch (err) {
-      handleFirestoreError(err, OperationType.UPDATE, 'rank_norms');
-    }
-  };
-
-  const handleSetAcademicYear = (year: string) => {
-    syncSelectedYear(year);
-  };
-
-  const handleAddAcademicYear = async (yearConfig: AcademicYearConfig) => {
-    try {
-      await setDoc(doc(db, 'academic_years', yearConfig.id), cleanDocData(yearConfig));
-      syncSelectedYear(yearConfig.year);
-    } catch (err) {
-      handleFirestoreError(err, OperationType.CREATE, `academic_years/${yearConfig.id}`);
-    }
-  };
-
-  const handleResetToDefault = async () => {
-    try {
-      for (const t of teachers) {
-        await deleteDoc(doc(db, 'teachers', t.id));
-      }
-      for (const tl of teachingLogs) {
-        await deleteDoc(doc(db, 'teaching_logs', tl.id));
-      }
-      for (const rl of researchLogs) {
-        await deleteDoc(doc(db, 'research_logs', rl.id));
-      }
-      for (const norm of rankNorms) {
-        await deleteDoc(doc(db, 'rank_norms', norm.rank));
-      }
-      for (const yr of academicYears) {
-        await deleteDoc(doc(db, 'academic_years', yr.id));
-      }
-      for (const wh of workHistories) {
-        await deleteDoc(doc(db, 'work_histories', wh.id));
-      }
-      await initializeFirebaseDataIfEmpty();
-    } catch (err) {
-      console.error('Reset error:', err);
-    }
-  };
-
-  const handleImportData = (dataJson: string): boolean => {
-    try {
-      const parsed = JSON.parse(dataJson);
-      if (parsed.teachers && parsed.teachingLogs && parsed.researchLogs && parsed.rankNorms) {
-        parsed.teachers.forEach((t: any) => {
-          setDoc(doc(db, 'teachers', t.id), cleanDocData(t)).catch(err => {
-            handleFirestoreError(err, OperationType.CREATE, `teachers/${t.id}`);
-          });
-        });
-        parsed.teachingLogs.forEach((tl: any) => {
-          setDoc(doc(db, 'teaching_logs', tl.id), cleanDocData(tl)).catch(err => {
-            handleFirestoreError(err, OperationType.CREATE, `teaching_logs/${tl.id}`);
-          });
-        });
-        parsed.researchLogs.forEach((rl: any) => {
-          setDoc(doc(db, 'research_logs', rl.id), cleanDocData(rl)).catch(err => {
-            handleFirestoreError(err, OperationType.CREATE, `research_logs/${rl.id}`);
-          });
-        });
-        parsed.rankNorms.forEach((norm: any) => {
-          setDoc(doc(db, 'rank_norms', norm.rank), cleanDocData(norm)).catch(err => {
-            handleFirestoreError(err, OperationType.CREATE, `rank_norms/${norm.rank}`);
-          });
-        });
-        if (parsed.academicYears) {
-          parsed.academicYears.forEach((yr: any) => {
-            setDoc(doc(db, 'academic_years', yr.id), cleanDocData(yr)).catch(err => {
-              handleFirestoreError(err, OperationType.CREATE, `academic_years/${yr.id}`);
-            });
-          });
-        }
-        if (parsed.workHistories) {
-          parsed.workHistories.forEach((wh: any) => {
-            setDoc(doc(db, 'work_histories', wh.id), cleanDocData(wh)).catch(err => {
-              handleFirestoreError(err, OperationType.CREATE, `work_histories/${wh.id}`);
-            });
-          });
-        }
-        if (parsed.selectedYear) syncSelectedYear(parsed.selectedYear);
-        return true;
-      }
-      return false;
-    } catch (e) {
-      console.error(e);
-      return false;
-    }
-  };
-
-  const handleExportData = (): string => {
-    const data = {
-      teachers,
-      teachingLogs,
-      researchLogs,
-      rankNorms,
-      academicYears,
-      workHistories,
-      selectedYear
-    };
-    return JSON.stringify(data, null, 2);
-  };
-
-  if (authLoading) {
-    return (
-      <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center p-4">
-        <div className="w-10 h-10 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
-        <p className="mt-4 text-xs font-bold text-slate-500">Đang đồng bộ cơ sở dữ liệu Firebase...</p>
-      </div>
-    );
-  }
-
-  if (!currentUser) {
-    return (
-      <LoginScreen 
-        teachers={teachers} 
-        onLogin={handleLogin} 
-      />
-    );
-  }
+  if (authLoading) return <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center p-4"><div className="w-10 h-10 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div><p className="mt-4 text-xs font-bold text-slate-500">Đang đồng bộ...</p></div>;
+  if (!currentUser) return <LoginScreen teachers={teachers} onLogin={handleLogin} />;
 
   return (
     <div className="min-h-screen bg-slate-50 flex text-slate-900 font-sans antialiased">
-      {/* Sidebar Navigation */}
       <aside className="w-64 bg-[#062f4a] text-white flex flex-col shrink-0 hidden md:flex h-screen sticky top-0 border-r border-white/10">
         <div className="p-6 flex items-center gap-3 border-b border-white/10 shrink-0">
-          <img 
-            src="https://i.ibb.co/TBgCM3fw/logo-vhp-2.png" 
-            alt="Logo Sĩ Quan Kỹ Thuật Quân Sự" 
-            className="w-12 h-12 object-contain select-none" 
-            referrerPolicy="no-referrer"
-          />
-          <div className="leading-tight">
-            <p className="text-xs font-extrabold text-sky-300 header-khoa">KHOA Ô TÔ </p>
-            <h1 className="font-bold text-xs tracking-wider text-white uppercase font-display">TRƯỜNG SQKTQS</h1>
-            <div className="h-[2px] w-full bg-yellow-400 mt-1.5" />
-
-          </div>
+          <img src="https://i.ibb.co/TBgCM3fw/logo-vhp-2.png" alt="Logo" className="w-12 h-12 object-contain select-none" referrerPolicy="no-referrer" />
+          <div className="leading-tight"><p className="text-xs font-extrabold text-sky-300 header-khoa">KHOA Ô TÔ</p><h1 className="font-bold text-xs tracking-wider text-white uppercase font-display">TRƯỜNG SQKTQS</h1><div className="h-[2px] w-full bg-yellow-400 mt-1.5" /></div>
         </div>
-        
         <nav className="flex-1 py-6 space-y-1 overflow-y-auto">
-          <button
-            onClick={() => setActiveTab('stats')}
-            className={`w-full flex items-center gap-3 px-6 py-3 border-l-4 text-xs font-semibold uppercase tracking-wider transition-all text-left cursor-pointer ${
-              activeTab === 'stats' 
-                ? 'bg-[#094870]/50 border-sky-400 text-sky-200 font-extrabold' 
-                : 'border-transparent text-slate-300/85 hover:text-white hover:bg-white/5'
-            }`}
-          >
-            <BarChart3 className="w-4 h-4 shrink-0" />
-            <span>Tổng quan thống kê</span>
-          </button>
-
-          <button
-            onClick={() => setActiveTab('teachers')}
-            className={`w-full flex items-center gap-3 px-6 py-3 border-l-4 text-xs font-semibold uppercase tracking-wider transition-all text-left cursor-pointer ${
-              activeTab === 'teachers' 
-                ? 'bg-[#094870]/50 border-sky-400 text-sky-200 font-extrabold' 
-                : 'border-transparent text-slate-300/85 hover:text-white hover:bg-white/5'
-            }`}
-          >
-            <Users className="w-4 h-4 shrink-0" />
-            <span>Hồ sơ giảng viên</span>
-          </button>
-
-          <button
-            onClick={() => setActiveTab('teachersByYear')}
-            className={`w-full flex items-center gap-3 px-6 py-3 border-l-4 text-xs font-semibold uppercase tracking-wider transition-all text-left cursor-pointer ${
-              activeTab === 'teachersByYear' 
-                ? 'bg-[#094870]/50 border-sky-400 text-sky-200 font-extrabold' 
-                : 'border-transparent text-slate-300/85 hover:text-white hover:bg-white/5'
-            }`}
-          >
-            <UserCheck className="w-4 h-4 shrink-0" />
-            <span>Giảng viên năm học</span>
-          </button>
-
-          <button
-            onClick={() => setActiveTab('teaching')}
-            className={`w-full flex items-center gap-3 px-6 py-3 border-l-4 text-xs font-semibold uppercase tracking-wider transition-all text-left cursor-pointer ${
-              activeTab === 'teaching' 
-                ? 'bg-[#094870]/50 border-sky-400 text-sky-200 font-extrabold' 
-                : 'border-transparent text-slate-300/85 hover:text-white hover:bg-white/5'
-            }`}
-          >
-            <BookOpen className="w-4 h-4 shrink-0" />
-            <span>Giờ giảng dạy</span>
-          </button>
-
-          <button
-            onClick={() => setActiveTab('research')}
-            className={`w-full flex items-center gap-3 px-6 py-3 border-l-4 text-xs font-semibold uppercase tracking-wider transition-all text-left cursor-pointer ${
-              activeTab === 'research' 
-                ? 'bg-[#094870]/50 border-sky-400 text-sky-200 font-extrabold' 
-                : 'border-transparent text-slate-300/85 hover:text-white hover:bg-white/5'
-            }`}
-          >
-            <FileCode2 className="w-4 h-4 shrink-0" />
-            <span>Nghiên cứu khoa học</span>
-          </button>
-
-          <button
-            onClick={() => setActiveTab('standards')}
-            className={`w-full flex items-center gap-3 px-6 py-3 border-l-4 text-xs font-semibold uppercase tracking-wider transition-all text-left cursor-pointer ${
-              activeTab === 'standards' 
-                ? 'bg-[#094870]/50 border-sky-400 text-sky-200 font-extrabold' 
-                : 'border-transparent text-slate-300/85 hover:text-white hover:bg-white/5'
-            }`}
-          >
-            <Award className="w-4 h-4 shrink-0" />
-            <span>Chức danh CM, KT</span>
-          </button>
-
-          <button
-            onClick={() => setActiveTab('account')}
-            className={`w-full flex items-center gap-3 px-6 py-3 border-l-4 text-xs font-semibold uppercase tracking-wider transition-all text-left cursor-pointer ${
-              activeTab === 'account' 
-                ? 'bg-[#094870]/50 border-sky-400 text-sky-200 font-extrabold' 
-                : 'border-transparent text-slate-300/85 hover:text-white hover:bg-white/5'
-            }`}
-          >
-            <ShieldCheck className="w-4 h-4 shrink-0" />
-            <span>Hồ sơ & Bảo mật</span>
-          </button>
-
-          {currentUser?.role === 'admin' && (
+          {([
+            { tab: 'stats' as const, icon: <BarChart3 className="w-4 h-4 shrink-0" />, label: 'Tổng quan thống kê' },
+            { tab: 'teachersByYear' as const, icon: <UserCheck className="w-4 h-4 shrink-0" />, label: 'Giảng viên năm học' },
+            { tab: 'teaching' as const, icon: <BookOpen className="w-4 h-4 shrink-0" />, label: 'Giờ giảng dạy' },
+            { tab: 'research' as const, icon: <FileCode2 className="w-4 h-4 shrink-0" />, label: 'Nghiên cứu khoa học' },
+            { tab: 'standards' as const, icon: <Award className="w-4 h-4 shrink-0" />, label: 'Chức danh CM, KT' },
+            { tab: 'account' as const, icon: <ShieldCheck className="w-4 h-4 shrink-0" />, label: 'Hồ sơ & Bảo mật' },
+          ]).map(i => (
+            <button key={i.tab} onClick={() => setActiveTab(i.tab)} className={`w-full flex items-center gap-3 px-6 py-3 border-l-4 text-xs font-semibold uppercase tracking-wider transition-all text-left cursor-pointer ${activeTab === i.tab ? 'bg-[#094870]/50 border-sky-400 text-sky-200 font-extrabold' : 'border-transparent text-slate-300/85 hover:text-white hover:bg-white/5'}`}>
+              {i.icon}<span>{i.label}</span>
+            </button>
+          ))}
+          {(currentUser?.role === 'admin' || teachers.find(t => t.id === currentUser?.teacherId && (t.position.toLowerCase().includes('chủ nhiệm khoa') || t.position.toLowerCase().includes('phó chủ nhiệm khoa')))) && (
             <>
               <div className="h-px bg-white/10 my-4 mx-6" />
-
-              <button
-                onClick={() => setActiveTab('settings')}
-                className={`w-full flex items-center gap-3 px-6 py-3 border-l-4 text-xs font-semibold uppercase tracking-wider transition-all text-left cursor-pointer ${
-                  activeTab === 'settings' 
-                    ? 'bg-[#094870]/50 border-sky-400 text-sky-200 font-extrabold' 
-                    : 'border-transparent text-slate-300/85 hover:text-white hover:bg-white/5'
-                }`}
-              >
-                <Settings className="w-4 h-4 shrink-0 text-sky-300" />
-                <span>Cài đặt</span>
-              </button>
+              <div className="px-6 py-1 text-[10px] font-bold text-sky-400/70 uppercase tracking-widest">Quản lý</div>
+              {([
+                { tab: 'settings' as const, icon: <Settings className="w-4 h-4 shrink-0 text-sky-300" />, label: 'Cài đặt' },
+                { tab: 'teachers' as const, icon: <Users className="w-4 h-4 shrink-0 text-sky-300" />, label: 'Hồ sơ giảng viên' },
+                { tab: 'roles' as const, icon: <ClipboardList className="w-4 h-4 shrink-0 text-sky-300" />, label: 'Phân quyền' },
+                { tab: 'audit' as const, icon: <ClipboardList className="w-4 h-4 shrink-0 text-sky-300" />, label: 'Nhật ký hệ thống' },
+              ]).map(i => (
+                <button key={i.tab} onClick={() => setActiveTab(i.tab)} className={`w-full flex items-center gap-3 px-6 py-3 border-l-4 text-xs font-semibold uppercase tracking-wider transition-all text-left cursor-pointer ${activeTab === i.tab ? 'bg-[#094870]/50 border-sky-400 text-sky-200 font-extrabold' : 'border-transparent text-slate-300/85 hover:text-white hover:bg-white/5'}`}>
+                  {i.icon}<span>{i.label}</span>
+                </button>
+              ))}
             </>
           )}
         </nav>
-
         <div className="p-4 border-t border-white/10 space-y-3.5 shrink-0 bg-[#042236]">
           <div className="flex items-center gap-2 px-2">
             {(() => {
-              const matchedTeacher = teachers.find(t => 
-                t.id === currentUser?.teacherId || 
-                (currentUser?.email && t.email && t.email.toLowerCase() === currentUser.email.toLowerCase())
-              );
-              const displayName = matchedTeacher?.name || currentUser?.displayName || (currentUser?.role === 'admin' ? 'Admin Quản lý' : 'Giảng viên');
-              
-              if (currentUser?.role === 'admin') {
-                return (
-                  <>
-                    {currentUser?.photoURL ? (
-                      <img 
-                        src={currentUser.photoURL} 
-                        alt="Avatar" 
-                        className="w-8 h-8 rounded-lg object-cover bg-slate-850"
-                        referrerPolicy="no-referrer"
-                      />
-                    ) : (
-                      <div className="w-7 h-7 rounded-lg bg-blue-600 flex items-center justify-center font-extrabold text-xs text-white font-mono">AD</div>
-                    )}
-                    <div className="text-xs min-w-0 flex-1">
-                      <p className="font-bold text-slate-200 truncate">{displayName}</p>
-                      <p className="text-xs text-sky-200/70">Admin</p>
-                    </div>
-                  </>
-                );
-              } else {
-                return (
-                  <>
-                    {currentUser?.photoURL ? (
-                      <img 
-                        src={currentUser.photoURL} 
-                        alt="Avatar" 
-                        className="w-8 h-8 rounded-lg object-cover bg-slate-850"
-                        referrerPolicy="no-referrer"
-                      />
-                    ) : (
-                      <div className="w-7 h-7 rounded-lg bg-emerald-600 flex items-center justify-center font-extrabold text-xs text-white font-mono">GV</div>
-                    )}
-                    <div className="text-xs min-w-0 flex-1">
-                      <p className="font-bold text-slate-200 truncate">{displayName}</p>
-                      <p className="text-xs text-sky-200/70 truncate">Giảng viên Khoa</p>
-                    </div>
-                  </>
-                );
-              }
+              const mt = teachers.find(t => t.id === currentUser?.teacherId);
+              const dn = mt?.name || currentUser?.displayName || (currentUser?.role === 'admin' ? 'Admin' : 'GV');
+              return currentUser?.role === 'admin' ? (<><div className="w-7 h-7 rounded-lg bg-blue-600 flex items-center justify-center font-extrabold text-xs text-white font-mono">AD</div><div className="text-xs min-w-0 flex-1"><p className="font-bold text-slate-200 truncate">{dn}</p><p className="text-xs text-sky-200/70">Admin</p></div></>) : (<><div className="w-7 h-7 rounded-lg bg-emerald-600 flex items-center justify-center font-extrabold text-xs text-white font-mono">GV</div><div className="text-xs min-w-0 flex-1"><p className="font-bold text-slate-200 truncate">{dn}</p><p className="text-xs text-sky-200/70 truncate">Giảng viên</p></div></>);
             })()}
           </div>
-          <button
-            onClick={handleLogout}
-            className="w-full flex items-center justify-center gap-2 bg-[#094870]/40 hover:bg-rose-950/40 hover:text-rose-300 text-blue-200 hover:border-rose-500/30 font-bold text-xs py-1.5 px-3 rounded-lg border border-white/10 cursor-pointer transition-colors"
-          >
-            <LogOut className="w-3.5 h-3.5" />
-            Đăng xuất
+          <button onClick={handleLogout} className="w-full flex items-center justify-center gap-2 bg-[#094870]/40 hover:bg-rose-950/40 hover:text-rose-300 text-blue-200 font-bold text-xs py-1.5 px-3 rounded-lg border border-white/10 cursor-pointer transition-colors">
+            <LogOut className="w-3.5 h-3.5" />Đăng xuất
           </button>
         </div>
       </aside>
-
-      {/* Main Content Pane */}
       <div className="flex-1 flex flex-col min-h-screen overflow-x-hidden">
-        {/* Header */}
         <header className="h-16 bg-white border-b border-slate-200 px-4 sm:px-8 flex items-center justify-between sticky top-0 z-40 shadow-xs">
           <div className="flex items-center gap-3">
-            <img 
-              src="https://i.ibb.co/TBgCM3fw/logo-vhp-2.png" 
-              alt="Logo" 
-              className="w-8 h-8 object-contain select-none md:hidden" 
-              referrerPolicy="no-referrer"
-            />
-            <div>
-              <h2 className="text-sm sm:text-lg font-bold text-slate-800 flex items-center gap-2">
-                Hệ thống Quản lý Đào tạo & NCKH
-              </h2>
-            </div>
+            <img src="https://i.ibb.co/TBgCM3fw/logo-vhp-2.png" alt="Logo" className="w-8 h-8 object-contain select-none md:hidden" referrerPolicy="no-referrer" />
+            <div><h2 className="text-sm sm:text-lg font-bold text-slate-800">Hệ thống Quản lý Đào tạo & NCKH</h2></div>
           </div>
-
           <div className="flex items-center gap-3">
             <div className="flex items-center gap-1.5 text-xs text-slate-500 font-semibold bg-slate-50 border border-slate-200 rounded-lg py-1 px-2.5 shadow-2xs">
               <Calendar className="w-3.5 h-3.5 text-blue-500 shrink-0" />
-              <span className="hidden xs:inline shrink-0">Năm học: </span>
-              <select
-                value={selectedYear}
-                onChange={(e) => {
-                  setSelectedYear(e.target.value);
-                  localStorage.setItem('faculty_selected_year', e.target.value);
-                }}
-                className="font-bold text-slate-800 font-mono bg-transparent border-none focus:outline-hidden pr-1 cursor-pointer"
-              >
-                {!academicYears.some((item) => item.year === selectedYear) && (
-                  <option value={selectedYear}>{selectedYear}</option>
-                )}
-                {[...academicYears]
-                  .sort((a, b) => b.year.localeCompare(a.year))
-                  .map((item) => (
-                    <option key={item.id || item.year} value={item.year}>
-                      {item.year}
-                    </option>
-                  ))}
+              <select value={selectedYear} onChange={(e) => { setSelectedYear(e.target.value); localStorage.setItem('faculty_selected_year', e.target.value); }} className="font-bold text-slate-800 font-mono bg-transparent border-none focus:outline-hidden pr-1 cursor-pointer">
+                {!academicYears.some(y => y.year === selectedYear) && <option value={selectedYear}>{selectedYear}</option>}
+                {[...academicYears].sort((a, b) => b.year.localeCompare(a.year)).map(y => <option key={y.id || y.year} value={y.year}>{y.year}</option>)}
               </select>
             </div>
           </div>
         </header>
-
-        {/* Mobile Navigation Bar */}
         <nav className="md:hidden bg-[#062f4a] border-b border-white/10 py-1.5 sticky top-16 z-30 shadow-xs">
           <div className="px-4 overflow-x-auto no-scrollbar py-0.5">
             <div className="flex gap-1.5">
-              <button
-                onClick={() => setActiveTab('stats')}
-                className={`text-xs font-bold px-3 py-1.5 rounded-lg transition-all shrink-0 cursor-pointer ${
-                  activeTab === 'stats' 
-                    ? 'bg-[#094870] text-white font-extrabold shadow-sm border border-white/10' 
-                    : 'text-blue-200/80 hover:text-white'
-                }`}
-              >
-                Tổng quan
-              </button>
-              <button
-                onClick={() => setActiveTab('teachers')}
-                className={`text-xs font-bold px-3 py-1.5 rounded-lg transition-all shrink-0 cursor-pointer ${
-                  activeTab === 'teachers' 
-                    ? 'bg-[#094870] text-white font-extrabold shadow-sm border border-white/10' 
-                    : 'text-blue-200/80 hover:text-white'
-                }`}
-              >
-                Giảng viên
-              </button>
-              <button
-                onClick={() => setActiveTab('teachersByYear')}
-                className={`text-xs font-bold px-3 py-1.5 rounded-lg transition-all shrink-0 cursor-pointer ${
-                  activeTab === 'teachersByYear' 
-                    ? 'bg-[#094870] text-white font-extrabold shadow-sm border border-white/10' 
-                    : 'text-blue-200/80 hover:text-white'
-                }`}
-              >
-                GV năm học
-              </button>
-              <button
-                onClick={() => setActiveTab('teaching')}
-                className={`text-xs font-bold px-3 py-1.5 rounded-lg transition-all shrink-0 cursor-pointer ${
-                  activeTab === 'teaching' 
-                    ? 'bg-[#094870] text-white font-extrabold shadow-sm border border-white/10' 
-                    : 'text-blue-200/80 hover:text-white'
-                }`}
-              >
-                Giờ giảng
-              </button>
-              <button
-                onClick={() => setActiveTab('research')}
-                className={`text-xs font-bold px-3 py-1.5 rounded-lg transition-all shrink-0 cursor-pointer ${
-                  activeTab === 'research' 
-                    ? 'bg-[#094870] text-white font-extrabold shadow-sm border border-white/10' 
-                    : 'text-blue-200/80 hover:text-white'
-                }`}
-              >
-                NCKH
-              </button>
-              <button
-                onClick={() => setActiveTab('standards')}
-                className={`text-xs font-bold px-3 py-1.5 rounded-lg transition-all shrink-0 cursor-pointer ${
-                  activeTab === 'standards' 
-                    ? 'bg-[#094870] text-white font-extrabold shadow-sm border border-white/10' 
-                    : 'text-blue-200/80 hover:text-white'
-                }`}
-              >
-                Chức danh
-              </button>
-              <button
-                onClick={() => setActiveTab('account')}
-                className={`text-xs font-bold px-3 py-1.5 rounded-lg transition-all shrink-0 cursor-pointer ${
-                  activeTab === 'account' 
-                    ? 'bg-[#094870] text-white font-extrabold shadow-sm border border-white/10' 
-                    : 'text-blue-200/80 hover:text-white'
-                }`}
-              >
-                Tài khoản
-              </button>
-              {currentUser?.role === 'admin' && (
-                <button
-                  onClick={() => setActiveTab('settings')}
-                  className={`text-xs font-bold px-3 py-1.5 rounded-lg transition-all shrink-0 cursor-pointer ${
-                    activeTab === 'settings' 
-                      ? 'bg-[#094870] text-white font-extrabold shadow-sm border border-white/10' 
-                      : 'text-blue-200/80 hover:text-white'
-                  }`}
-                >
-                  Cài đặt
-                </button>
-              )}
+              {[{tab:'stats',l:'Tổng quan'},{tab:'teachers',l:'Giảng viên'},{tab:'teachersByYear',l:'GV năm học'},{tab:'teaching',l:'Giờ giảng'},{tab:'research',l:'NCKH'},{tab:'standards',l:'Chức danh'},{tab:'account',l:'Tài khoản'},{tab:'settings',l:'Cài đặt'}].map(i=>(
+                <button key={i.tab} onClick={()=>setActiveTab(i.tab as any)} className={`text-xs font-bold px-3 py-1.5 rounded-lg transition-all shrink-0 cursor-pointer ${activeTab===i.tab?'bg-[#094870] text-white font-extrabold shadow-sm border border-white/10':'text-blue-200/80 hover:text-white'}`}>{i.l}</button>
+              ))}
             </div>
           </div>
         </nav>
-
-        {/* Dynamic content view */}
         <main className="flex-grow p-4 sm:p-8 space-y-6">
           <LayoutGroup>
-            <motion.div
-              key={activeTab}
-              initial={{ opacity: 0, y: 5 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.15 }}
-            >
-              {activeTab === 'stats' && (
-                <StatsDashboard 
-                  teachers={teachers}
-                  teachingLogs={teachingLogs}
-                  researchLogs={researchLogs}
-                  rankNorms={rankNorms}
-                  academicYear={selectedYear}
-                  workHistories={workHistories}
-                />
-              )}
-
-              {activeTab === 'teachers' && (
-                <TeacherList 
-                  teachers={teachers}
-                  departments={DEPARTMENTS}
-                  onAddTeacher={handleAddTeacher}
-                  onEditTeacher={handleEditTeacher}
-                  onDeleteTeacher={handleDeleteTeacher}
-                  userRole={currentUser?.role}
-                  currentTeacherId={currentUser?.teacherId}
-                  workHistories={workHistories}
-                  academicYears={academicYears}
-                  onAddWorkHistory={handleAddWorkHistory}
-                  onEditWorkHistory={handleEditWorkHistory}
-                  onDeleteWorkHistory={handleDeleteWorkHistory}
-                />
-              )}
-
-              {activeTab === 'teachersByYear' && (
-                <TeachersByYearTab 
-                  teachers={teachers}
-                  workHistories={workHistories}
-                  rankNorms={rankNorms}
-                  selectedYear={selectedYear}
-                />
-              )}
-
-              {activeTab === 'teaching' && (
-                <TeachingHoursTab 
-                  teachers={teachers}
-                  teachingLogs={teachingLogs}
-                  academicYears={academicYears}
-                  selectedYear={selectedYear}
-                  onAddTeachingLog={handleAddTeachingLog}
-                  onEditTeachingLog={handleEditTeachingLog}
-                  onDeleteTeachingLog={handleDeleteTeachingLog}
-                  userRole={currentUser?.role}
-                  currentTeacherId={currentUser?.teacherId}
-                />
-              )}
-
-              {activeTab === 'research' && (
-                <ResearchTab 
-                  teachers={teachers}
-                  researchLogs={researchLogs}
-                  selectedYear={selectedYear}
-                  academicYears={academicYears}
-                  onAddResearchLog={handleAddResearchLog}
-                  onEditResearchLog={handleEditResearchLog}
-                  onDeleteResearchLog={handleDeleteResearchLog}
-                  onApproveLog={handleApproveResearchLog}
-                  userRole={currentUser?.role}
-                  currentTeacherId={currentUser?.teacherId}
-                />
-              )}
-
-              {activeTab === 'standards' && (
-                <StandardsTab 
-                  teachers={teachers}
-                  researchLogs={researchLogs}
-                />
-              )}
-
-              {activeTab === 'settings' && (
-                <DataManagement 
-                  rankNorms={rankNorms}
-                  academicYears={academicYears}
-                  selectedYear={selectedYear}
-                  onUpdateNorms={handleUpdateNorms}
-                  onSetAcademicYear={handleSetAcademicYear}
-                  onAddAcademicYear={handleAddAcademicYear}
-                  onResetToDefault={handleResetToDefault}
-                  onImportData={handleImportData}
-                  onExportData={handleExportData}
-                />
-              )}
-
-              {activeTab === 'account' && (
-                <AccountSecurityTab 
-                  teachers={teachers}
-                  currentUser={currentUser}
-                />
-              )}
+            <motion.div key={activeTab} initial={{opacity:0,y:5}} animate={{opacity:1,y:0}} transition={{duration:0.15}}>
+              {activeTab === 'stats' && <StatsDashboard teachers={teachers} teachingLogs={teachingLogs} researchLogs={researchLogs} rankNorms={rankNorms} academicYear={selectedYear} workHistories={workHistories} />}
+              {activeTab === 'teachers' && <TeacherList teachers={teachers} departments={DEPARTMENTS} onAddTeacher={handleAddTeacher} onEditTeacher={handleEditTeacher} onDeleteTeacher={handleDeleteTeacher} userRole={currentUser?.role} currentTeacherId={currentUser?.teacherId} workHistories={workHistories} academicYears={academicYears} onAddWorkHistory={handleAddWorkHistory} onEditWorkHistory={handleEditWorkHistory} onDeleteWorkHistory={handleDeleteWorkHistory} />}
+              {activeTab === 'teachersByYear' && <TeachersByYearTab teachers={teachers} workHistories={workHistories} rankNorms={rankNorms} teachingLogs={teachingLogs} researchLogs={researchLogs} selectedYear={selectedYear} />}
+              {activeTab === 'teaching' && <TeachingHoursTab teachers={teachers} teachingLogs={teachingLogs} academicYears={academicYears} selectedYear={selectedYear} onAddTeachingLog={handleAddTeachingLog} onEditTeachingLog={handleEditTeachingLog} onDeleteTeachingLog={handleDeleteTeachingLog} userRole={currentUser?.role} currentTeacherId={currentUser?.teacherId} />}
+              {activeTab === 'research' && <ResearchTab teachers={teachers} researchLogs={researchLogs} selectedYear={selectedYear} academicYears={academicYears} onAddResearchLog={handleAddResearchLog} onEditResearchLog={handleEditResearchLog} onDeleteResearchLog={handleDeleteResearchLog} onApproveLog={handleApproveResearchLog} userRole={currentUser?.role} currentTeacherId={currentUser?.teacherId} />}
+              {activeTab === 'standards' && <StandardsTab teachers={teachers} researchLogs={researchLogs} />}
+              {activeTab === 'settings' && <DataManagement rankNorms={rankNorms} academicYears={academicYears} selectedYear={selectedYear} onUpdateNorms={handleUpdateNorms} onSetAcademicYear={handleSetAcademicYear} onAddAcademicYear={handleAddAcademicYear} onResetToDefault={handleResetToDefault} onImportData={handleImportData} onExportData={handleExportData} />}
+              {activeTab === 'roles' && <RoleManagementTab teachers={teachers} userRoles={userRoles} onSaveUserRole={handleSaveUserRole} onDeleteUserRole={handleDeleteUserRole} />}
+              {activeTab === 'audit' && <AuditLogTab auditLogs={auditLogs} />}
+              {activeTab === 'account' && <AccountSecurityTab teachers={teachers} currentUser={currentUser} />}
             </motion.div>
           </LayoutGroup>
         </main>
-
-        {/* Humble, clean professional footer */}
-        <footer className="bg-white border-t border-slate-200 py-5 px-4 sm:px-8">
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-400">
-            <div className="flex items-center gap-1">
-              <span>© {new Date().getFullYear()} FEMS-Portal. Hệ thống thông tin phân bộ giảng dạy chuẩn khoa.</span>
-            </div>
-
-          </div>
-        </footer>
+        <footer className="bg-white border-t border-slate-200 py-5 px-4 sm:px-8"><div className="flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-400"><span>© {new Date().getFullYear()} FEMS-Portal</span></div></footer>
       </div>
     </div>
   );

@@ -33,8 +33,28 @@ export default function ResearchTab({
   currentTeacherId
 }: ResearchTabProps) {
   const isAdmin = userRole === 'admin';
-  
+  const currentTeacher = teachers.find(t => t.id === currentTeacherId);
+  const isDepartmentHead = !isAdmin && !!currentTeacher?.position?.toLowerCase().includes('trưởng bộ môn');
+  const managedDepartment = currentTeacher?.department || '';
+  const canManageAll = isAdmin;
+
+  const manageableTeachers = useMemo(() => {
+    if (canManageAll) return teachers;
+    if (isDepartmentHead) return teachers.filter(t => t.department === managedDepartment);
+    return teachers.filter(t => t.id === currentTeacherId);
+  }, [teachers, canManageAll, isDepartmentHead, managedDepartment, currentTeacherId]);
+
+  const canManageLog = (log: ResearchLog) => {
+    if (canManageAll) return true;
+    if (isDepartmentHead) {
+      const teacher = teachers.find(t => t.id === log.teacherId);
+      return teacher?.department === managedDepartment;
+    }
+    return log.teacherId === currentTeacherId;
+  };
+
   const [searchQuery, setSearchQuery] = useState('');
+  const [selectedDepartment, setSelectedDepartment] = useState<string>('all');
   const [selectedType, setSelectedType] = useState<string>('all');
   const [selectedStatus, setSelectedStatus] = useState<string>('all');
   const [selectedTeacherId, setSelectedTeacherId] = useState<string>(() => {
@@ -52,7 +72,7 @@ export default function ResearchTab({
   const [formTeacherId, setFormTeacherId] = useState('');
   const [formTitle, setFormTitle] = useState('');
   const [formType, setFormType] = useState<ResearchType>('dt_cs_truong');
-  const [formRole, setFormRole] = useState<'main' | 'co_author' | 'leader' | 'member'>('main');
+  const [formRole, setFormRole] = useState<'main' | 'leader' | 'member'>('main');
   const [formPoints, setFormPoints] = useState(12);
   const [formConvertedHours, setFormConvertedHours] = useState(1200);
   const [formYears, setFormYears] = useState<number>(1);
@@ -126,7 +146,7 @@ export default function ResearchTab({
       }
     }
 
-    const calcRole = (formRole === 'main' || formRole === 'leader') ? 'main' : 'co_author';
+    const calcRole = (formRole === 'main' || formRole === 'leader') ? 'main' : 'member';
     const computedHours = calculateNCKHPersonal(basePoints, formQuantity, formYears, formMembers, calcRole);
     
     setFormConvertedHours(computedHours);
@@ -145,23 +165,24 @@ export default function ResearchTab({
     }
     return [
       { value: 'main', label: 'Tác giả chính / liên hệ' },
-      { value: 'co_author', label: 'Đồng tác giả' }
+      { value: 'member', label: 'Tham gia' }
     ];
   }, [formType]);
 
   // Force role reset to matching values of selection
   useEffect(() => {
     const isLeaderMemberType = formType.startsWith('dt_') || formType.startsWith('sk_') || formType === 'gt_tl' || formType.startsWith('project') || formType === 'book_compilation';
-    if (isLeaderMemberType && (formRole === 'main' || formRole === 'co_author')) {
+    // member hợp lệ với cả 2 loại → chỉ reset khi role không thuộc nhóm cho phép
+    if (isLeaderMemberType && formRole === 'main') {
       setFormRole('leader');
-    } else if (!isLeaderMemberType && (formRole === 'leader' || formRole === 'member')) {
+    } else if (!isLeaderMemberType && formRole === 'leader') {
       setFormRole('main');
     }
   }, [formType, formRole]);
 
   const openAddModal = () => {
     setEditingLog(null);
-    setFormTeacherId(userRole === 'teacher' && currentTeacherId ? currentTeacherId : (teachers[0]?.id || ''));
+    setFormTeacherId(!canManageAll && !isDepartmentHead && currentTeacherId ? currentTeacherId : (manageableTeachers[0]?.id || ''));
     setFormTitle('');
     setFormType('dt_cs_truong');
     setFormRole('leader');
@@ -183,7 +204,8 @@ export default function ResearchTab({
     setFormTeacherId(log.teacherId);
     setFormTitle(log.title);
     setFormType(log.type);
-    setFormRole(log.role);
+    // Defensive: dữ liệu cũ có thể còn role 'co_author' trước khi migrate
+    setFormRole((log.role as string) === 'co_author' ? 'member' : log.role);
     setFormYears(log.years || 1);
     setFormMembers(log.members || 1);
     setFormQuantity(log.quantity || 1);
@@ -232,24 +254,21 @@ export default function ResearchTab({
     } else {
       onAddResearchLog(logData);
       
-      // Tự động tạo bản ghi cho các đồng tác giả được chọn
+      // Tự động tạo bản ghi cho các tham gia được chọn
       if (formCoAuthorIds.length > 0) {
-        const coAuthorRole: 'main' | 'co_author' | 'leader' | 'member' = 
-          (formType.startsWith('dt_') || formType.startsWith('sk_') || formType === 'gt_tl' || formType.startsWith('project') || formType.startsWith('book_compilation'))
-            ? 'member' 
-            : 'co_author';
+        const coAuthorRole: 'main' | 'leader' | 'member' = 'member';
         
-        // Tổng số thành viên = 1 (chủ trì) + số đồng tác giả được chọn
+        // Tổng số thành viên = 1 (chủ trì) + số tham gia được chọn
         const totalMembers = 1 + formCoAuthorIds.length;
         
         formCoAuthorIds.forEach((coAuthorId) => {
-          // Tính giờ cho đồng tác giả (role: member/co_author)
+          // Tính giờ cho tham gia (role: member)
           const coAuthorHours = calculateNCKHPersonal(
             Number(formPoints) * 100, // Convert back to base points
             Number(formQuantity),
             Number(formYears),
             totalMembers,
-            'co_author'
+            'member'
           );
           
           const coAuthorLog: ResearchLog = {
@@ -264,7 +283,7 @@ export default function ResearchTab({
             period: formPeriod,
             journalOrOrganization: formJournal.trim(),
             status: formStatus,
-            notes: `[Đồng tác giả] ${formNotes.trim() || ''}`.trim() || undefined,
+            notes: `[Tham gia] ${formNotes.trim() || ''}`.trim() || undefined,
             years: Number(formYears),
             members: totalMembers,
             quantity: Number(formQuantity)
@@ -308,10 +327,12 @@ export default function ResearchTab({
       const matchType = selectedType === 'all' || log.type === selectedType;
       const matchStatus = selectedStatus === 'all' || log.status === selectedStatus;
       const matchTeacher = selectedTeacherId === 'all' || log.teacherId === selectedTeacherId;
+      const matchDepartment = selectedDepartment === 'all' || teacher?.department === selectedDepartment;
+      const matchScope = canManageAll || (isDepartmentHead ? teacher?.department === managedDepartment : log.teacherId === currentTeacherId);
 
-      return matchSearch && matchType && matchStatus && matchTeacher;
+      return matchSearch && matchType && matchStatus && matchTeacher && matchDepartment && matchScope;
     });
-  }, [researchLogs, selectedYear, searchQuery, selectedType, selectedStatus, selectedTeacherId, teachers]);
+  }, [researchLogs, selectedYear, searchQuery, selectedType, selectedStatus, selectedTeacherId, selectedDepartment, teachers, canManageAll, isDepartmentHead, managedDepartment, currentTeacherId]);
 
   const stats = useMemo(() => {
     const totalHours = filteredResearchLogs.reduce((acc, log) => acc + log.convertedHours, 0);
@@ -328,7 +349,7 @@ export default function ResearchTab({
     <div className="space-y-6">
       {/* Filters heading control */}
       <div className="bg-white p-4 rounded-xl border border-slate-100 shadow-xs flex flex-col xl:flex-row xl:items-center justify-between gap-4">
-        <div className="flex-1 grid grid-cols-1 sm:grid-cols-4 gap-3">
+        <div className="flex-1 grid grid-cols-1 sm:grid-cols-5 gap-3">
           {/* Search */}
           <div className="relative sm:col-span-2">
             <Search className="absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
@@ -341,15 +362,28 @@ export default function ResearchTab({
             />
           </div>
 
+          {/* Department filter */}
+          <select
+            value={isDepartmentHead ? managedDepartment : selectedDepartment}
+            disabled={isDepartmentHead || (!canManageAll && !isDepartmentHead)}
+            onChange={(e) => setSelectedDepartment(e.target.value)}
+            className={`text-xs border border-slate-200 rounded-lg px-3 py-2 bg-slate-50 focus:outline-hidden focus:ring-2 focus:ring-blue-500 font-medium ${isDepartmentHead || (!canManageAll && !isDepartmentHead) ? 'opacity-70 cursor-not-allowed' : ''}`}
+          >
+            {canManageAll && <option value="all">Tất cả đơn vị</option>}
+            {[...new Set(teachers.map(t => t.department).filter(Boolean))].sort().map(dep => (
+              <option key={dep} value={dep}>{dep}</option>
+            ))}
+          </select>
+
           {/* Teacher select filter */}
           <select
             value={selectedTeacherId}
-            disabled={!isAdmin}
+            disabled={!canManageAll && !isDepartmentHead}
             onChange={(e) => setSelectedTeacherId(e.target.value)}
-            className={`text-xs border border-slate-200 rounded-lg px-3 py-2 bg-slate-50 focus:outline-hidden focus:ring-2 focus:ring-blue-500 font-medium ${!isAdmin ? 'opacity-70 cursor-not-allowed' : ''}`}
+            className={`text-xs border border-slate-200 rounded-lg px-3 py-2 bg-slate-50 focus:outline-hidden focus:ring-2 focus:ring-blue-500 font-medium ${!canManageAll && !isDepartmentHead ? 'opacity-70 cursor-not-allowed' : ''}`}
           >
-            {isAdmin && <option value="all">Mọi tác giả</option>}
-            {teachers.map(t => (
+            {(canManageAll || isDepartmentHead) && <option value="all">Mọi tác giả</option>}
+            {manageableTeachers.map(t => (
               <option key={t.id} value={t.id}>{t.name}</option>
             ))}
           </select>
@@ -388,7 +422,7 @@ export default function ResearchTab({
         </div>
         <div className="bg-white p-4 rounded-xl border border-blue-100 bg-blue-50/10 shadow-xs">
           <span className="text-blue-600 font-bold text-[10px] block uppercase">Tổng số giờ quy đổi</span>
-          <span className="text-lg font-extrabold text-blue-700 font-mono mt-0.5 block">{stats.hours} giờ chuẩn</span>
+          <span className="text-lg font-extrabold text-blue-700 font-mono mt-0.5 block">{stats.hours} giờ hành chính</span>
         </div>
       </div>
 
@@ -464,7 +498,7 @@ export default function ResearchTab({
                         </td>
                         <td className="px-1 py-3.5 text-right whitespace-nowrap" onClick={(e) => e.stopPropagation()}>
                           <div className="flex items-center justify-end gap-1.5">
-                            {isAdmin && onApproveLog && (
+                            {canManageLog(log) && onApproveLog && (
                               <button 
                                 onClick={() => toggleApproval(log.id, log.status)}
                                 className={`inline-flex items-center gap-0.5 px-2 py-0.5 rounded-sm border font-extrabold text-[10px] cursor-pointer transition-colors ${
@@ -479,7 +513,7 @@ export default function ResearchTab({
                               </button>
                             )}
                             
-                            {(isAdmin || log.teacherId === currentTeacherId) ? (
+                            {canManageLog(log) ? (
                               <>
                                 <button
                                   onClick={(e) => {
@@ -568,7 +602,7 @@ export default function ResearchTab({
                       </div>
 
                       <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
-                        {isAdmin && onApproveLog && (
+                        {canManageLog(log) && onApproveLog && (
                           <button 
                             onClick={() => toggleApproval(log.id, log.status)}
                             className={`inline-flex items-center gap-0.5 px-2 py-0.5 rounded-sm border font-extrabold text-xs cursor-pointer transition-colors ${
@@ -582,7 +616,7 @@ export default function ResearchTab({
                           </button>
                         )}
                         
-                        {(isAdmin || log.teacherId === currentTeacherId) ? (
+                        {canManageLog(log) ? (
                           <>
                             <button
                               onClick={(e) => {
@@ -813,12 +847,12 @@ export default function ResearchTab({
                     </select>
                   </div>
 
-                  {/* Đồng tác giả selection - chỉ hiện khi khai báo mới */}
+                  {/* tham gia selection - chỉ hiện khi khai báo mới */}
                   {!editingLog && (
                     <div className="col-span-2 lg:col-span-4">
                       <div className="flex justify-between items-center mb-1">
                         <label className="text-xs font-bold text-slate-500 block">
-                          Đồng tác giả (tự động tính giờ cho từng người)
+                          tham gia (tự động tính giờ cho từng người)
                         </label>
                         <button
                           type="button"
@@ -827,14 +861,14 @@ export default function ResearchTab({
                         >
                           <Users className="w-2.5 h-2.5" />
                           {formCoAuthorIds.length > 0 
-                            ? `Đã chọn ${formCoAuthorIds.length} đồng tác giả` 
-                            : 'Chọn đồng tác giả'}
+                            ? `Đã chọn ${formCoAuthorIds.length} tham gia` 
+                            : 'Chọn tham gia'}
                         </button>
                       </div>
                       {showCoAuthorPanel && (
                         <div className="border border-slate-200 rounded-lg bg-white max-h-48 overflow-y-auto">
                           <div className="p-2 border-b border-slate-100 bg-slate-50 text-xs font-semibold text-slate-400 sticky top-0">
-                            Chọn giảng viên đồng tác giả trong khoa
+                            Chọn giảng viên tham gia trong khoa
                           </div>
                           {teachers
                             .filter(t => t.id !== formTeacherId)

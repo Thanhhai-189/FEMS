@@ -506,11 +506,9 @@ export default function StatsDashboard({ teachers, teachingLogs, researchLogs, r
           <div>
             <span className="text-xs text-slate-500 block font-medium">Quân số</span>
             <span className="text-2xl font-bold text-slate-800">
-              {aggregateMetrics.teachersCount}
+              {aggregateMetrics.teachersCount + 1}
             </span>
-            <span className="text-xs text-slate-500 block mt-0.5">
-              {aggregateMetrics.activeCount} Làm việc
-            </span>
+            
           </div>
         </motion.div>
 
@@ -567,7 +565,7 @@ export default function StatsDashboard({ teachers, teachingLogs, researchLogs, r
             <Award className="w-6 h-6" />
           </div>
           <div>
-            <span className="text-xs text-slate-500 block font-medium">Đạt kép giảng & NCKH</span>
+            <span className="text-xs text-slate-500 block font-medium">Đạt định mức GD & NCKH</span>
             <span className="text-2xl font-bold text-slate-800">
               {aggregateMetrics.metBothRate}%
             </span>
@@ -755,7 +753,7 @@ export default function StatsDashboard({ teachers, teachingLogs, researchLogs, r
                         )}
                         {stat.teacher.status === 'I' && stat.teacher.reductionRate === 0 && (
                           <span className="text-xs text-amber-600 font-bold bg-amber-50 px-1 py-0.2 rounded w-fit">
-                            Tạm dừng hoạt động
+                            Tạm dừng giảng dạy
                           </span>
                         )}
                       </div>
@@ -809,12 +807,12 @@ export default function StatsDashboard({ teachers, teachingLogs, researchLogs, r
                         {stat.metBoth ? (
                           <span className="inline-flex items-center gap-1 text-xs font-bold text-emerald-700 bg-emerald-50 px-2 py-1 rounded-full border border-emerald-100 shadow-3xs">
                             <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
-                            ĐẠT CHUẨN
+                            ĐỦ ĐỊNH MỨC GD & NCKH
                           </span>
                         ) : (
                           <span className="inline-flex items-center gap-1 text-xs font-bold text-amber-700 bg-amber-50 px-2 py-1 rounded-full border border-amber-100">
                             <AlertTriangle className="w-3.5 h-3.5 text-amber-500" />
-                            CHƯA ĐỦ
+                            CHƯA ĐỦ ĐỊNH MỨC
                           </span>
                         )}
                       </div>

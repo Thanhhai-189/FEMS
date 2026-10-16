@@ -86,7 +86,9 @@ service cloud.firestore {
           && data.actualHours is number
           && data.convertedHours is number
           && data.semester is string && data.semester.size() <= 10
-          && data.academicYear is string && data.academicYear.size() <= 20;
+          && data.academicYear is string && data.academicYear.size() <= 20
+          // tkbSheets (Số tờ TKB/KH) là field tùy chọn, nếu có phải là number
+          && (!('tkbSheets' in data) || data.tkbSheets is number);
     }
 
     function isValidWorkHistory(data) {
@@ -158,7 +160,22 @@ service cloud.firestore {
       allow write: if isAdmin() && isValidId(yearId);
     }
 
-    // 7. Work History Collection
+    // 7. Audit Logs Collection
+    match /audit_logs/{logId} {
+      allow read, list: if isAdmin();
+      allow create: if isAdmin();
+      allow write: if isAdmin();
+    }
+
+    // 8. User Roles Collection
+    match /user_roles/{userId} {
+      allow read, list: if isAdmin();
+      allow create: if isAdmin();
+      allow update: if isAdmin();
+      allow delete: if isAdmin();
+    }
+
+    // 8. Work History Collection
     match /work_histories/{whId} {
       allow read, list: if isSignedIn();
       // Giảng viên có thể tạo/sửa work_history của chính họ (dựa trên email)

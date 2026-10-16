@@ -76,14 +76,6 @@ export default function TeacherList({
   // Sate for custom delete confirmation modal
   const [teacherToDelete, setTeacherToDelete] = useState<{ id: string; name: string } | null>(null);
 
-  // Profile View
-  const [selectedTeacherProfile, setSelectedTeacherProfile] = useState<Teacher | null>(() => {
-    if (userRole === 'teacher' && currentTeacherId) {
-      return teachers.find(t => t.id === currentTeacherId) || null;
-    }
-    return null;
-  });
-
   const openAddModal = () => {
     setEditingTeacher(null);
     setFormName('');
@@ -173,9 +165,6 @@ export default function TeacherList({
     } else {
       onAddTeacher(teacherData);
     }
-    if (selectedTeacherProfile && selectedTeacherProfile.id === teacherData.id) {
-      setSelectedTeacherProfile(teacherData);
-    }
     setIsModalOpen(false);
   };
 
@@ -186,9 +175,6 @@ export default function TeacherList({
   const executeDelete = () => {
     if (teacherToDelete) {
       onDeleteTeacher(teacherToDelete.id);
-      if (selectedTeacherProfile?.id === teacherToDelete.id) {
-        setSelectedTeacherProfile(null);
-      }
       setTeacherToDelete(null);
     }
   };
@@ -275,7 +261,7 @@ export default function TeacherList({
               >
                 <div 
                   className="flex-1 min-w-0 cursor-pointer"
-                  onClick={() => setSelectedTeacherProfile(teacher)}
+                  onClick={() => openEditModal(teacher)}
                 >
                   <div className="flex flex-wrap items-center gap-2">
                     <span className="text-sm font-extrabold text-slate-800 hover:text-blue-600 flex items-center gap-1">
@@ -342,12 +328,12 @@ export default function TeacherList({
 
                 <div className="flex items-center gap-1.5 w-full sm:w-auto justify-end border-t border-slate-50 pt-3 sm:border-0 sm:pt-0">
                   <button
-                    onClick={() => setSelectedTeacherProfile(teacher)}
+                    onClick={() => openEditModal(teacher)}
                     className="p-1.5 hover:bg-slate-100 rounded-md text-slate-500 hover:text-slate-800 cursor-pointer tooltip flex items-center gap-1 text-xs font-semibold"
-                    title="Xem chi tiết"
+                    title="Chỉnh sửa thông tin"
                   >
                     <Eye className="w-3.5 h-3.5" />
-                    <span className="sm:hidden">Xem hồ sơ</span>
+                    <span className="sm:hidden">Chỉnh sửa</span>
                   </button>
                   {(isAdmin || teacher.id === currentTeacherId) && (
                     <button
@@ -375,217 +361,6 @@ export default function TeacherList({
           )}
         </div>
       </div>
-
-      {/* Profile Detail Modal */}
-      <AnimatePresence>
-        {selectedTeacherProfile && (
-          <div className="fixed inset-0 z-50 overflow-y-auto bg-slate-900/40 backdrop-blur-xs p-4 flex items-center justify-center">
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.95 }}
-              className="bg-white rounded-2xl shadow-xl border border-slate-200 max-w-md w-full overflow-hidden flex flex-col max-h-[90vh]"
-            >
-              <div className="px-5 py-3.5 border-b border-slate-100 flex justify-between items-center bg-slate-50/55">
-                <h4 className="text-xs font-extrabold text-slate-400 uppercase tracking-widest">
-                  Chi tiết hồ sơ giảng viên
-                </h4>
-                <button
-                  type="button"
-                  onClick={() => setSelectedTeacherProfile(null)}
-                  className="text-slate-400 hover:text-slate-600 p-1.5 hover:bg-slate-100 rounded-lg transition-colors cursor-pointer"
-                >
-                  <X className="w-4.5 h-4.5" />
-                </button>
-              </div>
-
-              <div className="px-5 py-4 overflow-y-auto space-y-4 text-slate-700">
-                <div className="pb-3 border-b border-slate-100 flex flex-col gap-0.5">
-                  <span className="text-base font-extrabold text-slate-900 tracking-tight block">{selectedTeacherProfile.name}</span>
-                  <span className="text-xs text-slate-500 font-bold block">{selectedTeacherProfile.department}</span>
-                </div>
-
-                <div className="space-y-3.5">
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-                    <div>
-                      <span className="text-slate-440 block mb-0.5 text-xs uppercase font-bold tracking-wider">Học vị:</span>
-                      <div className="text-sm font-bold text-slate-800">
-                        {getRankString(selectedTeacherProfile.rank)} ({selectedTeacherProfile.rank})
-                      </div>
-                    </div>
-                    <div>
-                      <span className="text-slate-440 block mb-0.5 text-xs uppercase font-bold tracking-wider">Chức vụ:</span>
-                      <div className="text-sm font-bold text-slate-800">
-                        {selectedTeacherProfile.position}
-                        {selectedTeacherProfile.party && selectedTeacherProfile.party !== 'Không kiêm nhiệm' && (
-                          <span className="text-blue-600 font-bold"> • {selectedTeacherProfile.party}</span>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 border-t border-slate-100/60 pt-3">
-                    <div>
-                      <span className="text-slate-440 block mb-0.5 text-xs uppercase font-bold tracking-wider">Liên hệ Email:</span>
-                      <div className="font-mono text-slate-600 font-bold text-xs truncate" title={selectedTeacherProfile.email}>
-                        {selectedTeacherProfile.email}
-                      </div>
-                    </div>
-                    <div>
-                      <span className="text-slate-440 block mb-0.5 text-xs uppercase font-bold tracking-wider">Số điện thoại:</span>
-                      <div className="font-mono text-slate-700 font-bold text-xs truncate" title={selectedTeacherProfile.phone}>
-                        {selectedTeacherProfile.phone || 'Chưa cập nhật'}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="pt-3 border-t border-slate-100 space-y-2">
-                  <span className="text-slate-440 block mb-1 text-xs uppercase font-bold tracking-wider">Hồ sơ chuyên môn & Chứng chỉ:</span>
-                  <div className="grid grid-cols-1 gap-2 bg-slate-50/70 p-3.5 rounded-xl border border-slate-100 text-xs">
-                    <div className="flex items-center gap-2">
-                      <Calendar className="w-4 h-4 text-blue-500 shrink-0" />
-                      <div>
-                        <span className="text-slate-500 font-bold">Thâm niên giảng dạy: </span>
-                        <span className="font-bold text-slate-800">
-                          {selectedTeacherProfile.startYear 
-                            ? `${new Date().getFullYear() - selectedTeacherProfile.startYear} năm (Bắt đầu từ ${selectedTeacherProfile.startYear})` 
-                            : 'Chưa cập nhật'}
-                        </span>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <GraduationCap className="w-4 h-4 text-indigo-505 shrink-0" />
-                      <div>
-                        <span className="text-slate-505 font-bold">Bồi dưỡng NV sư phạm: </span>
-                        <span className="font-bold text-slate-800">
-                          {selectedTeacherProfile.pedagogyCertYear 
-                            ? `Năm ${selectedTeacherProfile.pedagogyCertYear}` 
-                            : 'Chưa cập nhật'}
-                        </span>
-                      </div>
-                    </div>
-                    {selectedTeacherProfile.masterObtainYear && (
-                      <div className="flex items-center gap-2">
-                        <GraduationCap className="w-4 h-4 text-teal-500 shrink-0" />
-                        <div>
-                          <span className="text-slate-505 font-bold">Năm nhận bằng ThS: </span>
-                          <span className="font-bold text-slate-800">Năm {selectedTeacherProfile.masterObtainYear}</span>
-                        </div>
-                      </div>
-                    )}
-                    {selectedTeacherProfile.phdObtainYear && (
-                      <div className="flex items-center gap-2">
-                        <GraduationCap className="w-4 h-4 text-rose-500 shrink-0" />
-                        <div>
-                          <span className="text-slate-505 font-bold">Năm nhận bằng TS: </span>
-                          <span className="font-bold text-slate-800">Năm {selectedTeacherProfile.phdObtainYear}</span>
-                        </div>
-                      </div>
-                    )}
-                    <div className="flex items-center gap-2">
-                      <Award className="w-4 h-4 text-blue-600 shrink-0" />
-                      <div>
-                        <span className="text-slate-505 font-bold">Chức danh: </span>
-                        <span className="font-bold text-slate-800">
-                          {selectedTeacherProfile.academicTitle && selectedTeacherProfile.academicTitle !== 'Không'
-                            ? `${selectedTeacherProfile.academicTitle}${selectedTeacherProfile.academicTitleYear ? ` (Năm ${selectedTeacherProfile.academicTitleYear})` : ''}`
-                            : 'Chưa cập nhật/Không'}
-                        </span>
-                      </div>
-                    </div>
-                    {selectedTeacherProfile.gvgYears && (
-                      <div className="flex items-center gap-2">
-                        <Sparkles className="w-4 h-4 text-rose-500 shrink-0" />
-                        <div>
-                          <span className="text-slate-505 font-bold">Giảng viên giỏi (GVG): </span>
-                          <span className="font-bold text-rose-700 bg-rose-50/50 border border-rose-100 rounded px-1.5 py-0.2 text-xs">Năm {selectedTeacherProfile.gvgYears}</span>
-                        </div>
-                      </div>
-                    )}
-                    <div className="flex items-center gap-2">
-                      <Award className="w-4 h-4 text-emerald-505 shrink-0" />
-                      <div>
-                        <span className="text-slate-505 font-bold">Ngoại ngữ: </span>
-                        <span className="font-bold text-slate-800">{selectedTeacherProfile.languageCert || 'Chưa cập nhật'}</span>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Award className="w-4 h-4 text-cyan-505 shrink-0" />
-                      <div>
-                        <span className="text-slate-505 font-bold">Tin học: </span>
-                        <span className="font-bold text-slate-800">{selectedTeacherProfile.itCert || 'Chưa cập nhật'}</span>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Briefcase className="w-4 h-4 text-amber-500 shrink-0" />
-                      <div>
-                        <span className="text-slate-505 font-bold">Thực tế đơn vị: </span>
-                        <span className={`font-bold inline-block px-1.5 py-0.2 rounded text-xs ${
-                          selectedTeacherProfile.unitExperience && selectedTeacherProfile.unitExperience !== 'Chưa đi thực tế'
-                            ? 'bg-amber-50 text-amber-700 border border-amber-150'
-                            : 'bg-slate-100 text-slate-600'
-                        }`}>
-                          {selectedTeacherProfile.unitExperience 
-                            ? `${selectedTeacherProfile.unitExperience}${selectedTeacherProfile.unitExperienceYear ? ` (Năm đi: ${selectedTeacherProfile.unitExperienceYear})` : ''}` 
-                            : 'Chưa đi thực tế'}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                <div>
-                  <span className="text-slate-440 block mb-1 text-xs uppercase font-bold tracking-wider">Tình trạng miễn giảm:</span>
-                  <div className="bg-slate-50 p-3 rounded-xl flex items-center justify-between border border-slate-100">
-                    <div>
-                      <span className="text-slate-500 font-bold block text-xs">Tỷ lệ giảm:</span>
-                      <span className="text-sm font-black text-rose-600">{selectedTeacherProfile.reductionRate}%</span>
-                    </div>
-                    <div className="text-right">
-                      <span className="text-slate-500 font-bold block text-xs">Trạng thái:</span>
-                      <span className={`inline-flex items-center gap-1 font-bold text-xs ${
-                        selectedTeacherProfile.status === 'A' ? 'text-emerald-700' : 'text-slate-500'
-                      }`}>
-                        {selectedTeacherProfile.status === 'A' ? (
-                          <><UserCheck className="w-4 h-4 text-emerald-600" /> Đang hoạt động</>
-                        ) : (
-                          <><UserX className="w-4 h-4 text-rose-500" /> Nghỉ/Đi học/Chuyển</>
-                        )}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-
-              </div>
-
-              <div className="px-5 py-3 border-t border-slate-100 bg-slate-50/55 flex justify-end gap-2.5">
-                {(isAdmin || selectedTeacherProfile.id === currentTeacherId) && (
-                  <button
-                    type="button"
-                    onClick={() => {
-                        const copyingTeacher = { ...selectedTeacherProfile };
-                        setSelectedTeacherProfile(null);
-                        setTimeout(() => openEditModal(copyingTeacher), 200);
-                    }}
-                    className="inline-flex items-center justify-center gap-1 bg-blue-50 hover:bg-blue-100 active:bg-blue-200 text-blue-700 font-bold text-xs px-3.5 py-1.5 rounded-lg border border-blue-200 cursor-pointer transition-all"
-                  >
-                    <Edit2 className="w-3.5 h-3.5" />
-                    Sửa thông tin
-                  </button>
-                )}
-                <button
-                  type="button"
-                  onClick={() => setSelectedTeacherProfile(null)}
-                  className="bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold text-xs px-3.5 py-1.5 rounded-lg cursor-pointer transition-all"
-                >
-                  Đóng
-                </button>
-              </div>
-            </motion.div>
-          </div>
-        )}
-      </AnimatePresence>
 
       {/* Add/Edit Teacher Modal */}
       <AnimatePresence>

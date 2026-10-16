@@ -103,6 +103,7 @@ export interface TeachingLog {
   convertedHours: number; // Số giờ quy đổi = actualHours * coefficient
   semester: 'HK1' | 'HK2' | 'HK3';
   academicYear: string; // Ví dụ: 2024-2025
+  tkbSheets?: number; // Số tờ TKB/KH (Time schedule / Kế hoạch giảng dạy)
 }
 
 export type ResearchType = string;
@@ -112,7 +113,7 @@ export interface ResearchLog {
   teacherId: string;
   title: string; // Tên công trình / bài báo / đề tài
   type: ResearchType;
-  role: 'main' | 'co_author' | 'leader' | 'member'; // Vai trò: Tác giả chính, Đồng tác giả, Chủ trì, Thành viên
+  role: 'main' | 'leader' | 'member'; // Vai trò: Tác giả chính, Chủ trì/Chủ nhiệm, Tham gia (member)
   points: number; // Số điểm khoa học
   convertedHours: number; // Giờ quy đổi từ điểm hoặc tính trực tiếp
   publicationYear: string;
@@ -134,4 +135,32 @@ export interface AcademicYearConfig {
 export interface DepartmentConfig {
   id: string;
   name: string;
+}
+
+export interface AuditLog {
+  id: string;
+  timestamp: number;
+  action: 'CREATE' | 'UPDATE' | 'DELETE';
+  collection: string;
+  documentId: string;
+  summary: string;
+  performedBy: string;       // id người thực hiện
+  performedByName: string;   // tên người thực hiện
+}
+
+export interface UserRole {
+  teacherId: string;       // id giảng viên (trùng với Teacher.id)
+  email: string;
+  name: string;
+  role: 'admin' | 'manager' | 'moderator' | 'viewer';
+  // Phân quyền chi tiết
+  canManageTeachers: boolean;   // Quản lý hồ sơ giảng viên
+  canManageSettings: boolean;   // Quản lý cài đặt, định mức, năm học
+  canViewTeachingHours: boolean;// Xem giờ giảng dạy
+  canManageTeachingHours: boolean; // Quản lý giờ giảng dạy (thêm/sửa/xóa)
+  canViewResearch: boolean;     // Xem NCKH
+  canManageResearch: boolean;   // Quản lý NCKH (thêm/sửa/xóa)
+  canApproveResearch: boolean;  // Phê duyệt NCKH
+  canViewAuditLog: boolean;     // Xem nhật ký hệ thống
+  canManageWorkHistory: boolean;// Quản lý quá trình công tác
 }
